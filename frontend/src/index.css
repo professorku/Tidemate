@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 15px;
+  }
+
+  body {
+    @apply bg-foam text-ink antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  input,
+  select,
+  textarea {
+    @apply text-sm;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply rounded-full bg-gold px-4 py-2.5 text-sm font-semibold tracking-tight text-navy shadow-sm transition hover:brightness-95 active:scale-95;
+  }
+
+  .btn-secondary {
+    @apply rounded-full bg-navy px-4 py-2.5 text-sm font-semibold tracking-tight text-white shadow-sm transition hover:brightness-110 active:scale-95;
+  }
+
+  .btn-outline {
+    @apply rounded-full border border-slate-300 px-4 py-2.5 text-sm font-semibold tracking-tight text-slate-700 transition hover:bg-slate-100 active:scale-95;
+  }
+
+  .btn-danger {
+    @apply rounded-full bg-red-600 px-4 py-2.5 text-sm font-semibold tracking-tight text-white shadow-sm transition hover:brightness-95 active:scale-95;
+  }
+
+  .panel {
+    @apply rounded-[22px] bg-white p-5 shadow-soft md:p-6;
+  }
+
+  .panel-tight {
+    @apply rounded-[20px] bg-white p-4 shadow-soft md:p-5;
+  }
+
+  .input-base {
+    @apply w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-ocean focus:ring-2 focus:ring-ocean/10;
+  }
+
+  .badge-soft {
+    @apply rounded-full bg-mist px-3 py-1.5 text-xs font-medium text-slate-700;
+  }
+}

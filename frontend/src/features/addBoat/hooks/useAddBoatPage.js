@@ -1,0 +1,132 @@
+import { useEffect, useMemo, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { useNavigate } from 'react-router-dom'
+import { createListing } from '../../../api/domains/listings'
+import { getErrorMessage } from '../../../utils/errors'
+
+const INITIAL_FORM = {
+  title: '',
+  description: '',
+  boat_type: 'rib',
+  location_name: '',
+  latitude: '',
+  longitude: '',
+  guests: '',
+  price_per_day: '',
+}
+
+export function useAddBoatPage() {
+  const navigate = useNavigate()
+  const formMethods = useForm({ defaultValues: INITIAL_FORM, mode: 'onBlur' })
+  const values = formMethods.watch()
+
+  const [images, setImages] = useState([])
+  const [coverIndex, setCoverIndex] = useState(0)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const previews = useMemo(() => {
+    return images.map((file) => ({
+      file,
+      url: URL.createObjectURL(file),
+    }))
+  }, [images])
+
+  useEffect(() => {
+    return () => {
+      previews.forEach((item) => URL.revokeObjectURL(item.url))
+    }
+  }, [previews])
+
+  const handleLocationChange = ({ latitude, longitude, location_name }) => {
+    formMethods.setValue('latitude', latitude, { shouldDirty: true })
+    formMethods.setValue('longitude', longitude, { shouldDirty: true })
+    formMethods.setValue('location_name', location_name, { shouldDirty: true })
+    if (error) setError('')
+  }
+
+  const handleImagesChange = (e) => {
+    const files = Array.from(e.target.files || [])
+    if (!files.length) return
+
+    setImages((prev) => {
+      const next = [...prev, ...files]
+      if (prev.length === 0) {
+        setCoverIndex(0)
+      }
+      return next
+    })
+
+    e.target.value = ''
+    if (error) setError('')
+  }
+
+  const removeImageAt = (indexToRemove) => {
+    setImages((prev) => prev.filter((_, index) => index !== indexToRemove))
+    setCoverIndex((prev) => {
+      if (indexToRemove === prev) return 0
+      if (indexToRemove < prev) return prev - 1
+      return prev
+    })
+  }
+
+  const handleSubmit = formMethods.handleSubmit(async (form) => {
+    setError('')
+
+    if (!form.latitude || !form.longitude) {
+      setError('Please choose a location on the map.')
+      return
+    }
+
+    if (images.length === 0) {
+      setError('Please upload at least one photo.')
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const data = new FormData()
+      data.append('title', form.title)
+      data.append('description', form.description)
+      data.append('boat_type', form.boat_type)
+      data.append('location_name', form.location_name)
+      data.append('latitude', form.latitude)
+      data.append('longitude', form.longitude)
+      data.append('guests', form.guests)
+      data.append('price_per_day', form.price_per_day)
+      data.append('cover_index', String(coverIndex))
+
+      images.forEach((file) => {
+        data.append('new_images', file)
+      })
+
+      await createListing(data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+
+      navigate('/my-boats')
+    } catch (err) {
+      setError(getErrorMessage(err, 'Could not create boat listing.'))
+    } finally {
+      setLoading(false)
+    }
+  })
+
+  return {
+    formMethods,
+    form: values,
+    images,
+    previews,
+    coverIndex,
+    loading,
+    error,
+    handleLocationChange,
+    handleImagesChange,
+    removeImageAt,
+    setCoverIndex,
+    handleSubmit,
+  }
+}

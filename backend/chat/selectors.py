@@ -1,0 +1,135 @@
+from django.db.models import Count, F, OuterRef, Q, Subquery, Value, TextField
+from django.db.models.functions import Coalesce
+
+from .models import Conversation, Message
+
+
+def conversation_base_queryset():
+    return Conversation.objects.select_related(
+        'booking',
+        'booking__boat',
+        'host',
+        'host__profile',
+        'renter',
+        'renter__profile',
+    )
+
+
+def annotate_conversation_metrics(queryset, *, viewer=None):
+    latest_message_queryset = Message.objects.filter(
+        conversation=OuterRef('pk')
+    ).order_by('-created_at')
+
+    annotated = queryset.annotate(
+        latest_message_text=Coalesce(
+            Subquery(latest_message_queryset.values('text')[:1]),
+            Value('', output_field=TextField()),
+            output_field=TextField(),
+        ),
+        latest_message_at=Coalesce(
+            Subquery(latest_message_queryset.values('created_at')[:1]),
+            F('created_at'),
+        ),
+        message_count=Count('messages', distinct=True),
+    )
+
+    if viewer and getattr(viewer, 'is_authenticated', False):
+        annotated = annotated.annotate(
+            unread_count=Count(
+                'messages',
+                filter=Q(messages__is_read=False) & ~Q(messages__sender=viewer),
+                distinct=True,
+            )
+        )
+    else:
+        annotated = annotated.annotate(
+            unread_count=Count('messages', filter=Q(messages__is_read=False), distinct=True)
+        )
+
+    return annotated
+
+
+def get_user_conversations(user):
+    return (
+        annotate_conversation_metrics(
+            conversation_base_queryset().filter(Q(host=user) | Q(renter=user)),
+            viewer=user,
+        )
+        .order_by('-latest_message_at', '-created_at', '-id')
+    )
+
+
+def get_user_conversation_counts(user):
+    queryset = conversation_base_queryset().filter(Q(host=user) | Q(renter=user))
+    return queryset.aggregate(
+        all_count=Count('id', distinct=True),
+        booking_count=Count('id', filter=Q(conversation_type='booking'), distinct=True),
+        direct_count=Count('id', filter=Q(conversation_type='direct'), distinct=True),
+        unread_count=Count(
+            'id',
+            filter=Q(messages__is_read=False) & ~Q(messages__sender=user),
+            distinct=True,
+        ),
+    )
+
+
+def get_direct_conversation_between_users(user_a, user_b):
+    low_id, high_id = sorted([user_a.id, user_b.id])
+    return (
+        conversation_base_queryset()
+        .filter(
+            conversation_type='direct',
+            direct_user_low_id=low_id,
+            direct_user_high_id=high_id,
+        )
+        .first()
+    )
+
+
+def get_visible_conversation_for_user(user, conversation_id):
+    return (
+        conversation_base_queryset()
+        .filter(
+            Q(id=conversation_id),
+            Q(host=user) | Q(renter=user),
+        )
+        .first()
+    )
+
+
+def get_conversation_messages(conversation):
+    return conversation.messages.select_related('sender').order_by('-created_at', '-id')
+
+
+def mark_messages_as_read_for_viewer(conversation, viewer):
+    return (
+        conversation.messages.filter(is_read=False)
+        .exclude(sender=viewer)
+        .update(is_read=True)
+    )
+
+
+def get_target_user_by_id(user_id):
+    from django.contrib.auth.models import User
+
+    if not user_id:
+        return None
+
+    try:
+        return User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        return None
+
+
+def get_message_with_conversation(message_id):
+    return (
+        Message.objects.select_related(
+            'conversation',
+            'conversation__booking',
+            'conversation__host',
+            'conversation__renter',
+            'sender',
+        )
+        .filter(pk=message_id)
+        .first()
+    )
