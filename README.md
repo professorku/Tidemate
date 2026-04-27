@@ -2,6 +2,8 @@
 
 TideMate is a full-stack Boatbnb-style marketplace for boat listings, bookings, favorites, reviews, chat, and notifications.
 
+NB: This project is under active development and was built as a student/portfolio project. Some features are still being improved.
+
 ## Stack
 
 - Frontend: React, Vite, React Router, Tailwind CSS, Axios, Leaflet
