@@ -27,13 +27,13 @@ TideMate is a full-stack Boatbnb-style marketplace for boat listings, bookings, 
 ## Screenshots
 
 ### Homepage
-![TideMate homepage](docs/screenshots/homepage.png)
+<img src="docs/screenshots/homepage.png" alt="TideMate homepage" width="900">
 
 ### My bookings
-![TideMate my bookings page](docs/screenshots/my-bookings.png)
+<img src="docs/screenshots/my-bookings.png" alt="TideMate my bookings page" width="900">
 
 ### Host bookings
-![TideMate host bookings page](docs/screenshots/host-bookings.png)
+<img src="docs/screenshots/host-bookings.png" alt="TideMate host bookings page" width="900">
 
 ## Clean local setup
 
