@@ -12,6 +12,18 @@ TideMate is a full-stack Boatbnb-style marketplace for boat listings, bookings, 
 - `frontend/` – React app
 - `backend/` – Django API
 
+## Features
+
+- User registration, login, logout, and email verification
+- Boat listing creation and editing for hosts
+- Booking flow for renters
+- Favorites system
+- Reviews for boats/users
+- Real-time chat with Django Channels/WebSockets
+- Real-time notifications
+- Search and filtering
+- Responsive React frontend
+
 ## Clean local setup
 
 This project is set up for local development with a Vite dev proxy so the browser can call `/api/...` on the frontend origin and Vite forwards those requests to Django at `http://localhost:8000`.
