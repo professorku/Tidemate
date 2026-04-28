@@ -1,8 +1,13 @@
+from io import BytesIO
+from pathlib import Path
 from warnings import catch_warnings, simplefilter
 
-from PIL import Image, UnidentifiedImageError
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.utils.text import get_valid_filename
+from PIL import Image, ImageOps, UnidentifiedImageError
 from PIL.Image import DecompressionBombError, DecompressionBombWarning
 from rest_framework import serializers
+
 
 ALLOWED_IMAGE_MIME_TYPES = {
     "image/jpeg",
@@ -25,13 +30,41 @@ MAX_IMAGE_WIDTH_PX = 8000
 MAX_IMAGE_HEIGHT_PX = 8000
 MAX_IMAGE_TOTAL_PIXELS = 25_000_000
 
+SANITIZED_JPEG_QUALITY = 85
+SANITIZED_IMAGE_SUFFIX = "sanitized"
+
+
+class ImageUploadInfo:
+    def __init__(self, image_format, width, height):
+        self.image_format = image_format
+        self.width = width
+        self.height = height
+
 
 def _build_invalid_type_message(field_label):
     return f"{field_label} must be a JPG, PNG, WEBP, or GIF image."
 
 
-def _validate_image_bytes(upload, *, field_label):
-    current_position = upload.tell() if hasattr(upload, "tell") else None
+def _remember_position(upload):
+    if hasattr(upload, "tell"):
+        try:
+            return upload.tell()
+        except (OSError, ValueError):
+            return None
+
+    return None
+
+
+def _restore_position(upload, position):
+    if hasattr(upload, "seek"):
+        try:
+            upload.seek(position or 0)
+        except (OSError, ValueError):
+            pass
+
+
+def _inspect_image_bytes(upload, *, field_label):
+    current_position = _remember_position(upload)
 
     try:
         with catch_warnings():
@@ -50,27 +83,177 @@ def _validate_image_bytes(upload, *, field_label):
                 width, height = image.size
 
         if image_format not in ALLOWED_IMAGE_FORMATS:
-            raise serializers.ValidationError(_build_invalid_type_message(field_label))
+            raise serializers.ValidationError(
+                _build_invalid_type_message(field_label)
+            )
 
         total_pixels = width * height
-        if width > MAX_IMAGE_WIDTH_PX or height > MAX_IMAGE_HEIGHT_PX or total_pixels > MAX_IMAGE_TOTAL_PIXELS:
+
+        if (
+            width > MAX_IMAGE_WIDTH_PX
+            or height > MAX_IMAGE_HEIGHT_PX
+            or total_pixels > MAX_IMAGE_TOTAL_PIXELS
+        ):
             raise serializers.ValidationError(
-                f"{field_label} dimensions are too large. Maximum supported size is {MAX_IMAGE_WIDTH_PX}x{MAX_IMAGE_HEIGHT_PX} pixels."
+                f"{field_label} dimensions are too large. "
+                f"Maximum supported size is {MAX_IMAGE_WIDTH_PX}x{MAX_IMAGE_HEIGHT_PX} pixels."
             )
+
+        return ImageUploadInfo(
+            image_format=image_format,
+            width=width,
+            height=height,
+        )
 
     except serializers.ValidationError:
         raise
+
     except (DecompressionBombWarning, DecompressionBombError):
         raise serializers.ValidationError(
             f"{field_label} is too large or complex to be processed safely."
         )
+
     except (UnidentifiedImageError, OSError, ValueError):
         raise serializers.ValidationError(
             f"{field_label} must be a valid, non-corrupted image file."
         )
+
     finally:
+        _restore_position(upload, current_position)
+
+
+def _image_has_alpha(image):
+    if image.mode in ("RGBA", "LA"):
+        return True
+
+    if image.mode == "P" and "transparency" in image.info:
+        return True
+
+    return False
+
+
+def _build_sanitized_filename(original_name, extension):
+    original_name = original_name or "upload"
+    stem = Path(original_name).stem or "upload"
+    safe_stem = get_valid_filename(stem) or "upload"
+
+    return f"{safe_stem}_{SANITIZED_IMAGE_SUFFIX}.{extension}"
+
+
+def _prepare_image_for_saving(image):
+    """
+    Normalize the image before storing it:
+
+    - apply EXIF orientation to the actual pixels
+    - drop EXIF and metadata by saving into a fresh file
+    - convert animated images to their first frame
+    - use PNG when transparency exists
+    - use JPEG otherwise
+    """
+    image.seek(0)
+    image = ImageOps.exif_transpose(image)
+
+    has_alpha = _image_has_alpha(image)
+
+    if has_alpha:
+        if image.mode not in ("RGBA", "LA"):
+            image = image.convert("RGBA")
+
+        return image, "PNG", "png", "image/png"
+
+    if image.mode != "RGB":
+        image = image.convert("RGB")
+
+    return image, "JPEG", "jpg", "image/jpeg"
+
+
+def sanitize_image_upload(upload, *, field_label, max_size_bytes):
+    """
+    Return a sanitized copy of a validated upload.
+
+    This avoids storing the original user-supplied bytes.
+
+    Security/privacy benefits:
+
+    - strips EXIF metadata, including possible GPS data
+    - strips camera/device metadata
+    - applies EXIF orientation safely
+    - re-encodes the image into a clean JPEG or PNG
+    - flattens GIF/animated uploads to the first frame
+    """
+    current_position = _remember_position(upload)
+
+    try:
         if hasattr(upload, "seek"):
-            upload.seek(current_position or 0)
+            upload.seek(0)
+
+        with catch_warnings():
+            simplefilter("error", DecompressionBombWarning)
+
+            with Image.open(upload) as image:
+                image.load()
+
+                sanitized_image, save_format, extension, content_type = (
+                    _prepare_image_for_saving(image)
+                )
+
+                output = BytesIO()
+                save_kwargs = {}
+
+                if save_format == "JPEG":
+                    save_kwargs.update(
+                        {
+                            "quality": SANITIZED_JPEG_QUALITY,
+                            "optimize": True,
+                            "progressive": True,
+                        }
+                    )
+
+                elif save_format == "PNG":
+                    save_kwargs.update(
+                        {
+                            "optimize": True,
+                        }
+                    )
+
+                sanitized_image.save(output, format=save_format, **save_kwargs)
+
+        sanitized_bytes = output.getvalue()
+
+        if len(sanitized_bytes) > max_size_bytes:
+            max_size_mb = max_size_bytes / (1024 * 1024)
+
+            raise serializers.ValidationError(
+                f"{field_label} is too large after sanitizing. "
+                f"Please upload an image that can be stored as {max_size_mb:.0f} MB or smaller."
+            )
+
+        sanitized_name = _build_sanitized_filename(
+            getattr(upload, "name", None),
+            extension,
+        )
+
+        return SimpleUploadedFile(
+            sanitized_name,
+            sanitized_bytes,
+            content_type=content_type,
+        )
+
+    except serializers.ValidationError:
+        raise
+
+    except (DecompressionBombWarning, DecompressionBombError):
+        raise serializers.ValidationError(
+            f"{field_label} is too large or complex to be processed safely."
+        )
+
+    except (UnidentifiedImageError, OSError, ValueError):
+        raise serializers.ValidationError(
+            f"{field_label} could not be sanitized. Please upload a valid image file."
+        )
+
+    finally:
+        _restore_position(upload, current_position)
 
 
 def validate_image_upload(upload, *, field_label, max_size_bytes):
@@ -78,19 +261,28 @@ def validate_image_upload(upload, *, field_label, max_size_bytes):
         return upload
 
     content_type = getattr(upload, "content_type", None)
+
     if content_type not in ALLOWED_IMAGE_MIME_TYPES:
-        raise serializers.ValidationError(_build_invalid_type_message(field_label))
+        raise serializers.ValidationError(
+            _build_invalid_type_message(field_label)
+        )
 
     file_size = getattr(upload, "size", None)
+
     if file_size is not None and file_size > max_size_bytes:
         max_size_mb = max_size_bytes / (1024 * 1024)
+
         raise serializers.ValidationError(
             f"{field_label} must be {max_size_mb:.0f} MB or smaller."
         )
 
-    _validate_image_bytes(upload, field_label=field_label)
+    _inspect_image_bytes(upload, field_label=field_label)
 
-    return upload
+    return sanitize_image_upload(
+        upload,
+        field_label=field_label,
+        max_size_bytes=max_size_bytes,
+    )
 
 
 def validate_image_upload_list(uploads, *, field_label, max_count, max_size_bytes):
@@ -101,11 +293,15 @@ def validate_image_upload_list(uploads, *, field_label, max_count, max_size_byte
             f"You can upload at most {max_count} {field_label.lower()}."
         )
 
+    sanitized_uploads = []
+
     for upload in uploads:
-        validate_image_upload(
-            upload,
-            field_label=field_label,
-            max_size_bytes=max_size_bytes,
+        sanitized_uploads.append(
+            validate_image_upload(
+                upload,
+                field_label=field_label,
+                max_size_bytes=max_size_bytes,
+            )
         )
 
-    return uploads
+    return sanitized_uploads
