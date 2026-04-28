@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.core import signing
 from django.core.mail import send_mail
-from django.db import transaction
+from django.db import IntegrityError, transaction
 
 from .models import Profile
 
@@ -106,8 +106,17 @@ def _get_email_change_max_age_seconds() -> int:
     )
 
 
-@transaction.atomic
 def verify_email_change_token(token: str) -> User:
+    try:
+        return _verify_email_change_token_in_transaction(token)
+    except IntegrityError:
+        # Database-level protection for the race where another user verifies or
+        # signs up with the same email after the application-level check.
+        raise signing.BadSignature("Email address is already in use.")
+
+
+@transaction.atomic
+def _verify_email_change_token_in_transaction(token: str) -> User:
     payload = signing.loads(
         token,
         salt=EMAIL_CHANGE_VERIFICATION_SALT,

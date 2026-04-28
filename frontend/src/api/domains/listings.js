@@ -1,6 +1,8 @@
 import { apiDelete, apiGet, apiPost, apiPut, toPaginatedData, toResultsArray } from '../client'
 import { normalizeCollection, normalizeListing } from '../../types/domain'
 
+const HOST_LISTINGS_PAGE_SIZE = 48
+
 export function listListings(params) {
   return apiGet('/listings/', { params })
 }
@@ -24,12 +26,51 @@ export function getListingConditions(listingId) {
   return apiGet(`/listings/${listingId}/conditions/`)
 }
 
-export async function getListingsByHost(hostId, params) {
-  const listings = await listListings(params)
-  return normalizeCollection(
-    toResultsArray(listings).filter((listing) => Number(listing.host_id) === Number(hostId)),
-    normalizeListing
-  )
+export async function getListingsByHost(hostId, params = {}) {
+  const normalizedHostId = Number(hostId)
+
+  if (!Number.isInteger(normalizedHostId) || normalizedHostId <= 0) {
+    return []
+  }
+
+  const {
+    page,
+    page_size,
+    pageSize,
+    ...restParams
+  } = params || {}
+
+  const requestedPageSize = Number(page_size || pageSize || HOST_LISTINGS_PAGE_SIZE)
+  const safePageSize =
+    Number.isInteger(requestedPageSize) && requestedPageSize > 0
+      ? Math.min(requestedPageSize, HOST_LISTINGS_PAGE_SIZE)
+      : HOST_LISTINGS_PAGE_SIZE
+
+  let currentPage = Number(page || 1)
+
+  if (!Number.isInteger(currentPage) || currentPage <= 0) {
+    currentPage = 1
+  }
+
+  const results = []
+  let hasNext = true
+
+  while (hasNext) {
+    const data = await listListings({
+      ...restParams,
+      host_id: normalizedHostId,
+      page: currentPage,
+      page_size: safePageSize,
+    })
+
+    const pageData = toPaginatedData(data, { fallbackPageSize: safePageSize })
+    results.push(...pageData.results)
+
+    hasNext = Boolean(pageData.hasNext)
+    currentPage += 1
+  }
+
+  return normalizeCollection(results, normalizeListing)
 }
 
 export async function getNearbyListings({ latitude, longitude, excludeId, radiusKm = 25, page = 1, pageSize = 6 }) {

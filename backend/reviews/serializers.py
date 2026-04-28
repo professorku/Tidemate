@@ -3,7 +3,7 @@ from datetime import datetime, time
 from django.utils import timezone
 from rest_framework import serializers
 
-from .models import Review
+from .models import Review, MAX_REVIEW_COMMENT_LENGTH
 
 
 BOOKING_RETURN_TIME = time(hour=12, minute=0)
@@ -54,6 +54,12 @@ class CreateReviewSerializer(serializers.ModelSerializer):
     review_type = serializers.ChoiceField(
         choices=[Review.REVIEW_TYPE_BOAT, Review.REVIEW_TYPE_USER]
     )
+    comment = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        max_length=MAX_REVIEW_COMMENT_LENGTH,
+        trim_whitespace=True,
+    )
 
     class Meta:
         model = Review
@@ -63,6 +69,9 @@ class CreateReviewSerializer(serializers.ModelSerializer):
         if value < 1 or value > 5:
             raise serializers.ValidationError('Rating must be between 1 and 5.')
         return value
+
+    def validate_comment(self, value):
+        return (value or '').strip()
 
     def validate(self, attrs):
         request = self.context['request']

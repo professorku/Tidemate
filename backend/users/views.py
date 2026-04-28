@@ -13,7 +13,6 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
@@ -62,7 +61,7 @@ logger = logging.getLogger(__name__)
 class TideMateTokenObtainPairSerializer(TokenObtainPairSerializer):
     default_error_messages = {
         **TokenObtainPairSerializer.default_error_messages,
-        "inactive_account": "Please verify your email before logging in.",
+        "no_active_account": "Invalid username or password.",
     }
 
     @classmethod
@@ -79,11 +78,10 @@ class TideMateTokenObtainPairSerializer(TokenObtainPairSerializer):
 
     def validate(self, attrs):
         username = attrs.get(self.username_field, "")
-        normalized_username = username.strip()
-        attrs[self.username_field] = normalized_username
-        user = User.objects.filter(username__iexact=normalized_username).first()
-        if user and not user.is_active:
-            raise AuthenticationFailed(self.error_messages["inactive_account"], code="inactive_account")
+
+        if isinstance(username, str):
+            attrs[self.username_field] = username.strip()
+
         return super().validate(attrs)
 
 

@@ -4,6 +4,9 @@ from django.conf import settings
 from rest_framework.exceptions import ValidationError
 
 
+MAX_LISTING_SEARCH_QUERY_LENGTH = 100
+
+
 def _clean_raw_value(value):
     """
     Query params arrive as strings. Treat None, empty string, and whitespace-only
@@ -99,11 +102,31 @@ def parse_choice_param(params, key, allowed_values):
     return raw_value
 
 
+def parse_search_query_param(params):
+    q = _clean_raw_value(params.get("q"))
+
+    if q is None:
+        return None
+
+    q = str(q).strip()
+
+    if not q:
+        return None
+
+    if len(q) > MAX_LISTING_SEARCH_QUERY_LENGTH:
+        raise ValidationError({
+            "q": f"Search query cannot exceed {MAX_LISTING_SEARCH_QUERY_LENGTH} characters."
+        })
+
+    return q
+
+
 def parse_basic_search_params(params, allowed_boat_types):
     min_guests = parse_positive_int_param(params, "min_guests")
     min_price = parse_non_negative_decimal_param(params, "min_price")
     max_price = parse_non_negative_decimal_param(params, "max_price")
     exclude_id = parse_positive_int_param(params, "exclude_id")
+    host_id = parse_positive_int_param(params, "host_id")
     boat_type = parse_choice_param(params, "boat_type", allowed_boat_types)
 
     if min_price is not None and max_price is not None and max_price < min_price:
@@ -111,7 +134,7 @@ def parse_basic_search_params(params, allowed_boat_types):
             "max_price": "Must be greater than or equal to min_price."
         })
 
-    q = _clean_raw_value(params.get("q"))
+    q = parse_search_query_param(params)
 
     return {
         "q": q,
@@ -120,6 +143,7 @@ def parse_basic_search_params(params, allowed_boat_types):
         "min_price": min_price,
         "max_price": max_price,
         "exclude_id": exclude_id,
+        "host_id": host_id,
     }
 
 

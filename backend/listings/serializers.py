@@ -8,7 +8,22 @@ from config.uploads import (
     validate_image_upload_list,
 )
 
-from .models import BoatListing, BoatImage
+from .models import (
+    BoatListing,
+    BoatImage,
+    MAX_BOAT_GUESTS,
+    MAX_LATITUDE,
+    MAX_LISTING_TITLE_LENGTH,
+    MAX_LOCATION_NAME_LENGTH,
+    MAX_LONGITUDE,
+    MAX_PRICE_PER_DAY,
+    MIN_BOAT_GUESTS,
+    MIN_LATITUDE,
+    MIN_LISTING_TITLE_LENGTH,
+    MIN_LOCATION_NAME_LENGTH,
+    MIN_LONGITUDE,
+    MIN_PRICE_PER_DAY,
+)
 from .services.listing_images import (
     set_cover_by_index,
     set_cover_by_id,
@@ -119,6 +134,21 @@ class BoatListingSerializer(serializers.ModelSerializer):
     def get_blocked_ranges(self, obj):
         return get_blocked_ranges(obj)
 
+    def validate_title(self, value):
+        title = (value or '').strip()
+
+        if len(title) < MIN_LISTING_TITLE_LENGTH:
+            raise serializers.ValidationError(
+                f'Title must be at least {MIN_LISTING_TITLE_LENGTH} characters.'
+            )
+
+        if len(title) > MAX_LISTING_TITLE_LENGTH:
+            raise serializers.ValidationError(
+                f'Title cannot exceed {MAX_LISTING_TITLE_LENGTH} characters.'
+            )
+
+        return title
+
     def validate_description(self, value):
         description = (value or '').strip()
 
@@ -129,6 +159,65 @@ class BoatListingSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Description cannot exceed 2000 characters.')
 
         return description
+
+    def validate_location_name(self, value):
+        location_name = (value or '').strip()
+
+        if len(location_name) < MIN_LOCATION_NAME_LENGTH:
+            raise serializers.ValidationError(
+                f'Location name must be at least {MIN_LOCATION_NAME_LENGTH} characters.'
+            )
+
+        if len(location_name) > MAX_LOCATION_NAME_LENGTH:
+            raise serializers.ValidationError(
+                f'Location name cannot exceed {MAX_LOCATION_NAME_LENGTH} characters.'
+            )
+
+        return location_name
+
+    def validate_guests(self, value):
+        if value < MIN_BOAT_GUESTS:
+            raise serializers.ValidationError(
+                f'Guests must be at least {MIN_BOAT_GUESTS}.'
+            )
+
+        if value > MAX_BOAT_GUESTS:
+            raise serializers.ValidationError(
+                f'Guests cannot exceed {MAX_BOAT_GUESTS}.'
+            )
+
+        return value
+
+    def validate_price_per_day(self, value):
+        if value < MIN_PRICE_PER_DAY:
+            raise serializers.ValidationError(
+                f'Price per day must be at least {MIN_PRICE_PER_DAY}.'
+            )
+
+        if value > MAX_PRICE_PER_DAY:
+            raise serializers.ValidationError(
+                f'Price per day cannot exceed {MAX_PRICE_PER_DAY}.'
+            )
+
+        return value
+
+    def validate_latitude(self, value):
+        if value is None:
+            return value
+
+        if value < MIN_LATITUDE or value > MAX_LATITUDE:
+            raise serializers.ValidationError('Latitude must be between -90 and 90.')
+
+        return value
+
+    def validate_longitude(self, value):
+        if value is None:
+            return value
+
+        if value < MIN_LONGITUDE or value > MAX_LONGITUDE:
+            raise serializers.ValidationError('Longitude must be between -180 and 180.')
+
+        return value
 
     def validate_cover_index(self, value):
         if value < 0:

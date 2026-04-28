@@ -4,6 +4,9 @@ from django.db import models
 from listings.models import BoatListing
 
 
+MAX_BOOKING_CANCELLATION_REASON_LENGTH = 500
+
+
 class Booking(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
@@ -31,7 +34,10 @@ class Booking(models.Model):
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
 
-    cancellation_reason = models.TextField(blank=True)
+    cancellation_reason = models.CharField(
+        max_length=MAX_BOOKING_CANCELLATION_REASON_LENGTH,
+        blank=True,
+    )
     cancelled_by = models.CharField(
         max_length=20,
         choices=CANCELLED_BY_CHOICES,

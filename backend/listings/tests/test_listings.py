@@ -282,6 +282,56 @@ class ListingSearchValidationTests(APITestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertIn("longitude", response.json())
+    
+    def test_host_id_filter_returns_only_that_hosts_boats(self):
+        other_host = User.objects.create_user(
+            username="other-search-host",
+            password="strong-pass-123",
+        )
+
+        BoatListing.objects.create(
+            host=other_host,
+            title="Other Host Boat",
+            description="A boat that belongs to another host.",
+            boat_type="sailboat",
+            location_name="Trondheim",
+            guests=6,
+            price_per_day=Decimal("2000.00"),
+        )
+
+        response = self.client.get(
+            reverse("boat-list-create"),
+            {"host_id": str(self.host.id)},
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        results = response.json()["results"]
+        self.assertGreaterEqual(len(results), 1)
+        self.assertTrue(
+            all(result["host_id"] == self.host.id for result in results)
+        )
+
+
+    def test_invalid_host_id_returns_400(self):
+        response = self.client.get(
+            reverse("boat-list-create"),
+            {"host_id": "abc"},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("host_id", response.json())
+
+
+    def test_negative_host_id_returns_400(self):
+        response = self.client.get(
+            reverse("boat-list-create"),
+            {"host_id": "-1"},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("host_id", response.json()) 
+    
 
 from django.core.cache import cache
 from django.test import override_settings
@@ -362,3 +412,116 @@ class MarineConditionsCacheTests(TestCase):
 
         with self.assertRaises(ValueError):
             get_boat_conditions(67.2804, 220)
+
+class BoatListingValueValidationTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='value-host',
+            password='strong-pass-123',
+        )
+
+    def _base_payload(self):
+        return {
+            'title': 'Valid Boat Title',
+            'description': 'This is a valid boat description for serializer tests.',
+            'boat_type': 'motorboat',
+            'location_name': 'Mo i Rana',
+            'guests': 5,
+            'price_per_day': '1200.00',
+            'latitude': '66.312800',
+            'longitude': '14.142800',
+        }
+
+    def _serializer(self, payload):
+        return BoatListingSerializer(
+            data=payload,
+            context={'request': type('Req', (), {'user': self.user})()},
+        )
+
+    def test_rejects_too_short_title(self):
+        serializer = self._serializer({
+            **self._base_payload(),
+            'title': 'Bo',
+        })
+
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('title', serializer.errors)
+
+    def test_trims_title_and_location_name(self):
+        serializer = self._serializer({
+            **self._base_payload(),
+            'title': '   Clean Boat Title   ',
+            'location_name': '   Bodø   ',
+        })
+
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        self.assertEqual(serializer.validated_data['title'], 'Clean Boat Title')
+        self.assertEqual(serializer.validated_data['location_name'], 'Bodø')
+
+    def test_rejects_zero_price(self):
+        serializer = self._serializer({
+            **self._base_payload(),
+            'price_per_day': '0.00',
+        })
+
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('price_per_day', serializer.errors)
+
+    def test_rejects_negative_price(self):
+        serializer = self._serializer({
+            **self._base_payload(),
+            'price_per_day': '-100.00',
+        })
+
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('price_per_day', serializer.errors)
+
+    def test_rejects_unreasonably_high_price(self):
+        serializer = self._serializer({
+            **self._base_payload(),
+            'price_per_day': '100001.00',
+        })
+
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('price_per_day', serializer.errors)
+
+    def test_rejects_zero_guests(self):
+        serializer = self._serializer({
+            **self._base_payload(),
+            'guests': 0,
+        })
+
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('guests', serializer.errors)
+
+    def test_rejects_unreasonably_high_guests(self):
+        serializer = self._serializer({
+            **self._base_payload(),
+            'guests': 101,
+        })
+
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('guests', serializer.errors)
+
+    def test_rejects_invalid_latitude(self):
+        serializer = self._serializer({
+            **self._base_payload(),
+            'latitude': '91.000000',
+        })
+
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('latitude', serializer.errors)
+
+    def test_rejects_invalid_longitude(self):
+        serializer = self._serializer({
+            **self._base_payload(),
+            'longitude': '181.000000',
+        })
+
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('longitude', serializer.errors)
+
+    def test_accepts_valid_listing_values(self):
+        serializer = self._serializer(self._base_payload())
+
+        self.assertTrue(serializer.is_valid(), serializer.errors)

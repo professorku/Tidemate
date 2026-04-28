@@ -3,7 +3,7 @@ from datetime import date
 from rest_framework import serializers
 
 from .creation import create_pending_booking
-from .models import Booking
+from .models import Booking, MAX_BOOKING_CANCELLATION_REASON_LENGTH
 
 
 class BookingCreateSerializer(serializers.ModelSerializer):
@@ -57,7 +57,13 @@ class BookingCreateSerializer(serializers.ModelSerializer):
 
 
 class BookingCancelSerializer(serializers.Serializer):
-    reason = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    reason = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        allow_null=True,
+        max_length=MAX_BOOKING_CANCELLATION_REASON_LENGTH,
+        trim_whitespace=True,
+    )
 
     def validate_reason(self, value):
         return (value or '').strip()

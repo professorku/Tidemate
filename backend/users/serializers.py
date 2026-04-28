@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
+from django.db import IntegrityError
 from rest_framework import serializers
 
 from .profile_serializers import MyProfileSerializer, PublicProfileSerializer
@@ -33,12 +34,20 @@ class SignupSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-        return User.objects.create_user(
-            username=validated_data["username"],
-            email=validated_data["email"],
-            password=validated_data["password"],
-            is_active=False,
-        )
+        try:
+            return User.objects.create_user(
+                username=validated_data["username"],
+                email=validated_data["email"],
+                password=validated_data["password"],
+                is_active=False,
+            )
+        except IntegrityError:
+            # The serializer validation above gives a nice user-facing error in
+            # normal cases. This catches the database-level unique index if two
+            # signup requests race each other with the same email/username.
+            raise serializers.ValidationError({
+                "detail": "An account with this username or email already exists."
+            })
 
 
 class ForgotPasswordSerializer(serializers.Serializer):

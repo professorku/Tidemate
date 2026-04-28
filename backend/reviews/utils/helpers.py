@@ -1,1 +1,1 @@
-from ..review_helpers import *
+from reviews.review_helpers import *

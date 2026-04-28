@@ -4,9 +4,12 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 
+MAX_PROFILE_BIO_LENGTH = 1000
+
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    bio = models.TextField(blank=True)
+    bio = models.CharField(max_length=MAX_PROFILE_BIO_LENGTH, blank=True)
     location = models.CharField(max_length=120, blank=True)
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
 

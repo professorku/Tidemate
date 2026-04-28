@@ -6,6 +6,9 @@ from bookings.models import Booking
 from listings.models import BoatListing
 
 
+MAX_REVIEW_COMMENT_LENGTH = 1000
+
+
 class Review(models.Model):
     REVIEW_TYPE_BOAT = 'boat'
     REVIEW_TYPE_USER = 'user'
@@ -58,7 +61,7 @@ class Review(models.Model):
     )
 
     rating = models.PositiveSmallIntegerField()
-    comment = models.TextField(blank=True)
+    comment = models.CharField(max_length=MAX_REVIEW_COMMENT_LENGTH, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:

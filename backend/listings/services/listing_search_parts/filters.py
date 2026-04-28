@@ -16,6 +16,7 @@ def apply_basic_filters(queryset, params):
     min_price = parsed_params["min_price"]
     max_price = parsed_params["max_price"]
     exclude_id = parsed_params["exclude_id"]
+    host_id = parsed_params["host_id"]
 
     if q:
         queryset = queryset.filter(
@@ -36,6 +37,9 @@ def apply_basic_filters(queryset, params):
 
     if exclude_id is not None:
         queryset = queryset.exclude(id=exclude_id)
+
+    if host_id is not None:
+        queryset = queryset.filter(host_id=host_id)
 
     return queryset
 

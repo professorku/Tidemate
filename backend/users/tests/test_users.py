@@ -158,23 +158,23 @@ class EmailVerificationTests(TestCase):
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn('/verify-email?token=', mail.outbox[0].body)
 
-    def test_unverified_user_cannot_log_in(self):
+    def test_wrong_password_returns_same_generic_error_as_unverified_user(self):
         User.objects.create_user(
-            username='pendingcaptain',
-            email='pending@example.com',
+            username='activecaptain',
+            email='active@example.com',
             password='strong-pass-123',
-            is_active=False,
+            is_active=True,
         )
 
         response = self.client.post(
             '/api/users/login/',
-            {'username': 'pendingcaptain', 'password': 'strong-pass-123'},
+            {'username': 'activecaptain', 'password': 'wrong-password'},
             content_type='application/json',
             HTTP_X_CSRFTOKEN=self.csrf_token,
         )
 
         self.assertEqual(response.status_code, 401)
-        self.assertEqual(response.json()['detail'], 'Please verify your email before logging in.')
+        self.assertEqual(response.json()['detail'], 'Invalid username or password.')
 
     def test_verify_email_activates_user(self):
         user = User.objects.create_user(

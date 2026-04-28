@@ -5,7 +5,7 @@ from rest_framework import serializers
 from config.uploads import MAX_AVATAR_IMAGE_SIZE_BYTES, validate_image_upload
 
 from .email_verification import send_email_change_verification_email
-from .models import Profile
+from .models import Profile, MAX_PROFILE_BIO_LENGTH
 
 
 User = get_user_model()
@@ -14,6 +14,18 @@ User = get_user_model()
 class BaseProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
     member_since = serializers.DateTimeField(source='user.date_joined', read_only=True)
+    bio = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        max_length=MAX_PROFILE_BIO_LENGTH,
+        trim_whitespace=True,
+    )
+    location = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        max_length=120,
+        trim_whitespace=True,
+    )
     avatar = serializers.SerializerMethodField()
 
     class Meta:
@@ -38,6 +50,12 @@ class BaseProfileSerializer(serializers.ModelSerializer):
             return request.build_absolute_uri(url)
 
         return url
+
+    def validate_bio(self, value):
+        return (value or '').strip()
+
+    def validate_location(self, value):
+        return (value or '').strip()
 
 
 class PublicProfileSerializer(BaseProfileSerializer):

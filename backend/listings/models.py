@@ -1,6 +1,25 @@
+from decimal import Decimal
+
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Q
+
+
+MIN_LISTING_TITLE_LENGTH = 3
+MAX_LISTING_TITLE_LENGTH = 120
+MIN_LOCATION_NAME_LENGTH = 2
+MAX_LOCATION_NAME_LENGTH = 120
+
+MIN_BOAT_GUESTS = 1
+MAX_BOAT_GUESTS = 100
+
+MIN_PRICE_PER_DAY = Decimal('0.01')
+MAX_PRICE_PER_DAY = Decimal('100000.00')
+
+MIN_LATITUDE = Decimal('-90.000000')
+MAX_LATITUDE = Decimal('90.000000')
+MIN_LONGITUDE = Decimal('-180.000000')
+MAX_LONGITUDE = Decimal('180.000000')
 
 
 class BoatListing(models.Model):
@@ -26,6 +45,30 @@ class BoatListing(models.Model):
 
     class Meta:
         ordering = ['-created_at', '-id']
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(guests__gte=MIN_BOAT_GUESTS) & Q(guests__lte=MAX_BOAT_GUESTS),
+                name='boatlisting_guests_range',
+            ),
+            models.CheckConstraint(
+                condition=Q(price_per_day__gte=MIN_PRICE_PER_DAY) & Q(price_per_day__lte=MAX_PRICE_PER_DAY),
+                name='boatlisting_price_per_day_range',
+            ),
+            models.CheckConstraint(
+                condition=(
+                    Q(latitude__isnull=True) |
+                    (Q(latitude__gte=MIN_LATITUDE) & Q(latitude__lte=MAX_LATITUDE))
+                ),
+                name='boatlisting_latitude_range',
+            ),
+            models.CheckConstraint(
+                condition=(
+                    Q(longitude__isnull=True) |
+                    (Q(longitude__gte=MIN_LONGITUDE) & Q(longitude__lte=MAX_LONGITUDE))
+                ),
+                name='boatlisting_longitude_range',
+            ),
+        ]
 
     def __str__(self):
         return self.title
