@@ -12,6 +12,10 @@ export function verifyEmailToken(token) {
   return apiPost('/users/verify-email/', { token })
 }
 
+export function verifyEmailChangeToken(token) {
+  return apiPost('/users/verify-email-change/', { token })
+}
+
 export function resendVerificationEmail(email) {
   return apiPost('/users/resend-verification/', { email })
 }

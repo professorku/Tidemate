@@ -151,6 +151,7 @@ export default function App() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/verify-email" element={<VerifyEmailPage />} />
+          <Route path="/verify-email-change" element={<VerifyEmailPage mode="email-change" />} />
 
           <Route
             path="/change-password"

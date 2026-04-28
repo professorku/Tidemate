@@ -49,7 +49,7 @@ from .auth_helpers import (
     set_refresh_cookie,
 )
 from .device_tracking import is_device_session_active, revoke_device_session_for_token, upsert_device_session
-from .email_verification import send_verification_email, verify_email_token
+from .email_verification import send_verification_email, verify_email_change_token, verify_email_token
 from .password_reset import send_password_reset_email
 from .profile_serializers import MyProfileSerializer, PublicProfileSerializer
 from .selectors import build_profile_payload, get_user_by_id
@@ -391,6 +391,29 @@ def verify_email(request):
         user.save(update_fields=["is_active"])
 
     return Response({"detail": "Email verified. You can now log in."}, status=status.HTTP_200_OK)
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+@throttle_classes([AuthAnonRateThrottle, AuthUserRateThrottle, VerifyEmailRateThrottle])
+def verify_email_change(request):
+    csrf_error = enforce_csrf(request)
+    if csrf_error is not None:
+        return csrf_error
+
+    token = request.data.get("token", "").strip()
+    if not token:
+        return Response({"detail": "Verification token is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        verify_email_change_token(token)
+    except User.DoesNotExist:
+        return Response({"detail": "Verification link is invalid."}, status=status.HTTP_400_BAD_REQUEST)
+    except signing.SignatureExpired:
+        return Response({"detail": "Verification link has expired."}, status=status.HTTP_400_BAD_REQUEST)
+    except signing.BadSignature:
+        return Response({"detail": "Verification link is invalid or no longer valid."}, status=status.HTTP_400_BAD_REQUEST)
+
+    return Response({"detail": "Email address updated successfully."}, status=status.HTTP_200_OK)
 
 
 @api_view(["POST"])

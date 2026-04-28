@@ -16,6 +16,7 @@ from .views import (
     toggle_block_user,
     toggle_crewmate,
     verify_email,
+    verify_email_change,
 )
 
 urlpatterns = [
@@ -28,6 +29,7 @@ urlpatterns = [
     path("reset-password/", reset_password),
     path("change-password/", change_password),
     path("verify-email/", verify_email),
+    path("verify-email-change/", verify_email_change),
     path("resend-verification/", resend_verification_email),
     path("logout/", logout, name="token_logout"),
     path("me/", me),

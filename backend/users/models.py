@@ -9,6 +9,10 @@ class Profile(models.Model):
     bio = models.TextField(blank=True)
     location = models.CharField(max_length=120, blank=True)
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
+
+    pending_email = models.EmailField(blank=True, null=True, db_index=True)
+    pending_email_requested_at = models.DateTimeField(blank=True, null=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     contacts = models.ManyToManyField(
@@ -29,5 +33,6 @@ class Profile(models.Model):
 @receiver(post_save, sender=User)
 def create_or_update_user_profile(sender, instance, created, **kwargs):
     Profile.objects.get_or_create(user=instance)
+
 
 from .device_tracking import DeviceSession
