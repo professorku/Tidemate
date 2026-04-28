@@ -1,8 +1,33 @@
+from decimal import Decimal, InvalidOperation
+
 from django.conf import settings
+from rest_framework.exceptions import ValidationError
+
+
+def _clean_raw_value(value):
+    """
+    Query params arrive as strings. Treat None, empty string, and whitespace-only
+    values as missing.
+    """
+    if value is None:
+        return None
+
+    if isinstance(value, str):
+        value = value.strip()
+        if value == "":
+            return None
+
+    return value
 
 
 def parse_positive_page_size(raw_page_size):
-    if raw_page_size in (None, ""):
+    """
+    Used only by the Python geo fallback to decide how many candidate rows to scan.
+    Invalid page sizes are ignored here because DRF pagination validates the real
+    page_size parameter separately.
+    """
+    raw_page_size = _clean_raw_value(raw_page_size)
+    if raw_page_size is None:
         return None
 
     try:
@@ -16,30 +41,156 @@ def parse_positive_page_size(raw_page_size):
     return page_size
 
 
-def parse_radius_params(params):
-    latitude = params.get("latitude")
-    longitude = params.get("longitude")
-    radius_km = params.get("radius_km")
-
-    if not (latitude and longitude and radius_km):
+def parse_positive_int_param(params, key):
+    raw_value = _clean_raw_value(params.get(key))
+    if raw_value is None:
         return None
 
     try:
-        center_lat = float(latitude)
-        center_lng = float(longitude)
-        radius = float(radius_km)
+        value = int(raw_value)
     except (TypeError, ValueError):
-        return False
+        raise ValidationError({
+            key: "Enter a valid positive integer."
+        })
 
-    if not (-90 <= center_lat <= 90 and -180 <= center_lng <= 180):
-        return False
+    if value <= 0:
+        raise ValidationError({
+            key: "Must be greater than 0."
+        })
 
-    max_radius_km = float(getattr(settings, "LISTING_SEARCH_MAX_RADIUS_KM", 500.0))
-    if radius <= 0 or radius > max_radius_km:
-        return False
+    return value
+
+
+def parse_non_negative_decimal_param(params, key):
+    raw_value = _clean_raw_value(params.get(key))
+    if raw_value is None:
+        return None
+
+    try:
+        value = Decimal(str(raw_value))
+    except (InvalidOperation, TypeError, ValueError):
+        raise ValidationError({
+            key: "Enter a valid number."
+        })
+
+    if not value.is_finite():
+        raise ValidationError({
+            key: "Enter a valid number."
+        })
+
+    if value < 0:
+        raise ValidationError({
+            key: "Must be greater than or equal to 0."
+        })
+
+    return value
+
+
+def parse_choice_param(params, key, allowed_values):
+    raw_value = _clean_raw_value(params.get(key))
+    if raw_value is None:
+        return None
+
+    if raw_value not in allowed_values:
+        raise ValidationError({
+            key: f"Invalid choice. Allowed values are: {', '.join(allowed_values)}."
+        })
+
+    return raw_value
+
+
+def parse_basic_search_params(params, allowed_boat_types):
+    min_guests = parse_positive_int_param(params, "min_guests")
+    min_price = parse_non_negative_decimal_param(params, "min_price")
+    max_price = parse_non_negative_decimal_param(params, "max_price")
+    exclude_id = parse_positive_int_param(params, "exclude_id")
+    boat_type = parse_choice_param(params, "boat_type", allowed_boat_types)
+
+    if min_price is not None and max_price is not None and max_price < min_price:
+        raise ValidationError({
+            "max_price": "Must be greater than or equal to min_price."
+        })
+
+    q = _clean_raw_value(params.get("q"))
 
     return {
-        "center_lat": center_lat,
-        "center_lng": center_lng,
-        "radius": radius,
+        "q": q,
+        "boat_type": boat_type,
+        "min_guests": min_guests,
+        "min_price": min_price,
+        "max_price": max_price,
+        "exclude_id": exclude_id,
+    }
+
+
+def parse_float_param(params, key):
+    raw_value = _clean_raw_value(params.get(key))
+    if raw_value is None:
+        return None
+
+    try:
+        value = float(raw_value)
+    except (TypeError, ValueError):
+        raise ValidationError({
+            key: "Enter a valid number."
+        })
+
+    if value != value or value in (float("inf"), float("-inf")):
+        raise ValidationError({
+            key: "Enter a valid number."
+        })
+
+    return value
+
+
+def parse_radius_params(params):
+    latitude = parse_float_param(params, "latitude")
+    longitude = parse_float_param(params, "longitude")
+    radius_km = parse_float_param(params, "radius_km")
+
+    geo_values = {
+        "latitude": latitude,
+        "longitude": longitude,
+        "radius_km": radius_km,
+    }
+
+    provided_values = {
+        key: value for key, value in geo_values.items()
+        if value is not None
+    }
+
+    if not provided_values:
+        return None
+
+    if len(provided_values) != 3:
+        missing_keys = [
+            key for key, value in geo_values.items()
+            if value is None
+        ]
+        raise ValidationError({
+            key: "This parameter is required when using radius search."
+            for key in missing_keys
+        })
+
+    if not -90 <= latitude <= 90:
+        raise ValidationError({
+            "latitude": "Must be between -90 and 90."
+        })
+
+    if not -180 <= longitude <= 180:
+        raise ValidationError({
+            "longitude": "Must be between -180 and 180."
+        })
+
+    max_radius_km = float(getattr(settings, "LISTING_SEARCH_MAX_RADIUS_KM", 500.0))
+
+    if radius_km <= 0 or radius_km > max_radius_km:
+        raise ValidationError({
+            "radius_km": f"Must be greater than 0 and at most {max_radius_km:g}."
+        })
+
+    return {
+        "center_lat": latitude,
+        "center_lng": longitude,
+        "radius": radius_km,
     }

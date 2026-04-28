@@ -23,6 +23,7 @@ def apply_python_radius_filter(queryset, center_lat, center_lng, radius_km, page
             )
         ),
     )
+
     fallback_cap = min(
         fallback_cap,
         int(getattr(settings, "LISTING_SEARCH_FALLBACK_MAX_CANDIDATES", 250)),
@@ -31,6 +32,7 @@ def apply_python_radius_filter(queryset, center_lat, center_lng, radius_km, page
     candidate_queryset = queryset.order_by("-created_at")[:fallback_cap]
 
     boats_with_distance = []
+
     for boat in candidate_queryset.iterator():
         distance = haversine_km(
             center_lat,
@@ -57,13 +59,11 @@ def apply_python_radius_filter(queryset, center_lat, center_lng, radius_km, page
     return boats_with_distance
 
 
-
 def apply_radius_filter(queryset, params):
     parsed_radius = parse_radius_params(params)
+
     if parsed_radius is None:
         return queryset
-    if parsed_radius is False:
-        return []
 
     if postgis_is_available():
         return apply_postgis_radius_filter(
