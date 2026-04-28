@@ -168,3 +168,117 @@ class BoatCoverImageSourceOfTruthTests(TestCase):
 
         self.assertEqual(serializer.data['image'], cover.image.url)
         self.assertEqual(serializer.data['images'][0]['image'], cover.image.url)
+
+class ListingSearchValidationTests(APITestCase):
+    def setUp(self):
+        self.host = User.objects.create_user(
+            username="search-host",
+            password="strong-pass-123",
+        )
+
+        BoatListing.objects.create(
+            host=self.host,
+            title="Search Test Boat",
+            description="A boat used for search validation tests.",
+            boat_type="motorboat",
+            location_name="Bodø",
+            guests=4,
+            price_per_day=Decimal("1200.00"),
+            latitude="67.280400",
+            longitude="14.404900",
+        )
+
+    def test_invalid_min_price_returns_400(self):
+        response = self.client.get(
+            reverse("boat-list-create"),
+            {"min_price": "abc"},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("min_price", response.json())
+
+    def test_invalid_max_price_returns_400(self):
+        response = self.client.get(
+            reverse("boat-list-create"),
+            {"max_price": "not-a-number"},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("max_price", response.json())
+
+    def test_invalid_min_guests_returns_400(self):
+        response = self.client.get(
+            reverse("boat-list-create"),
+            {"min_guests": "2.5"},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("min_guests", response.json())
+
+    def test_negative_min_guests_returns_400(self):
+        response = self.client.get(
+            reverse("boat-list-create"),
+            {"min_guests": "-1"},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("min_guests", response.json())
+
+    def test_invalid_boat_type_returns_400(self):
+        response = self.client.get(
+            reverse("boat-list-create"),
+            {"boat_type": "spaceship"},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("boat_type", response.json())
+
+    def test_max_price_lower_than_min_price_returns_400(self):
+        response = self.client.get(
+            reverse("boat-list-create"),
+            {
+                "min_price": "2000",
+                "max_price": "1000",
+            },
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("max_price", response.json())
+
+    def test_valid_numeric_filters_still_work(self):
+        response = self.client.get(
+            reverse("boat-list-create"),
+            {
+                "min_guests": "2",
+                "min_price": "1000",
+                "max_price": "1500",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertGreaterEqual(len(response.json()["results"]), 1)
+
+    def test_invalid_radius_params_return_400(self):
+        response = self.client.get(
+            reverse("boat-list-create"),
+            {
+                "latitude": "abc",
+                "longitude": "14.4049",
+                "radius_km": "25",
+            },
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("latitude", response.json())
+
+    def test_partial_radius_params_return_400(self):
+        response = self.client.get(
+            reverse("boat-list-create"),
+            {
+                "latitude": "67.2804",
+                "radius_km": "25",
+            },
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("longitude", response.json())
