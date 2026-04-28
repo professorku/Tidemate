@@ -75,6 +75,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "config.security_headers.ContentSecurityPolicyMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -207,6 +208,35 @@ WEBSOCKET_ALLOWED_ORIGINS = env_list(
     "WEBSOCKET_ALLOWED_ORIGINS",
     ",".join(CORS_ALLOWED_ORIGINS),
 )
+
+CSP_ENABLED = env_bool("CSP_ENABLED", IS_PRODUCTION_SETTINGS)
+CSP_REPORT_ONLY = env_bool("CSP_REPORT_ONLY", False)
+CSP_CONNECT_SRC_EXTRA = env_list("CSP_CONNECT_SRC_EXTRA", "")
+CSP_IMG_SRC_EXTRA = env_list("CSP_IMG_SRC_EXTRA", "")
+CSP_FRAME_SRC_EXTRA = env_list("CSP_FRAME_SRC_EXTRA", "")
+
+CSP_POLICY = {
+    "default-src": ["'self'"],
+    "base-uri": ["'self'"],
+    "object-src": ["'none'"],
+    "script-src": ["'self'", "'unsafe-inline'"],
+    "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+    "font-src": ["'self'", "data:", "https://fonts.gstatic.com"],
+    "img-src": ["'self'", "data:", "blob:", "https:", *CSP_IMG_SRC_EXTRA],
+    "connect-src": [
+        "'self'",
+        *CORS_ALLOWED_ORIGINS,
+        *WEBSOCKET_ALLOWED_ORIGINS,
+        *CSP_CONNECT_SRC_EXTRA,
+    ],
+    "frame-src": ["'self'", "https://www.openstreetmap.org", *CSP_FRAME_SRC_EXTRA],
+    "form-action": ["'self'"],
+    "frame-ancestors": ["'none'"],
+}
+
+if IS_PRODUCTION_SETTINGS:
+    CSP_POLICY["upgrade-insecure-requests"] = True
+
 
 CSRF_TRUSTED_ORIGINS = env_list(
     "CSRF_TRUSTED_ORIGINS",

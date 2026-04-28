@@ -6,6 +6,7 @@ from notifications.models import Notification
 
 from .confirmation import confirm_pending_booking
 from .lifecycle import can_cancel_booking, get_booking_lifecycle_stage
+from .models import Booking
 from .serializers import BookingCancelSerializer
 
 
@@ -58,6 +59,12 @@ def confirm_booking(*, booking):
 
 @transaction.atomic
 def cancel_booking(*, booking, actor, data):
+    booking = (
+        Booking.objects.select_related('boat', 'boat__host', 'renter')
+        .select_for_update()
+        .get(pk=booking.pk)
+    )
+
     is_renter = booking.renter == actor
     is_host = booking.boat.host == actor
 
@@ -110,6 +117,12 @@ def cancel_booking(*, booking, actor, data):
 
 @transaction.atomic
 def delete_booking(*, booking, actor):
+    booking = (
+        Booking.objects.select_related('boat', 'boat__host', 'renter')
+        .select_for_update()
+        .get(pk=booking.pk)
+    )
+
     is_renter = booking.renter == actor
     is_host = booking.boat.host == actor
 

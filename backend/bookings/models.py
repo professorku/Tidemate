@@ -1,10 +1,14 @@
+from decimal import Decimal
+
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models import F, Q
 
 from listings.models import BoatListing
 
 
 MAX_BOOKING_CANCELLATION_REASON_LENGTH = 500
+MIN_BOOKING_TOTAL_PRICE = Decimal('0.01')
 
 
 class Booking(models.Model):
@@ -52,6 +56,16 @@ class Booking(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(end_date__gte=F('start_date')),
+                name='booking_end_date_on_or_after_start_date',
+            ),
+            models.CheckConstraint(
+                condition=Q(total_price__gte=MIN_BOOKING_TOTAL_PRICE),
+                name='booking_total_price_positive',
+            ),
+        ]
 
     def __str__(self):
         return f'{self.boat.title} booking by {self.renter.username}'

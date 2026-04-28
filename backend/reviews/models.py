@@ -7,6 +7,8 @@ from listings.models import BoatListing
 
 
 MAX_REVIEW_COMMENT_LENGTH = 1000
+MIN_REVIEW_RATING = 1
+MAX_REVIEW_RATING = 5
 
 
 class Review(models.Model):
@@ -77,6 +79,10 @@ class Review(models.Model):
                 fields=['booking', 'reviewer', 'reviewed_user', 'review_type'],
                 condition=Q(review_type='user'),
                 name='unique_user_review_per_direction_per_booking',
+            ),
+            models.CheckConstraint(
+                condition=Q(rating__gte=MIN_REVIEW_RATING) & Q(rating__lte=MAX_REVIEW_RATING),
+                name='review_rating_range',
             ),
         ]
 

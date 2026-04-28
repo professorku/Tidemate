@@ -1,9 +1,15 @@
 from datetime import datetime, time
 
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 from rest_framework import serializers
 
-from .models import Review, MAX_REVIEW_COMMENT_LENGTH
+from .models import (
+    MAX_REVIEW_COMMENT_LENGTH,
+    MAX_REVIEW_RATING,
+    MIN_REVIEW_RATING,
+    Review,
+)
 
 
 BOOKING_RETURN_TIME = time(hour=12, minute=0)
@@ -64,8 +70,11 @@ class CreateReviewSerializer(serializers.ModelSerializer):
         fields = ['booking', 'review_type', 'rating', 'comment']
 
     def validate_rating(self, value):
-        if value < 1 or value > 5:
-            raise serializers.ValidationError('Rating must be between 1 and 5.')
+        if value < MIN_REVIEW_RATING or value > MAX_REVIEW_RATING:
+            raise serializers.ValidationError(
+                f'Rating must be between {MIN_REVIEW_RATING} and {MAX_REVIEW_RATING}.'
+            )
+
         return value
 
     def validate_comment(self, value):
@@ -138,32 +147,44 @@ class CreateReviewSerializer(serializers.ModelSerializer):
         user = request.user
         review_type = validated_data['review_type']
 
-        if review_type == Review.REVIEW_TYPE_BOAT:
-            return Review.objects.create(
-                booking=booking,
-                boat=booking.boat,
-                reviewer=user,
-                reviewed_user=None,
-                review_type=Review.REVIEW_TYPE_BOAT,
-                role=Review.ROLE_BOAT,
-                rating=validated_data['rating'],
-                comment=validated_data.get('comment', ''),
-            )
+        try:
+            with transaction.atomic():
+                if review_type == Review.REVIEW_TYPE_BOAT:
+                    return Review.objects.create(
+                        booking=booking,
+                        boat=booking.boat,
+                        reviewer=user,
+                        reviewed_user=None,
+                        review_type=Review.REVIEW_TYPE_BOAT,
+                        role=Review.ROLE_BOAT,
+                        rating=validated_data['rating'],
+                        comment=validated_data.get('comment', ''),
+                    )
 
-        if user == booking.renter:
-            reviewed_user = booking.boat.host
-            role = Review.ROLE_HOST
-        else:
-            reviewed_user = booking.renter
-            role = Review.ROLE_RENTER
+                if user == booking.renter:
+                    reviewed_user = booking.boat.host
+                    role = Review.ROLE_HOST
+                else:
+                    reviewed_user = booking.renter
+                    role = Review.ROLE_RENTER
 
-        return Review.objects.create(
-            booking=booking,
-            boat=booking.boat,
-            reviewer=user,
-            reviewed_user=reviewed_user,
-            review_type=Review.REVIEW_TYPE_USER,
-            role=role,
-            rating=validated_data['rating'],
-            comment=validated_data.get('comment', ''),
-        )
+                return Review.objects.create(
+                    booking=booking,
+                    boat=booking.boat,
+                    reviewer=user,
+                    reviewed_user=reviewed_user,
+                    review_type=Review.REVIEW_TYPE_USER,
+                    role=role,
+                    rating=validated_data['rating'],
+                    comment=validated_data.get('comment', ''),
+                )
+
+        except IntegrityError:
+            if review_type == Review.REVIEW_TYPE_BOAT:
+                raise serializers.ValidationError({
+                    'booking': ['You have already reviewed this boat for this booking.']
+                })
+
+            raise serializers.ValidationError({
+                'booking': ['You have already reviewed this user for this booking.']
+            })
