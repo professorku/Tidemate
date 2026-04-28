@@ -4,6 +4,7 @@ BOOKING_START_TIME = time(hour=15, minute=0)
 BOOKING_END_TIME = time(hour=12, minute=0)
 
 MAX_BOOKING_DURATION_DAYS = 30
+PENDING_BOOKING_EXPIRY_MINUTES = 60
 
 FREE_CANCELLATION_WINDOW_HOURS = 48
 PARTIAL_REFUND_DAYS_BEFORE = 7
@@ -18,16 +19,19 @@ def build_booking_policy():
         'pickup_time': pickup_time,
         'return_time': return_time,
         'max_duration_days': MAX_BOOKING_DURATION_DAYS,
+        'pending_booking_expiry_minutes': PENDING_BOOKING_EXPIRY_MINUTES,
         'short_text': (
             f'Pickup from {pickup_time} on the first day. '
             f'Return by {return_time} on the last day. '
-            f'Maximum booking length is {MAX_BOOKING_DURATION_DAYS} days.'
+            f'Maximum booking length is {MAX_BOOKING_DURATION_DAYS} days. '
+            f'Pending requests expire after {PENDING_BOOKING_EXPIRY_MINUTES} minutes if they are not confirmed.'
         ),
         'items': [
             f'Pickup is from {pickup_time} on your start date.',
             f'Return is by {return_time} on your end date.',
             f'Maximum booking length is {MAX_BOOKING_DURATION_DAYS} days.',
-            'The boat stays unavailable to others for the full booked date range.',
+            f'Pending booking requests expire after {PENDING_BOOKING_EXPIRY_MINUTES} minutes if they are not confirmed.',
+            'The boat stays unavailable to others for the full booked date range while a request is active.',
             'Late returns may incur extra fees if you add that rule later.',
         ],
     }

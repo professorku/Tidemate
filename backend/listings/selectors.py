@@ -1,12 +1,11 @@
 # backend/listings/selectors.py
 from django.db.models import Prefetch
 
+from bookings.expiry import active_booking_filter
 from bookings.models import Booking
 
 from .models import BoatListing
 from .queryset_utils import annotate_favorite_fields
-
-ACTIVE_BOOKING_STATUSES = ['pending', 'confirmed']
 
 
 def listing_base_queryset():
@@ -17,7 +16,7 @@ def listing_base_queryset():
             "images",
             Prefetch(
                 "bookings",
-                queryset=Booking.objects.filter(status__in=ACTIVE_BOOKING_STATUSES).order_by("start_date"),
+                queryset=Booking.objects.filter(active_booking_filter()).order_by("start_date"),
                 to_attr="prefetched_active_bookings",
             ),
         )

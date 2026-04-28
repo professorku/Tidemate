@@ -6,6 +6,7 @@ from django.db.models.functions import Cast, Now
 from config.booking_policy import BOOKING_END_TIME, BOOKING_START_TIME
 from reviews.models import Review
 
+from .expiry import active_pending_booking_filter
 from .models import Booking
 
 
@@ -50,6 +51,7 @@ def apply_timeline_filter(queryset, timeline):
     ).annotate(
         lifecycle_stage=Case(
             When(status='cancelled', then=Value('cancelled')),
+            When(status='pending', expires_at__lte=Now(), then=Value('cancelled')),
             When(status='pending', then=Value('pending')),
             When(status='confirmed', pickup_at__gt=Now(), then=Value('upcoming')),
             When(status='confirmed', pickup_at__lte=Now(), return_at__gte=Now(), then=Value('active')),
@@ -111,8 +113,8 @@ def get_overlapping_pending_bookings(booking):
         'renter',
         'renter__profile',
     ).filter(
+        active_pending_booking_filter(),
         boat=booking.boat,
-        status='pending',
         start_date__lte=booking.end_date,
         end_date__gte=booking.start_date,
     ).exclude(id=booking.id)

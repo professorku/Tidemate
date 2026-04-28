@@ -37,6 +37,7 @@ class Booking(models.Model):
     end_date = models.DateField()
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    expires_at = models.DateTimeField(blank=True, null=True, db_index=True)
 
     cancellation_reason = models.CharField(
         max_length=MAX_BOOKING_CANCELLATION_REASON_LENGTH,

@@ -1,4 +1,4 @@
-ACTIVE_BOOKING_STATUSES = ['pending', 'confirmed']
+from bookings.expiry import active_booking_filter
 
 
 def get_blocked_ranges(boat):
@@ -6,7 +6,7 @@ def get_blocked_ranges(boat):
 
     if bookings is None:
         bookings = boat.bookings.filter(
-            status__in=ACTIVE_BOOKING_STATUSES,
+            active_booking_filter(),
         ).order_by('start_date')
 
     return [
