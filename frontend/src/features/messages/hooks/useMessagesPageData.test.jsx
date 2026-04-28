@@ -1,6 +1,7 @@
 import { renderHook, waitFor, act } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import useMessagesPageData from './useMessagesPageData'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 vi.mock('../../../context/useAuth', () => ({
   useAuth: vi.fn(),
@@ -63,7 +64,9 @@ describe('useMessagesPageData', () => {
   })
 
   it('loads, sorts, and filters conversations', async () => {
-    const { result } = renderHook(() => useMessagesPageData())
+    const { result } = renderHook(() => useMessagesPageData(), {
+      wrapper: createWrapper(),
+    })
 
     await waitFor(() => expect(result.current.loading).toBe(false))
 
@@ -84,7 +87,9 @@ describe('useMessagesPageData', () => {
   })
 
   it('deletes eligible conversations and reloads the page', async () => {
-    const { result } = renderHook(() => useMessagesPageData())
+    const { result } = renderHook(() => useMessagesPageData(), {
+      wrapper: createWrapper(),
+    })
 
     await waitFor(() => expect(result.current.loading).toBe(false))
 
@@ -92,7 +97,29 @@ describe('useMessagesPageData', () => {
       await result.current.deleteConversation(samplePage.results[0])
     })
 
-    expect(deleteConversation).toHaveBeenCalledWith(1)
+    expect(deleteConversation.mock.calls[0][0]).toBe(1)
     expect(listConversations).toHaveBeenCalledTimes(2)
   })
 })
+
+
+function createWrapper() {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+      mutations: {
+        retry: false,
+      },
+    },
+  })
+
+  return function Wrapper({ children }) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        {children}
+      </QueryClientProvider>
+    )
+  }
+}

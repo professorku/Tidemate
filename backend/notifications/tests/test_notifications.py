@@ -11,8 +11,8 @@ from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from rest_framework.test import APIClient, APITestCase
 
 from config.asgi import application
-from .models import Notification
-from .services import create_and_push_notification, disconnect_access_token_websocket_session
+from notifications.models import Notification
+from notifications.services import create_and_push_notification, disconnect_access_token_websocket_session
 
 
 class NotificationApiTests(APITestCase):
@@ -108,12 +108,28 @@ class NotificationWebsocketTests(TransactionTestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='ws-user', password='strong-pass-123')
 
-    async def _connect(self, subprotocols=None):
+    def _access_token_for_user(self):
+        return str(RefreshToken.for_user(self.user).access_token)
+
+    async def _connect(self, token=None, subprotocols=None):
+        headers = [
+            (b'host', b'localhost'),
+            (b'origin', b'http://localhost:5173'),
+        ]
+
+        if token is not None:
+            headers.append((
+                b'cookie',
+                f'{settings.JWT_ACCESS_COOKIE_NAME}={token}'.encode(),
+            ))
+
         communicator = WebsocketCommunicator(
             application,
             '/ws/notifications/',
+            headers=headers,
             subprotocols=subprotocols or [],
         )
+
         connected, negotiated_subprotocol = await communicator.connect()
         return communicator, connected, negotiated_subprotocol
 
@@ -126,23 +142,20 @@ class NotificationWebsocketTests(TransactionTestCase):
         async_to_sync(scenario)()
 
     def test_notification_websocket_accepts_valid_access_token(self):
-        token = str(RefreshToken.for_user(self.user).access_token)
+        token = self._access_token_for_user()
 
         async def scenario():
-            communicator, connected, negotiated_subprotocol = await self._connect(
-                ['access_token', token]
-            )
+            communicator, connected, _ = await self._connect(token=token)
             self.assertTrue(connected)
-            self.assertEqual(negotiated_subprotocol, 'access_token')
             await communicator.disconnect()
 
         async_to_sync(scenario)()
 
     def test_create_and_push_notification_delivers_payload_over_websocket(self):
-        token = str(RefreshToken.for_user(self.user).access_token)
+        token = self._access_token_for_user()
 
         async def scenario():
-            communicator, connected, _ = await self._connect(['access_token', token])
+            communicator, connected, _ = await self._connect(token=token)
             self.assertTrue(connected)
 
             await asyncio.to_thread(
@@ -166,7 +179,7 @@ class NotificationWebsocketTests(TransactionTestCase):
         token.set_exp(from_time=timezone.now(), lifetime=timedelta(seconds=1))
 
         async def scenario():
-            communicator, connected, _ = await self._connect(['access_token', str(token)])
+            communicator, connected, _ = await self._connect(token=str(token))
             self.assertTrue(connected)
 
             await asyncio.sleep(1.3)
@@ -179,7 +192,7 @@ class NotificationWebsocketTests(TransactionTestCase):
         token_jti = str(token.get('jti'))
 
         async def scenario():
-            communicator, connected, _ = await self._connect(['access_token', str(token)])
+            communicator, connected, _ = await self._connect(token=str(token))
             self.assertTrue(connected)
 
             await asyncio.to_thread(
@@ -207,10 +220,15 @@ class NotificationCsrfProtectionTests(APITestCase):
 
     def _cookie_authenticated_client(self, *, with_csrf=False):
         client = APIClient(enforce_csrf_checks=True)
-        client.cookies[settings.JWT_ACCESS_COOKIE_NAME] = str(RefreshToken.for_user(self.user).access_token)
+        client.cookies[settings.JWT_ACCESS_COOKIE_NAME] = str(
+            RefreshToken.for_user(self.user).access_token
+        )
+
         if with_csrf:
-            client.cookies['csrftoken'] = 'notification-csrf-token'
-            client.credentials(HTTP_X_CSRFTOKEN='notification-csrf-token')
+            client.get('/api/users/csrf/')
+            csrf_token = client.cookies['csrftoken'].value
+            client.credentials(HTTP_X_CSRFTOKEN=csrf_token)
+
         return client
 
     def test_mark_notification_read_requires_csrf_when_authenticated_by_cookie(self):

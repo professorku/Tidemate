@@ -1,13 +1,15 @@
 from datetime import timedelta
 from decimal import Decimal
+from datetime import date
 
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework.test import APITestCase
 
-from .models import Booking
+from bookings.models import Booking
 from listings.models import BoatListing
+from bookings.services import confirm_booking
 
 
 class BookingTimelineFilterTests(APITestCase):
@@ -126,20 +128,37 @@ class BookingConfirmationRaceConditionTests(APITestCase):
         )
 
     def test_confirmation_rechecks_for_existing_confirmed_overlap_under_lock(self):
-        first = self._create_pending(self.renter_one, 3, 5)
-        second = self._create_pending(self.renter_two, 4, 6)
+        today = timezone.localdate()
 
-        confirmed_first = confirm_booking(booking=first)
-        self.assertEqual(confirmed_first.status, 'confirmed')
+        confirmed_booking = Booking.objects.create(
+            renter=self.renter_one,
+            boat=self.boat,
+            start_date=today + timedelta(days=3),
+            end_date=today + timedelta(days=5),
+            total_price=Decimal('3300.00'),
+            status='confirmed',
+        )
+
+        pending_booking = Booking.objects.create(
+            renter=self.renter_two,
+            boat=self.boat,
+            start_date=today + timedelta(days=4),
+            end_date=today + timedelta(days=6),
+            total_price=Decimal('3300.00'),
+            status='pending',
+        )
 
         with self.assertRaisesMessage(
             ValueError,
             'These dates are no longer available because another overlapping booking was already confirmed.',
         ):
-            confirm_booking(booking=second)
+            confirm_booking(booking=pending_booking)
 
-        second.refresh_from_db()
-        self.assertEqual(second.status, 'pending')
+        confirmed_booking.refresh_from_db()
+        pending_booking.refresh_from_db()
+
+        self.assertEqual(confirmed_booking.status, 'confirmed')
+        self.assertEqual(pending_booking.status, 'pending')
 
     def test_confirmation_cancels_other_overlapping_pending_bookings(self):
         target = self._create_pending(self.renter_one, 8, 10)
@@ -183,7 +202,11 @@ class BookingMutationErrorHandlingTests(APITestCase):
     def test_cancel_returns_400_for_serializer_validation_errors(self):
         self.client.force_authenticate(user=self.renter)
 
-        response = self.client.post(reverse('booking-cancel', args=[self.booking.id]), {}, format='json')
+        response = self.client.post(
+            reverse('booking-cancel', args=[self.booking.id]),
+            {'reason': ['not-a-valid-string']},
+            format='json',
+        )
 
         self.assertEqual(response.status_code, 400)
         self.assertIn('reason', response.json())

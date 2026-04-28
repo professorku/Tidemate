@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 
-from .serializers import BoatListingSerializer
+from listings.serializers import BoatListingSerializer
 
 
 class BoatListingUploadValidationTests(TestCase):
@@ -55,7 +55,7 @@ from unittest.mock import patch
 from django.urls import reverse
 from rest_framework.test import APITestCase
 
-from .models import BoatListing
+from listings.models import BoatListing
 
 
 class BoatConditionsErrorHandlingTests(APITestCase):
@@ -136,7 +136,7 @@ class BoatCoverImageSourceOfTruthTests(TestCase):
         )
 
     def test_boat_image_property_comes_from_cover_flag(self):
-        from .models import BoatImage
+        from listings.models import BoatImage
 
         first = BoatImage.objects.create(
             boat=self.boat,
@@ -155,7 +155,7 @@ class BoatCoverImageSourceOfTruthTests(TestCase):
         self.assertNotEqual(self.boat.image.name, first.image.name)
 
     def test_serializer_image_matches_cover_image_url(self):
-        from .models import BoatImage
+        from listings.models import BoatImage
 
         cover = BoatImage.objects.create(
             boat=self.boat,

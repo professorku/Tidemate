@@ -37,6 +37,13 @@ NB: This project is under active development and was built as a student/portfoli
 ### Host bookings
 <img src="docs/screenshots/host-bookings.png" alt="TideMate host bookings page" width="900">
 
+## Security
+- httpOnly cookies
+- CSRF protection
+- permissions
+- image validation
+- session handling
+
 ## Clean local setup
 
 This project is set up for local development with a Vite dev proxy so the browser can call `/api/...` on the frontend origin and Vite forwards those requests to Django at `http://localhost:8000`.

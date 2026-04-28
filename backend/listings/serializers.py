@@ -151,7 +151,25 @@ class BoatListingSerializer(serializers.ModelSerializer):
 
         if self.instance:
             existing_count = self.instance.images.count()
-            resulting_count = existing_count - len(remove_image_ids) + len(new_images)
+            unique_remove_ids = set(remove_image_ids)
+
+            matching_remove_ids = set(
+                self.instance.images
+                .filter(id__in=unique_remove_ids)
+                .values_list('id', flat=True)
+            )
+
+            invalid_remove_ids = unique_remove_ids - matching_remove_ids
+
+            if invalid_remove_ids:
+                raise serializers.ValidationError({
+                    'remove_image_ids': [
+                        'One or more images do not belong to this boat listing.'
+                    ]
+                })
+
+            resulting_count = existing_count - len(matching_remove_ids) + len(new_images)
+
             if resulting_count > MAX_BOAT_IMAGE_COUNT:
                 raise serializers.ValidationError({
                     'new_images': [
@@ -172,6 +190,7 @@ class BoatListingSerializer(serializers.ModelSerializer):
         boat = BoatListing.objects.create(host=request.user, **validated_data)
 
         created_ids = []
+
         for idx, image_file in enumerate(new_images):
             image = BoatImage.objects.create(
                 boat=boat,
@@ -200,17 +219,21 @@ class BoatListingSerializer(serializers.ModelSerializer):
         cover_image_id = validated_data.pop('cover_image_id', None)
         remove_image_ids = validated_data.pop('remove_image_ids', [])
 
+        unique_remove_ids = set(remove_image_ids)
+
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
+
         instance.save()
 
-        if remove_image_ids:
-            instance.images.filter(id__in=remove_image_ids).delete()
+        if unique_remove_ids:
+            instance.images.filter(id__in=unique_remove_ids).delete()
 
         current_max_sort = instance.images.order_by('-sort_order').first()
         next_sort = (current_max_sort.sort_order + 1) if current_max_sort else 0
 
         created_ids = []
+
         for image_file in new_images:
             image = BoatImage.objects.create(
                 boat=instance,

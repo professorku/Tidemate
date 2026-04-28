@@ -54,6 +54,9 @@ describe('useBookingForm', () => {
 
     act(() => {
       result.current.handleDateClick('2026-06-11')
+    })
+
+    act(() => {
       result.current.handleDateClick('2026-06-13')
     })
 
@@ -71,6 +74,9 @@ describe('useBookingForm', () => {
 
     act(() => {
       result.current.handleDateClick('2026-06-14')
+    })
+
+    act(() => {
       result.current.handleDateClick('2026-06-16')
     })
 

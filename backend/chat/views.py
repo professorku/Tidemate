@@ -1,6 +1,7 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.exceptions import NotFound
 
 from config.pagination import ConversationsPagination, MessagesCursorPagination
 from config.throttling import ChatRateThrottle
@@ -81,8 +82,17 @@ class ConversationDetailView(generics.RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticated]
     lookup_url_kwarg = 'conversation_id'
 
-    def get_queryset(self):
-        return get_user_conversations(self.request.user)
+    def get_object(self):
+        conversation = get_visible_conversation_for_user(
+            self.request.user,
+            self.kwargs[self.lookup_url_kwarg],
+        )
+
+        if not conversation:
+            raise NotFound('Conversation not found.')
+
+        self.check_object_permissions(self.request, conversation)
+        return conversation
 
     def get_serializer_context(self):
         context = super().get_serializer_context()

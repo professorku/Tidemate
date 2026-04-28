@@ -6,8 +6,8 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, override_settings
 from rest_framework.test import APIClient
 
-from .email_verification import build_email_verification_token
-from .profile_serializers import MyProfileSerializer
+from users.email_verification import build_email_verification_token
+from users.profile_serializers import MyProfileSerializer
 
 
 class AuthFlowTests(TestCase):
@@ -454,8 +454,10 @@ class ProfileValidationErrorHandlingTests(TestCase):
         user = User.objects.create_user(username='profile-error-user', password='strong-pass-123')
         client = APIClient(enforce_csrf_checks=True)
         client.force_authenticate(user=user)
-        client.cookies['csrftoken'] = 'test-csrf-token'
-        client.credentials(HTTP_X_CSRFTOKEN='test-csrf-token')
+
+        client.get('/api/users/csrf/')
+        csrf_token = client.cookies['csrftoken'].value
+        client.credentials(HTTP_X_CSRFTOKEN=csrf_token)
 
         response = client.patch('/api/users/me/', {'email': 'not-an-email'}, format='multipart')
 

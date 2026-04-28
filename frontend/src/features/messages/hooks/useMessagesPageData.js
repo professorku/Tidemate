@@ -35,12 +35,15 @@ export default function useMessagesPageData() {
     mutationFn: deleteConversation,
     onSuccess: async () => {
       await syncChatState()
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.chat.conversations(page),
+      })
     },
   })
 
 
   const pageData = conversationsQuery.data
-  const conversationsPage = pageData?.results || []
+  const conversationsPage = useMemo(() => pageData?.results || [], [pageData])
 
   const counts = useMemo(
     () => ({

@@ -43,7 +43,7 @@ export default function usePublicProfilePage(id) {
     refreshReviewableBookings()
   }, [isAuthenticated, refreshReviewableBookings])
 
-  const reloadPage = async ({ silent = false, page = reviewsPage } = {}) => {
+  const reloadPage = async ({ page = reviewsPage } = {}) => {
     setActionMessage('')
     if (page !== reviewsPage) {
       setReviewsPage(page)

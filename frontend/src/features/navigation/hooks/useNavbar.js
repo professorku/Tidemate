@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 export function useNavbar() {
@@ -12,12 +12,14 @@ export function useNavbar() {
 
   const [query, setQuery] = useState(searchQuery)
 
-  const syncedQuery = query === '' ? searchQuery : query
+  useEffect(() => {
+    setQuery(searchQuery)
+  }, [searchQuery])
 
   const handleSearch = useCallback((e) => {
     e.preventDefault()
 
-    const trimmed = syncedQuery.trim()
+    const trimmed = query.trim()
 
     if (trimmed) {
       navigate(`/?q=${encodeURIComponent(trimmed)}`)
@@ -25,14 +27,14 @@ export function useNavbar() {
     }
 
     navigate('/')
-  }, [navigate, syncedQuery])
+  }, [navigate, query])
 
   const handleQueryChange = useCallback((value) => {
     setQuery(value)
   }, [])
 
   return {
-    query: syncedQuery,
+    query,
     setQuery: handleQueryChange,
     handleSearch,
   }

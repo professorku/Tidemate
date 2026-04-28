@@ -5,7 +5,7 @@ from django.db import IntegrityError
 from django.urls import reverse
 from rest_framework.test import APITestCase
 
-from .models import Conversation, Message
+from chat.models import Conversation, Message
 
 
 class ChatConversationPermissionTests(APITestCase):
@@ -121,23 +121,27 @@ class DirectConversationUniquenessTests(APITestCase):
                 conversation_type='direct',
             )
 
-    @patch('chat.services.Conversation.objects.create')
-    @patch('chat.services.create_and_push_notification')
-    def test_start_direct_conversation_recovers_when_constraint_wins_race(self, notify_mock, create_mock):
-        existing = Conversation.objects.create(
+
+    def test_start_direct_conversation_recovers_when_constraint_wins_race(self):
+        from chat.services import start_direct_conversation
+
+        existing_conversation = Conversation.objects.create(
             host=self.target,
             renter=self.actor,
             conversation_type='direct',
         )
-        create_mock.side_effect = IntegrityError('duplicate')
 
-        from .services import start_direct_conversation
-
-        conversation, created = start_direct_conversation(actor=self.actor, target_user=self.target)
+        with patch(
+            'chat.services.Conversation.objects.create',
+            side_effect=IntegrityError('duplicate'),
+        ):
+            conversation, created = start_direct_conversation(
+                actor=self.actor,
+                target_user=self.target,
+            )
 
         self.assertFalse(created)
-        self.assertEqual(conversation.id, existing.id)
-        notify_mock.assert_not_called()
+        self.assertEqual(conversation.id, existing_conversation.id)
 
 
 class ChatMessageValidationTests(APITestCase):

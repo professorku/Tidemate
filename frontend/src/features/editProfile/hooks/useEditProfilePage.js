@@ -32,7 +32,7 @@ export default function useEditProfilePage() {
         const profile = user || (await getMyProfile())
         formMethods.reset(mapProfileToForm(profile))
         setError('')
-      } catch (err) {
+      } catch {
         setError('Failed to load profile')
       } finally {
         setLoading(false)

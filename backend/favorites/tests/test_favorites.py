@@ -6,7 +6,7 @@ from rest_framework.test import APIClient, APITestCase
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from listings.models import BoatListing
-from .models import Favorite
+from favorites.models import Favorite
 
 
 class FavoriteApiTests(APITestCase):
