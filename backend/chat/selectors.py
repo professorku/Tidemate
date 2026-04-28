@@ -22,6 +22,19 @@ def conversation_visible_to_user_filter(user):
     )
 
 
+def conversation_blocked_for_user_filter(user):
+    return (
+        Q(host=user, host__profile__blocked_users=F('renter_id'))
+        | Q(host=user, renter__profile__blocked_users=user)
+        | Q(renter=user, renter__profile__blocked_users=F('host_id'))
+        | Q(renter=user, host__profile__blocked_users=user)
+    )
+
+
+def conversation_accessible_to_user_filter(user):
+    return conversation_visible_to_user_filter(user) & ~conversation_blocked_for_user_filter(user)
+
+
 def annotate_conversation_metrics(queryset, *, viewer=None):
     latest_message_queryset = Message.objects.filter(
         conversation=OuterRef('pk')
@@ -59,15 +72,16 @@ def annotate_conversation_metrics(queryset, *, viewer=None):
 def get_user_conversations(user):
     return (
         annotate_conversation_metrics(
-            conversation_base_queryset().filter(conversation_visible_to_user_filter(user)),
+            conversation_base_queryset().filter(conversation_accessible_to_user_filter(user)),
             viewer=user,
         )
+        .distinct()
         .order_by('-latest_message_at', '-created_at', '-id')
     )
 
 
 def get_user_conversation_counts(user):
-    queryset = conversation_base_queryset().filter(conversation_visible_to_user_filter(user))
+    queryset = conversation_base_queryset().filter(conversation_accessible_to_user_filter(user))
 
     return queryset.aggregate(
         all_count=Count('id', distinct=True),
@@ -100,7 +114,7 @@ def get_visible_conversation_for_user(user, conversation_id):
         conversation_base_queryset()
         .filter(
             Q(id=conversation_id),
-            conversation_visible_to_user_filter(user),
+            conversation_accessible_to_user_filter(user),
         )
         .first()
     )

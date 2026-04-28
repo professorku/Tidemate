@@ -5,17 +5,21 @@ import logging
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.core.cache import cache
-from rest_framework.exceptions import ValidationError
 from django.utils import timezone
+from rest_framework.exceptions import ValidationError
 
 from .constants import (
     WEBSOCKET_SEND_RATE_LIMIT_COUNT,
     WEBSOCKET_SEND_RATE_LIMIT_WINDOW_SECONDS,
 )
 from .models import Message
-from .selectors import get_user_conversations, get_visible_conversation_for_user, mark_messages_as_read_for_viewer
+from .selectors import (
+    get_user_conversations,
+    get_visible_conversation_for_user,
+    mark_messages_as_read_for_viewer,
+)
 from .serializers import ConversationSerializer, MessageSerializer
-from .services import delete_message, send_message
+from .services import delete_message, ensure_user_can_access_conversation, send_message
 
 logger = logging.getLogger(__name__)
 
@@ -37,12 +41,30 @@ def get_public_error_detail(exc, default_message):
     return default_message
 
 
-@database_sync_to_async
-def get_conversation_for_user(user, conversation_id):
+def get_authorized_conversation_for_user(user, conversation_id):
     conversation = get_visible_conversation_for_user(user, conversation_id)
     if conversation is None:
         return None
+
+    try:
+        ensure_user_can_access_conversation(
+            conversation=conversation,
+            user=user,
+        )
+    except PermissionError:
+        return None
+
     return conversation
+
+
+@database_sync_to_async
+def get_conversation_for_user(user, conversation_id):
+    return get_authorized_conversation_for_user(user, conversation_id)
+
+
+@database_sync_to_async
+def conversation_access_allowed(user, conversation_id):
+    return get_authorized_conversation_for_user(user, conversation_id) is not None
 
 
 @database_sync_to_async
@@ -77,6 +99,7 @@ def delete_conversation_message(*, user, conversation_id, message_id):
 
 @database_sync_to_async
 def mark_conversation_as_read(*, conversation, user):
+    ensure_user_can_access_conversation(conversation=conversation, user=user)
     return mark_messages_as_read_for_viewer(conversation, user)
 
 
@@ -99,6 +122,11 @@ def websocket_send_allowed(*, user_id, conversation_id):
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        self.group_name = None
+        self.auth_session_group_name = None
+        self.user_auth_group_name = None
+        self.expiry_disconnect_task = None
+
         user = self.scope.get('user')
         if not user or user.is_anonymous:
             await self.close(code=4401)
@@ -116,9 +144,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return
 
         self.group_name = f'conversation_{self.conversation_id}'
-        self.auth_session_group_name = None
         self.user_auth_group_name = f"user_{user.id}_auth"
-        self.expiry_disconnect_task = None
 
         token_jti = self.scope.get('token_jti')
         if token_jti:
@@ -159,7 +185,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if getattr(self, 'group_name', None):
             await self.channel_layer.group_discard(self.group_name, self.channel_name)
 
-        if self.auth_session_group_name:
+        if getattr(self, 'auth_session_group_name', None):
             await self.channel_layer.group_discard(self.auth_session_group_name, self.channel_name)
 
         if getattr(self, 'user_auth_group_name', None):
@@ -167,6 +193,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data=None, bytes_data=None):
         if not text_data:
+            return
+
+        if await self._close_if_access_revoked():
             return
 
         try:
@@ -267,7 +296,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
             }))
 
     async def _broadcast_read_state(self):
-        unread_now = await mark_conversation_as_read(conversation=self.conversation, user=self.scope['user'])
+        if await self._close_if_access_revoked():
+            return
+
+        try:
+            unread_now = await mark_conversation_as_read(conversation=self.conversation, user=self.scope['user'])
+        except PermissionError:
+            await self.close(code=4403)
+            return
+
         await self.channel_layer.group_send(
             self.group_name,
             {
@@ -278,6 +315,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
             },
         )
 
+    async def _close_if_access_revoked(self):
+        allowed = await conversation_access_allowed(self.scope['user'], self.conversation_id)
+        if allowed:
+            return False
+
+        await self.close(code=4403)
+        return True
+
     async def _send_error(self, detail):
         await self.send(text_data=json.dumps({
             'type': 'chat.error',
@@ -285,6 +330,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
         }))
 
     async def chat_message_created(self, event):
+        if await self._close_if_access_revoked():
+            return
+
         await self.send(text_data=json.dumps({
             'type': 'message.created',
             'conversation_id': event['conversation_id'],
@@ -293,6 +341,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
         }))
 
     async def chat_message_deleted(self, event):
+        if await self._close_if_access_revoked():
+            return
+
         await self.send(text_data=json.dumps({
             'type': 'message.deleted',
             'conversation_id': event['conversation_id'],
@@ -301,6 +352,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
         }))
 
     async def chat_messages_read(self, event):
+        if await self._close_if_access_revoked():
+            return
+
         await self.send(text_data=json.dumps({
             'type': 'message.read',
             'conversation_id': event['conversation_id'],

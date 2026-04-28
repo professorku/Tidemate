@@ -91,10 +91,7 @@ def ensure_user_can_access_conversation(*, conversation, user):
         id=conversation.host.id
     ).exists()
 
-    if user == conversation.host and renter_has_blocked_host:
-        raise PermissionError('You cannot access this conversation.')
-
-    if user == conversation.renter and host_has_blocked_renter:
+    if host_has_blocked_renter or renter_has_blocked_host:
         raise PermissionError('You cannot access this conversation.')
 
 

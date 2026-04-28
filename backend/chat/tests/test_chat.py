@@ -5,6 +5,7 @@ from django.db import IntegrityError
 from django.urls import reverse
 from rest_framework.test import APITestCase
 
+from chat.consumers import get_authorized_conversation_for_user
 from chat.models import Conversation, Message
 
 
@@ -43,6 +44,68 @@ class ChatConversationPermissionTests(APITestCase):
 
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.json()['detail'], 'Conversation not found.')
+
+    def test_user_blocked_by_counterpart_cannot_view_conversation_detail(self):
+        self.host.profile.blocked_users.add(self.renter)
+        self.client.force_authenticate(user=self.renter)
+
+        response = self.client.get(
+            reverse('conversation-detail', kwargs={'conversation_id': self.conversation.id})
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json()['detail'], 'Conversation not found.')
+
+    def test_user_who_blocked_counterpart_cannot_view_conversation_detail(self):
+        self.host.profile.blocked_users.add(self.renter)
+        self.client.force_authenticate(user=self.host)
+
+        response = self.client.get(
+            reverse('conversation-detail', kwargs={'conversation_id': self.conversation.id})
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json()['detail'], 'Conversation not found.')
+
+    def test_blocked_conversation_is_hidden_from_conversation_list_and_counts(self):
+        self.host.profile.blocked_users.add(self.renter)
+        self.client.force_authenticate(user=self.renter)
+
+        response = self.client.get(reverse('my-conversations'))
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload['count'], 0)
+        self.assertEqual(payload['results'], [])
+        self.assertEqual(payload['conversation_counts']['all_count'], 0)
+        self.assertEqual(payload['conversation_counts']['direct_count'], 0)
+        self.assertEqual(payload['conversation_counts']['unread_count'], 0)
+
+    def test_blocked_user_cannot_list_messages_or_mark_them_read(self):
+        self.host.profile.blocked_users.add(self.renter)
+        self.assertFalse(self.message.is_read)
+
+        self.client.force_authenticate(user=self.renter)
+
+        response = self.client.get(
+            reverse('conversation-messages', kwargs={'conversation_id': self.conversation.id})
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json()['detail'], 'Conversation not found.')
+
+        self.message.refresh_from_db()
+        self.assertFalse(self.message.is_read)
+
+    def test_websocket_conversation_lookup_rejects_blocked_user(self):
+        self.host.profile.blocked_users.add(self.renter)
+
+        conversation = get_authorized_conversation_for_user(
+            self.renter,
+            self.conversation.id,
+        )
+
+        self.assertIsNone(conversation)
 
     def test_listing_messages_marks_other_users_messages_as_read(self):
         self.assertFalse(self.message.is_read)
@@ -120,7 +183,6 @@ class DirectConversationUniquenessTests(APITestCase):
                 renter=self.target,
                 conversation_type='direct',
             )
-
 
     def test_start_direct_conversation_recovers_when_constraint_wins_race(self):
         from chat.services import start_direct_conversation
