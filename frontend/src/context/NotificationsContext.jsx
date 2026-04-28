@@ -57,6 +57,11 @@ export function NotificationsProvider({ children }) {
     onAuthFailure: handleSocketAuthFailure,
   })
 
+  const {
+    connect: connectNotificationsSocket,
+    disconnect: disconnectNotificationsSocket,
+  } = socketApi
+
   useEffect(() => {
     if (!isAuthReady) {
       return undefined
@@ -64,17 +69,24 @@ export function NotificationsProvider({ children }) {
 
     if (!isAuthenticated) {
       replaceNotifications([])
-      socketApi.disconnect()
+      disconnectNotificationsSocket()
       return undefined
     }
 
     void refreshNotifications()
-    socketApi.connect()
+    connectNotificationsSocket()
 
     return () => {
-      socketApi.disconnect()
+      disconnectNotificationsSocket()
     }
-  }, [isAuthenticated, isAuthReady, refreshNotifications, replaceNotifications, socketApi])
+  }, [
+    connectNotificationsSocket,
+    disconnectNotificationsSocket,
+    isAuthenticated,
+    isAuthReady,
+    refreshNotifications,
+    replaceNotifications,
+  ])
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -114,6 +126,7 @@ export function NotificationsProvider({ children }) {
 
   const markAllAsRead = useCallback(async () => {
     const hasUnreadNotifications = notifications.some((item) => !item.is_read)
+
     if (!hasUnreadNotifications) {
       return
     }

@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { useAuth } from '../../../../context/useAuth'
 import { useManagedWebSocket } from '../../../../hooks/useManagedWebSocket'
 import {
@@ -17,7 +17,12 @@ export function useConversationSocket({
   onSocketError,
   onAuthFailure,
 }) {
-  const { isAuthenticated, isAuthReady } = useAuth()
+  const { isAuthenticated, isAuthReady, refreshUser } = useAuth()
+
+  const refreshSocketSession = useCallback(async () => {
+    const currentUser = await refreshUser()
+    return Boolean(currentUser)
+  }, [refreshUser])
 
   const socketApi = useManagedWebSocket({
     url: conversationId
@@ -64,18 +69,46 @@ export function useConversationSocket({
       }
     },
     onAuthFailure,
+    onAuthRefresh: refreshSocketSession,
     getMessageAuthFailure: getSessionRevokedAuthFailure,
     getCloseAuthFailure,
   })
 
+  const {
+    connect,
+    disconnect,
+    isConnected,
+    sendJson,
+  } = socketApi
+
+  useEffect(() => {
+    if (!conversationId || !isEnabled || !isAuthReady || !isAuthenticated) {
+      disconnect()
+      return undefined
+    }
+
+    connect()
+
+    return () => {
+      disconnect()
+    }
+  }, [
+    connect,
+    conversationId,
+    disconnect,
+    isAuthenticated,
+    isAuthReady,
+    isEnabled,
+  ])
+
   return useMemo(
     () => ({
-      isConnected: socketApi.isConnected,
-      sendMessage: (text) => socketApi.sendJson({ type: 'message.send', text }),
-      deleteMessage: (messageId) => socketApi.sendJson({ type: 'message.delete', message_id: messageId }),
-      markRead: () => socketApi.sendJson({ type: 'message.read' }),
-      reconnect: socketApi.connect,
+      isConnected,
+      sendMessage: (text) => sendJson({ type: 'message.send', text }),
+      deleteMessage: (messageId) => sendJson({ type: 'message.delete', message_id: messageId }),
+      markRead: () => sendJson({ type: 'message.read' }),
+      reconnect: connect,
     }),
-    [socketApi]
+    [connect, isConnected, sendJson]
   )
 }

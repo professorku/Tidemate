@@ -37,14 +37,22 @@ export default function FavoriteButton({ boat, onFavoriteChange, className = '' 
     try {
       if (favorited) {
         await deleteFavorite(favoriteId)
+
         setFavorited(false)
         setFavoriteId(null)
-        onFavoriteChange?.(false, boat)
+
+        // Callback format:
+        // onFavoriteChange(boatId, isFavorite)
+        onFavoriteChange?.(boat.id, false)
       } else {
         const favorite = await createFavorite(boat.id)
+
         setFavorited(true)
         setFavoriteId(favorite.id)
-        onFavoriteChange?.(true, boat)
+
+        // Callback format:
+        // onFavoriteChange(boatId, isFavorite)
+        onFavoriteChange?.(boat.id, true)
       }
 
       setAnimate(true)
@@ -69,7 +77,11 @@ export default function FavoriteButton({ boat, onFavoriteChange, className = '' 
       title={favorited ? 'Remove from favorites' : 'Add to favorites'}
       className={`${className} flex h-9 w-9 items-center justify-center rounded-full bg-white/60 shadow-md backdrop-blur-sm transition ${animate ? 'scale-125' : 'hover:scale-110'}`}
     >
-      {favorited ? <HeartSolid className="h-5 w-5 text-red-500" /> : <HeartOutline className="h-5 w-5 text-slate-700" />}
+      {favorited ? (
+        <HeartSolid className="h-5 w-5 text-red-500" />
+      ) : (
+        <HeartOutline className="h-5 w-5 text-slate-700" />
+      )}
     </button>
   )
 }

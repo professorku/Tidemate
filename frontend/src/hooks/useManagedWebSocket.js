@@ -12,28 +12,36 @@ export function useManagedWebSocket({
   baseReconnectDelayMs = 3000,
   maxReconnectDelayMs = 30000,
   maxReconnectAttempts = 6,
+  maxAuthRefreshAttempts = 1,
   onOpen,
   onMessage,
   onClose,
   onError,
   onAuthFailure,
+  onAuthRefresh,
   getMessageAuthFailure,
   getCloseAuthFailure,
 }) {
   const socketRef = useRef(null)
   const reconnectTimeoutRef = useRef(null)
   const reconnectAttemptRef = useRef(0)
+  const authRefreshAttemptRef = useRef(0)
+  const authRefreshPromiseRef = useRef(null)
   const shouldReconnectRef = useRef(false)
   const authFailureHandledRef = useRef(false)
+  const connectRef = useRef(null)
+
   const callbacksRef = useRef({
     onOpen,
     onMessage,
     onClose,
     onError,
     onAuthFailure,
+    onAuthRefresh,
     getMessageAuthFailure,
     getCloseAuthFailure,
   })
+
   const [isConnected, setIsConnected] = useState(false)
 
   useEffect(() => {
@@ -43,10 +51,20 @@ export function useManagedWebSocket({
       onClose,
       onError,
       onAuthFailure,
+      onAuthRefresh,
       getMessageAuthFailure,
       getCloseAuthFailure,
     }
-  }, [getCloseAuthFailure, getMessageAuthFailure, onAuthFailure, onClose, onError, onMessage, onOpen])
+  }, [
+    getCloseAuthFailure,
+    getMessageAuthFailure,
+    onAuthFailure,
+    onAuthRefresh,
+    onClose,
+    onError,
+    onMessage,
+    onOpen,
+  ])
 
   const clearReconnectTimeout = useCallback(() => {
     if (reconnectTimeoutRef.current) {
@@ -66,6 +84,51 @@ export function useManagedWebSocket({
     callbacksRef.current.onAuthFailure?.(message)
   }, [clearReconnectTimeout])
 
+  const recoverFromAuthClose = useCallback(async (message) => {
+    if (authFailureHandledRef.current) {
+      return
+    }
+
+    if (authRefreshPromiseRef.current) {
+      return
+    }
+
+    if (
+      !callbacksRef.current.onAuthRefresh ||
+      authRefreshAttemptRef.current >= maxAuthRefreshAttempts
+    ) {
+      handleAuthFailure(message)
+      return
+    }
+
+    clearReconnectTimeout()
+    authRefreshAttemptRef.current += 1
+
+    authRefreshPromiseRef.current = Promise.resolve(
+      callbacksRef.current.onAuthRefresh(message)
+    )
+
+    try {
+      const recovered = await authRefreshPromiseRef.current
+
+      if (recovered === false) {
+        handleAuthFailure(message)
+        return
+      }
+
+      authFailureHandledRef.current = false
+      reconnectAttemptRef.current = 0
+
+      if (shouldReconnectRef.current) {
+        connectRef.current?.()
+      }
+    } catch {
+      handleAuthFailure(message)
+    } finally {
+      authRefreshPromiseRef.current = null
+    }
+  }, [clearReconnectTimeout, handleAuthFailure, maxAuthRefreshAttempts])
+
   const disconnect = useCallback(({ allowReconnect = false } = {}) => {
     shouldReconnectRef.current = allowReconnect
     clearReconnectTimeout()
@@ -77,6 +140,7 @@ export function useManagedWebSocket({
 
     if (!allowReconnect) {
       reconnectAttemptRef.current = 0
+      authRefreshAttemptRef.current = 0
       setIsConnected(false)
     }
   }, [clearReconnectTimeout])
@@ -87,10 +151,13 @@ export function useManagedWebSocket({
     }
 
     shouldReconnectRef.current = true
+    clearReconnectTimeout()
+
     const socket = new WebSocket(url)
 
     socket.onopen = () => {
       authFailureHandledRef.current = false
+      authRefreshAttemptRef.current = 0
       reconnectAttemptRef.current = 0
       setIsConnected(true)
       callbacksRef.current.onOpen?.(socket)
@@ -117,9 +184,14 @@ export function useManagedWebSocket({
       setIsConnected(false)
       callbacksRef.current.onClose?.(event)
 
-      const authFailureMessage = callbacksRef.current.getCloseAuthFailure?.(event)
-      if (authFailureMessage) {
-        handleAuthFailure(authFailureMessage)
+      if (authFailureHandledRef.current) {
+        return
+      }
+
+      const authCloseMessage = callbacksRef.current.getCloseAuthFailure?.(event)
+
+      if (authCloseMessage) {
+        void recoverFromAuthClose(authCloseMessage)
         return
       }
 
@@ -132,7 +204,9 @@ export function useManagedWebSocket({
         baseReconnectDelayMs,
         maxReconnectDelayMs
       )
+
       reconnectAttemptRef.current += 1
+
       reconnectTimeoutRef.current = window.setTimeout(() => {
         connect()
       }, delay)
@@ -146,18 +220,25 @@ export function useManagedWebSocket({
     socketRef.current = socket
   }, [
     baseReconnectDelayMs,
+    clearReconnectTimeout,
     handleAuthFailure,
     isAuthenticated,
     isAuthReady,
     isEnabled,
     maxReconnectAttempts,
     maxReconnectDelayMs,
+    recoverFromAuthClose,
     url,
   ])
 
   useEffect(() => {
+    connectRef.current = connect
+  }, [connect])
+
+  useEffect(() => {
     if (!isAuthenticated) {
       authFailureHandledRef.current = false
+      authRefreshAttemptRef.current = 0
     }
   }, [isAuthenticated])
 
@@ -190,6 +271,7 @@ export function useManagedWebSocket({
 
   const sendJson = useCallback((payload) => {
     const socket = socketRef.current
+
     if (!socket || socket.readyState !== WebSocket.OPEN) {
       return false
     }

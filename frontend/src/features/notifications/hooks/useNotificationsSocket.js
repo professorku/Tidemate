@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import { useManagedWebSocket } from '../../../hooks/useManagedWebSocket'
 import {
   buildWebSocketUrl,
@@ -12,8 +13,18 @@ function logSocketEvent(...args) {
   }
 }
 
-export function useNotificationsSocket({ isEnabled = true, onNotification, onSocketError, onAuthFailure }) {
-  const { isAuthenticated, isAuthReady } = useAuth()
+export function useNotificationsSocket({
+  isEnabled = true,
+  onNotification,
+  onSocketError,
+  onAuthFailure,
+}) {
+  const { isAuthenticated, isAuthReady, refreshUser } = useAuth()
+
+  const refreshSocketSession = useCallback(async () => {
+    const currentUser = await refreshUser()
+    return Boolean(currentUser)
+  }, [refreshUser])
 
   return useManagedWebSocket({
     url: isAuthenticated ? buildWebSocketUrl('/ws/notifications/') : null,
@@ -41,6 +52,7 @@ export function useNotificationsSocket({ isEnabled = true, onNotification, onSoc
       }
     },
     onAuthFailure,
+    onAuthRefresh: refreshSocketSession,
     getMessageAuthFailure: getSessionRevokedAuthFailure,
     getCloseAuthFailure,
   })
