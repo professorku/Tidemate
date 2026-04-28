@@ -4,7 +4,10 @@ from rest_framework import serializers
 
 from config.uploads import MAX_AVATAR_IMAGE_SIZE_BYTES, validate_image_upload
 
-from .email_verification import send_email_change_verification_email
+from .email_verification import (
+    send_email_change_security_alert_email,
+    send_email_change_verification_email,
+)
 from .models import Profile, MAX_PROFILE_BIO_LENGTH
 
 
@@ -64,6 +67,13 @@ class PublicProfileSerializer(BaseProfileSerializer):
 
 class MyProfileSerializer(BaseProfileSerializer):
     email = serializers.EmailField(source='user.email', required=False)
+    current_password = serializers.CharField(
+        write_only=True,
+        required=False,
+        allow_blank=True,
+        trim_whitespace=False,
+        style={'input_type': 'password'},
+    )
     pending_email = serializers.EmailField(read_only=True, allow_null=True)
     pending_email_requested_at = serializers.DateTimeField(read_only=True, allow_null=True)
     email_change_pending = serializers.SerializerMethodField()
@@ -72,6 +82,7 @@ class MyProfileSerializer(BaseProfileSerializer):
     class Meta(BaseProfileSerializer.Meta):
         fields = BaseProfileSerializer.Meta.fields[:2] + [
             'email',
+            'current_password',
             'pending_email',
             'pending_email_requested_at',
             'email_change_pending',
@@ -94,6 +105,7 @@ class MyProfileSerializer(BaseProfileSerializer):
 
         user_data = attrs.get('user', {})
         email = user_data.get('email')
+        current_password = attrs.get('current_password', '')
 
         if email is not None:
             normalized_email = email.strip().lower()
@@ -108,6 +120,17 @@ class MyProfileSerializer(BaseProfileSerializer):
             if current_user is not None and current_user.email.lower() == normalized_email:
                 user_data['email'] = normalized_email
                 return attrs
+
+            if current_user is not None:
+                if not current_password:
+                    raise serializers.ValidationError({
+                        'current_password': ['Current password is required to change your email address.']
+                    })
+
+                if not current_user.check_password(current_password):
+                    raise serializers.ValidationError({
+                        'current_password': ['Current password is incorrect.']
+                    })
 
             email_already_exists = User.objects.filter(
                 email__iexact=normalized_email
@@ -129,6 +152,7 @@ class MyProfileSerializer(BaseProfileSerializer):
 
     def update(self, instance, validated_data):
         user_data = validated_data.pop('user', {})
+        validated_data.pop('current_password', None)
         avatar_file = validated_data.pop('avatar_upload', None)
 
         email = user_data.get('email')
@@ -151,6 +175,10 @@ class MyProfileSerializer(BaseProfileSerializer):
 
         if requested_email_change is not None:
             send_email_change_verification_email(
+                user=instance.user,
+                pending_email=requested_email_change,
+            )
+            send_email_change_security_alert_email(
                 user=instance.user,
                 pending_email=requested_email_change,
             )

@@ -13,6 +13,51 @@ def get_or_create_profile(user):
     return profile
 
 
+def get_conversation_archive_field_for_user(*, conversation, user):
+    if conversation.host_id == user.id:
+        return 'archived_by_host_at'
+
+    if conversation.renter_id == user.id:
+        return 'archived_by_renter_at'
+
+    raise PermissionError('Not allowed to access this conversation.')
+
+
+def conversation_is_archived_for_user(*, conversation, user):
+    archive_field = get_conversation_archive_field_for_user(
+        conversation=conversation,
+        user=user,
+    )
+    return getattr(conversation, archive_field) is not None
+
+
+def archive_conversation_for_user(*, conversation, user):
+    archive_field = get_conversation_archive_field_for_user(
+        conversation=conversation,
+        user=user,
+    )
+
+    if getattr(conversation, archive_field):
+        raise ValueError('This conversation has already been deleted from your account.')
+
+    setattr(conversation, archive_field, timezone.now())
+    conversation.save(update_fields=[archive_field])
+
+
+def unarchive_conversation_for_user(*, conversation, user):
+    archive_field = get_conversation_archive_field_for_user(
+        conversation=conversation,
+        user=user,
+    )
+
+    if getattr(conversation, archive_field) is None:
+        return False
+
+    setattr(conversation, archive_field, None)
+    conversation.save(update_fields=[archive_field])
+    return True
+
+
 def ensure_users_can_start_direct_conversation(*, actor, target_user):
     if target_user == actor:
         raise ValueError('You cannot start a conversation with yourself.')
@@ -28,8 +73,13 @@ def ensure_users_can_start_direct_conversation(*, actor, target_user):
 
 
 def ensure_user_can_access_conversation(*, conversation, user):
-    if conversation.host != user and conversation.renter != user:
-        raise PermissionError('Not allowed to access this conversation.')
+    get_conversation_archive_field_for_user(
+        conversation=conversation,
+        user=user,
+    )
+
+    if conversation_is_archived_for_user(conversation=conversation, user=user):
+        raise PermissionError('Conversation not found.')
 
     host_profile = get_or_create_profile(conversation.host)
     renter_profile = get_or_create_profile(conversation.renter)
@@ -53,6 +103,10 @@ def start_direct_conversation(*, actor, target_user, existing_conversation=None)
     ensure_users_can_start_direct_conversation(actor=actor, target_user=target_user)
 
     if existing_conversation:
+        unarchive_conversation_for_user(
+            conversation=existing_conversation,
+            user=actor,
+        )
         return existing_conversation, False
 
     try:
@@ -66,6 +120,10 @@ def start_direct_conversation(*, actor, target_user, existing_conversation=None)
             conversation_type='direct',
             direct_user_low_id=min(actor.id, target_user.id),
             direct_user_high_id=max(actor.id, target_user.id),
+        )
+        unarchive_conversation_for_user(
+            conversation=conversation,
+            user=actor,
         )
         return conversation, False
 
@@ -91,6 +149,11 @@ def send_message(*, conversation, sender, serializer):
         conversation.renter
         if sender == conversation.host
         else conversation.host
+    )
+
+    unarchive_conversation_for_user(
+        conversation=conversation,
+        user=recipient,
     )
 
     preview_text = (message.text or '').strip()
@@ -131,7 +194,10 @@ def delete_conversation(*, conversation, actor):
                 'Booking conversations can only be deleted when the booking is cancelled or completed.'
             )
 
-    conversation.delete()
+    archive_conversation_for_user(
+        conversation=conversation,
+        user=actor,
+    )
 
 
 @transaction.atomic

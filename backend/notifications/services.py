@@ -29,6 +29,16 @@ def create_and_push_notification(*, user, message, target_url=""):
     return notification
 
 
+def mark_notification_read(*, notification):
+    if notification.is_read:
+        return notification
+
+    notification.is_read = True
+    notification.save(update_fields=["is_read"])
+
+    return notification
+
+
 def mark_all_notifications_read(*, user):
     return Notification.objects.filter(
         user=user,

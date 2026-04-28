@@ -13,13 +13,11 @@ export default function CalendarDayCell({
   interactive,
   onDateClick,
   isBlocked,
-  getStatus,
 }) {
   if (!date) {
     return <div className="aspect-square" />
   }
 
-  const status = getStatus(date)
   const blocked = isBlocked(date)
   const past = isPastDate(date)
   const disabled = blocked || past
@@ -41,8 +39,7 @@ export default function CalendarDayCell({
 
   if (isStart || isEnd) className += 'bg-navy text-white'
   else if (inSelectedRange) className += 'bg-navy/10 text-navy'
-  else if (status === 'confirmed') className += 'bg-gold text-navy'
-  else if (status === 'pending') className += 'bg-slate-400 text-white'
+  else if (blocked) className += 'bg-slate-400 text-white'
   else if (disabled) className += 'bg-slate-100 text-slate-400'
   else if (interactive) className += 'bg-white ring-1 ring-slate-200 hover:bg-slate-50'
   else className += 'bg-white ring-1 ring-slate-200'

@@ -4,9 +4,9 @@ from django.utils import timezone
 from chat.models import Conversation
 from notifications.models import Notification
 
+from .confirmation import confirm_pending_booking
 from .lifecycle import can_cancel_booking, get_booking_lifecycle_stage
 from .serializers import BookingCancelSerializer
-from .confirmation import confirm_pending_booking
 
 
 @transaction.atomic
@@ -126,4 +126,10 @@ def delete_booking(*, booking, actor):
     if not can_delete:
         raise ValueError('Only cancelled or completed bookings can be deleted.')
 
-    booking.delete()
+    archive_field = 'archived_by_renter_at' if is_renter else 'archived_by_host_at'
+
+    if getattr(booking, archive_field):
+        raise ValueError('This booking has already been deleted from your account.')
+
+    setattr(booking, archive_field, timezone.now())
+    booking.save(update_fields=[archive_field])

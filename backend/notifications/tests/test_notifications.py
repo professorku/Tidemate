@@ -93,6 +93,26 @@ class NotificationApiTests(APITestCase):
         )
 
         self.assertEqual(response.status_code, 404)
+        
+    def test_mark_notification_read_does_not_allow_editing_message_or_target_url(self):
+        self.client.force_authenticate(user=self.user)
+
+        response = self.client.patch(
+            f'/api/notifications/{self.own_notification.id}/read/',
+            {
+                'message': 'Hacked message',
+                'target_url': 'https://evil.example.com',
+                'is_read': True,
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        self.own_notification.refresh_from_db()
+        self.assertTrue(self.own_notification.is_read)
+        self.assertEqual(self.own_notification.message, 'Your booking was approved.')
+        self.assertEqual(self.own_notification.target_url, '/bookings/1')
 
 
 @override_settings(

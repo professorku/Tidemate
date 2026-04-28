@@ -19,7 +19,11 @@ def booking_base_queryset():
     ).prefetch_related(
         Prefetch(
             'reviews',
-            queryset=Review.objects.select_related('reviewer', 'reviewed_user', 'boat').order_by('-created_at', '-id'),
+            queryset=Review.objects.select_related(
+                'reviewer',
+                'reviewed_user',
+                'boat',
+            ).order_by('-created_at', '-id'),
             to_attr='prefetched_reviews',
         )
     )
@@ -58,11 +62,25 @@ def apply_timeline_filter(queryset, timeline):
 
 
 def get_user_bookings(user):
-    return booking_base_queryset().filter(renter=user).order_by('-created_at', '-id')
+    return (
+        booking_base_queryset()
+        .filter(
+            renter=user,
+            archived_by_renter_at__isnull=True,
+        )
+        .order_by('-created_at', '-id')
+    )
 
 
 def get_host_bookings(user, *, status_value=None):
-    queryset = booking_base_queryset().filter(boat__host=user).order_by('-created_at', '-id')
+    queryset = (
+        booking_base_queryset()
+        .filter(
+            boat__host=user,
+            archived_by_host_at__isnull=True,
+        )
+        .order_by('-created_at', '-id')
+    )
 
     if status_value in ['pending', 'confirmed', 'cancelled']:
         queryset = queryset.filter(status=status_value)
@@ -73,7 +91,8 @@ def get_host_bookings(user, *, status_value=None):
 def get_visible_booking_for_user(user, booking_id):
     return booking_base_queryset().filter(
         Q(id=booking_id),
-        Q(renter=user) | Q(boat__host=user),
+        Q(renter=user, archived_by_renter_at__isnull=True)
+        | Q(boat__host=user, archived_by_host_at__isnull=True),
     ).first()
 
 
@@ -81,6 +100,7 @@ def get_host_booking_for_user(user, booking_id):
     return booking_base_queryset().filter(
         id=booking_id,
         boat__host=user,
+        archived_by_host_at__isnull=True,
     ).first()
 
 

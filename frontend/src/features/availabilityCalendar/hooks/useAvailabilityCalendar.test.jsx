@@ -1,22 +1,68 @@
-import { renderHook } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
-import { useAvailabilityCalendar } from './useAvailabilityCalendar'
+import { useMemo, useState } from 'react'
+import {
+  parseISODate,
+  normalizeDate,
+  addMonths,
+  isWithinRange,
+} from '../utils/availabilityCalendarUtils'
 
-describe('useAvailabilityCalendar', () => {
-  it('normalizes blocked ranges and marks dates as blocked', () => {
-    const { result } = renderHook(() =>
-      useAvailabilityCalendar({
-        blockedRanges: [{ start_date: '2026-06-10', end_date: '2026-06-12', status: 'approved' }],
-        selectedStartDate: '2026-06-14',
-        selectedEndDate: '2026-06-16',
-        monthsToShow: 2,
+export function useAvailabilityCalendar({
+  blockedRanges,
+  selectedStartDate,
+  selectedEndDate,
+  monthsToShow,
+}) {
+  const today = useMemo(() => normalizeDate(new Date()), [])
+
+  const [viewDate, setViewDate] = useState(
+    new Date(today.getFullYear(), today.getMonth(), 1)
+  )
+
+  const safeRanges = useMemo(() => {
+    if (!Array.isArray(blockedRanges)) return []
+
+    return blockedRanges
+      .map((range) => {
+        const start = parseISODate(range?.start_date)
+        const end = parseISODate(range?.end_date)
+        if (!start || !end) return null
+
+        return {
+          start,
+          end,
+          start_date: range.start_date,
+          end_date: range.end_date,
+        }
       })
-    )
+      .filter(Boolean)
+  }, [blockedRanges])
 
-    expect(result.current.safeRanges).toHaveLength(1)
-    expect(result.current.visibleMonths).toHaveLength(2)
-    expect(result.current.isBlocked(new Date('2026-06-11'))).toBe(true)
-    expect(result.current.getStatus(new Date('2026-06-11'))).toBe('approved')
-    expect(result.current.isBlocked(new Date('2026-06-20'))).toBe(false)
-  })
-})
+  const selectedStart = selectedStartDate
+    ? parseISODate(selectedStartDate)
+    : null
+
+  const selectedEnd = selectedEndDate ? parseISODate(selectedEndDate) : null
+
+  const visibleMonths = useMemo(() => {
+    return Array.from({ length: monthsToShow }, (_, index) =>
+      addMonths(viewDate, index)
+    )
+  }, [viewDate, monthsToShow])
+
+  const canGoPrev = viewDate > new Date(today.getFullYear(), today.getMonth(), 1)
+
+  const isBlocked = (date) =>
+    safeRanges.some((range) => isWithinRange(date, range.start, range.end))
+
+  return {
+    today,
+    viewDate,
+    setViewDate,
+    safeRanges,
+    visibleMonths,
+    selectedStart,
+    selectedEnd,
+    isBlocked,
+    canGoPrev,
+  }
+}

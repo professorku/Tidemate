@@ -11,11 +11,7 @@ export default function CalendarUnavailableRanges({ ranges = [] }) {
         {ranges.slice(0, 8).map((range, index) => (
           <span
             key={`${range.start_date}-${range.end_date}-${index}`}
-            className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
-              range.status === "confirmed"
-                ? "bg-gold text-navy"
-                : "bg-slate-400 text-white"
-            }`}
+            className="rounded-full bg-slate-400 px-3 py-1.5 text-xs font-semibold text-white"
           >
             {range.start_date} → {range.end_date}
           </span>

@@ -1,4 +1,5 @@
 from rest_framework import serializers
+
 from .models import Notification
 
 
@@ -9,6 +10,12 @@ class NotificationSerializer(serializers.ModelSerializer):
             "id",
             "message",
             "is_read",
+            "created_at",
+            "target_url",
+        ]
+        read_only_fields = [
+            "id",
+            "message",
             "created_at",
             "target_url",
         ]

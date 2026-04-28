@@ -2,7 +2,7 @@ from datetime import date
 
 from rest_framework import serializers
 
-from .creation import create_pending_booking
+from .creation import create_pending_booking, validate_booking_duration
 from .models import Booking, MAX_BOOKING_CANCELLATION_REASON_LENGTH
 
 
@@ -46,6 +46,11 @@ class BookingCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({
                 'start_date': ['You cannot book dates in the past.']
             })
+
+        validate_booking_duration(
+            start_date=start_date,
+            end_date=end_date,
+        )
 
         return attrs
 

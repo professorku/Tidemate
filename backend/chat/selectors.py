@@ -1,4 +1,4 @@
-from django.db.models import Count, F, OuterRef, Q, Subquery, Value, TextField
+from django.db.models import Count, F, OuterRef, Q, Subquery, TextField, Value
 from django.db.models.functions import Coalesce
 
 from .models import Conversation, Message
@@ -12,6 +12,13 @@ def conversation_base_queryset():
         'host__profile',
         'renter',
         'renter__profile',
+    )
+
+
+def conversation_visible_to_user_filter(user):
+    return (
+        Q(host=user, archived_by_host_at__isnull=True)
+        | Q(renter=user, archived_by_renter_at__isnull=True)
     )
 
 
@@ -52,7 +59,7 @@ def annotate_conversation_metrics(queryset, *, viewer=None):
 def get_user_conversations(user):
     return (
         annotate_conversation_metrics(
-            conversation_base_queryset().filter(Q(host=user) | Q(renter=user)),
+            conversation_base_queryset().filter(conversation_visible_to_user_filter(user)),
             viewer=user,
         )
         .order_by('-latest_message_at', '-created_at', '-id')
@@ -60,7 +67,8 @@ def get_user_conversations(user):
 
 
 def get_user_conversation_counts(user):
-    queryset = conversation_base_queryset().filter(Q(host=user) | Q(renter=user))
+    queryset = conversation_base_queryset().filter(conversation_visible_to_user_filter(user))
+
     return queryset.aggregate(
         all_count=Count('id', distinct=True),
         booking_count=Count('id', filter=Q(conversation_type='booking'), distinct=True),
@@ -75,6 +83,7 @@ def get_user_conversation_counts(user):
 
 def get_direct_conversation_between_users(user_a, user_b):
     low_id, high_id = sorted([user_a.id, user_b.id])
+
     return (
         conversation_base_queryset()
         .filter(
@@ -91,7 +100,7 @@ def get_visible_conversation_for_user(user, conversation_id):
         conversation_base_queryset()
         .filter(
             Q(id=conversation_id),
-            Q(host=user) | Q(renter=user),
+            conversation_visible_to_user_filter(user),
         )
         .first()
     )

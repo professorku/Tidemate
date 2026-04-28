@@ -10,12 +10,33 @@ BASE_DIR = Path(__file__).resolve().parents[2]
 
 load_dotenv(BASE_DIR / ".env")
 
+
 def env_bool(name: str, default: bool = False) -> bool:
     return os.getenv(name, str(default)).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def env_int(name: str, default: int) -> int:
+    raw_value = os.getenv(name, str(default)).strip()
+
+    try:
+        return int(raw_value)
+    except ValueError:
+        raise ImproperlyConfigured(f"{name} must be an integer.")
+
+
+def env_float(name: str, default: float) -> float:
+    raw_value = os.getenv(name, str(default)).strip()
+
+    try:
+        return float(raw_value)
+    except ValueError:
+        raise ImproperlyConfigured(f"{name} must be a number.")
+
 
 def env_list(name: str, default: str = "") -> list[str]:
     value = os.getenv(name, default)
     return [item.strip() for item in value.split(",") if item.strip()]
+
 
 DEFAULT_DEV_SECRET_KEY = "tidemate-dev-secret-key-change-me-please-2026-very-long"
 SECRET_KEY = os.getenv("SECRET_KEY", DEFAULT_DEV_SECRET_KEY)
@@ -118,6 +139,17 @@ MEDIA_ROOT = Path(os.getenv("MEDIA_ROOT", BASE_DIR / "media"))
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 DEBUG_LINKS_ENABLED = env_bool("DEBUG_LINKS_ENABLED", False)
+
+LISTING_SEARCH_MAX_LIMIT = env_int("LISTING_SEARCH_MAX_LIMIT", 48)
+LISTING_SEARCH_MAX_RADIUS_KM = env_float("LISTING_SEARCH_MAX_RADIUS_KM", 500.0)
+LISTING_SEARCH_FALLBACK_MIN_CANDIDATES = env_int(
+    "LISTING_SEARCH_FALLBACK_MIN_CANDIDATES",
+    48,
+)
+LISTING_SEARCH_FALLBACK_MAX_CANDIDATES = env_int(
+    "LISTING_SEARCH_FALLBACK_MAX_CANDIDATES",
+    250,
+)
 
 CORS_ALLOWED_ORIGINS = env_list(
     "CORS_ALLOWED_ORIGINS",

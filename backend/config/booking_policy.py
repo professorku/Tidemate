@@ -3,6 +3,8 @@ from datetime import time
 BOOKING_START_TIME = time(hour=15, minute=0)
 BOOKING_END_TIME = time(hour=12, minute=0)
 
+MAX_BOOKING_DURATION_DAYS = 30
+
 FREE_CANCELLATION_WINDOW_HOURS = 48
 PARTIAL_REFUND_DAYS_BEFORE = 7
 
@@ -15,13 +17,16 @@ def build_booking_policy():
         'title': 'Rental rules',
         'pickup_time': pickup_time,
         'return_time': return_time,
+        'max_duration_days': MAX_BOOKING_DURATION_DAYS,
         'short_text': (
             f'Pickup from {pickup_time} on the first day. '
-            f'Return by {return_time} on the last day.'
+            f'Return by {return_time} on the last day. '
+            f'Maximum booking length is {MAX_BOOKING_DURATION_DAYS} days.'
         ),
         'items': [
             f'Pickup is from {pickup_time} on your start date.',
             f'Return is by {return_time} on your end date.',
+            f'Maximum booking length is {MAX_BOOKING_DURATION_DAYS} days.',
             'The boat stays unavailable to others for the full booked date range.',
             'Late returns may incur extra fees if you add that rule later.',
         ],

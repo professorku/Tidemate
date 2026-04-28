@@ -85,8 +85,8 @@ def send_email_change_verification_email(user: User, pending_email: str) -> str:
             f"New email: {normalized_pending_email}\n\n"
             "To confirm this change, open this link:\n"
             f"{verification_link}\n\n"
-            "If you did not request this change, you can ignore this email. "
-            "Your current email address will stay unchanged.\n"
+            "If you did not request this change, do not open this link. "
+            "Your current email address will stay unchanged unless the new email is verified.\n"
         ),
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[normalized_pending_email],
@@ -94,6 +94,26 @@ def send_email_change_verification_email(user: User, pending_email: str) -> str:
     )
 
     return verification_link
+
+
+def send_email_change_security_alert_email(user: User, pending_email: str) -> None:
+    normalized_pending_email = pending_email.strip().lower()
+
+    send_mail(
+        subject="TideMate email change requested",
+        message=(
+            "A request was made to change the email address on your TideMate account.\n\n"
+            f"Current email: {user.email}\n"
+            f"Requested new email: {normalized_pending_email}\n\n"
+            "If this was you, no action is needed from this email address. "
+            "A verification link has been sent to the new email address.\n\n"
+            "If this was not you, your current email has not been changed yet. "
+            "Please change your password immediately and contact support if needed.\n"
+        ),
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[user.email],
+        fail_silently=False,
+    )
 
 
 def _get_email_change_max_age_seconds() -> int:

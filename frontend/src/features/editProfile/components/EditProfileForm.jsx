@@ -32,6 +32,20 @@ export default function EditProfileForm({
         <FieldError message={errors.email?.message} />
       </Field>
 
+      <Field label="Current password" htmlFor="currentPassword">
+        <Input
+          id="currentPassword"
+          type="password"
+          autoComplete="current-password"
+          placeholder="Required only when changing email"
+          {...register('current_password')}
+        />
+        <p className="mt-2 text-sm text-slate-500">
+          Required only if you change your email address.
+        </p>
+        <FieldError message={errors.current_password?.message} />
+      </Field>
+
       <Field label="Location" htmlFor="location">
         <Input
           id="location"

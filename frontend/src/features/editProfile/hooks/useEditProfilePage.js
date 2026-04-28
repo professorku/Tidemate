@@ -11,6 +11,7 @@ import {
 
 const INITIAL_FORM = {
   email: '',
+  current_password: '',
   location: '',
   bio: '',
 }
@@ -51,12 +52,14 @@ export default function useEditProfilePage() {
       const updatedProfile = await updateMyProfile(values)
       setUser(updatedProfile)
 
-    if (updatedProfile.email_change_pending) {
-      setSuccess('Profile updated. Check your new email address to confirm the email change.')
-    } else {
-      setSuccess('Profile updated successfully')
-      navigate('/profile')
-    }
+      formMethods.reset(mapProfileToForm(updatedProfile))
+
+      if (updatedProfile.email_change_pending) {
+        setSuccess('Profile updated. Check your new email address to confirm the email change.')
+      } else {
+        setSuccess('Profile updated successfully')
+        navigate('/profile')
+      }
     } catch (err) {
       setError(getProfileUpdateError(err))
     } finally {

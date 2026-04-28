@@ -23,7 +23,6 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = [
             'id',
-            'booking',
             'boat',
             'boat_title',
             'reviewer',
@@ -37,7 +36,6 @@ class ReviewSerializer(serializers.ModelSerializer):
             'created_at',
         ]
         read_only_fields = [
-            'booking',
             'boat',
             'boat_title',
             'reviewer',

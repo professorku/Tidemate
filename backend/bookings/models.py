@@ -45,6 +45,9 @@ class Booking(models.Model):
     )
     cancelled_at = models.DateTimeField(blank=True, null=True)
 
+    archived_by_renter_at = models.DateTimeField(blank=True, null=True, db_index=True)
+    archived_by_host_at = models.DateTimeField(blank=True, null=True, db_index=True)
+
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
