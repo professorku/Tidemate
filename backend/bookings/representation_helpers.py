@@ -2,6 +2,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 
 from config.booking_policy import build_booking_policy, build_cancellation_policy
+from listings.services.location_privacy import build_location_privacy_payload
 from reviews.models import Review
 
 from .lifecycle import (
@@ -156,16 +157,16 @@ class BookingReviewMixin(BookingContextMixin):
 
 
 class BookingRepresentationMixin(BookingReviewMixin):
-    def _get_boat_coordinate(self, boat, possible_names):
-        if not boat:
-            return None
+    def _get_location_payload(self, obj):
+        cache_key = '_tidemate_booking_location_privacy_payload'
+        cached_payload = getattr(obj, cache_key, None)
 
-        for field_name in possible_names:
-            value = getattr(boat, field_name, None)
-            if value is not None:
-                return value
+        if cached_payload is not None:
+            return cached_payload
 
-        return None
+        payload = build_location_privacy_payload(obj.boat, self._get_request_user())
+        setattr(obj, cache_key, payload)
+        return payload
 
     def get_boat_image(self, obj):
         if obj.boat and obj.boat.image:
@@ -179,10 +180,28 @@ class BookingRepresentationMixin(BookingReviewMixin):
         return None
 
     def get_latitude(self, obj):
-        return self._get_boat_coordinate(obj.boat, ['latitude', 'lat'])
+        return self._get_location_payload(obj)['latitude']
 
     def get_longitude(self, obj):
-        return self._get_boat_coordinate(obj.boat, ['longitude', 'lng', 'lon'])
+        return self._get_location_payload(obj)['longitude']
+
+    def get_approximate_latitude(self, obj):
+        return self._get_location_payload(obj)['approximate_latitude']
+
+    def get_approximate_longitude(self, obj):
+        return self._get_location_payload(obj)['approximate_longitude']
+
+    def get_exact_location_available(self, obj):
+        return self._get_location_payload(obj)['exact_location_available']
+
+    def get_location_precision(self, obj):
+        return self._get_location_payload(obj)['location_precision']
+
+    def get_location_radius_km(self, obj):
+        return self._get_location_payload(obj)['location_radius_km']
+
+    def get_location_disclosure_message(self, obj):
+        return self._get_location_payload(obj)['location_disclosure_message']
 
     def get_pickup_datetime(self, obj):
         return booking_pickup_datetime(obj)

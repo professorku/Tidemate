@@ -30,6 +30,7 @@ from .services.listing_images import (
     sync_cover_image_field,
 )
 from .services.booking_ranges import get_blocked_ranges
+from .services.location_privacy import build_location_privacy_payload
 
 
 class BoatImageSerializer(serializers.ModelSerializer):
@@ -59,6 +60,13 @@ class BoatListingSerializer(serializers.ModelSerializer):
     is_favorited = serializers.SerializerMethodField()
     favorite_id = serializers.SerializerMethodField()
 
+    approximate_latitude = serializers.SerializerMethodField()
+    approximate_longitude = serializers.SerializerMethodField()
+    exact_location_available = serializers.SerializerMethodField()
+    location_precision = serializers.SerializerMethodField()
+    location_radius_km = serializers.SerializerMethodField()
+    location_disclosure_message = serializers.SerializerMethodField()
+
     new_images = serializers.ListField(
         child=serializers.ImageField(),
         write_only=True,
@@ -82,6 +90,12 @@ class BoatListingSerializer(serializers.ModelSerializer):
             'location_name',
             'latitude',
             'longitude',
+            'approximate_latitude',
+            'approximate_longitude',
+            'exact_location_available',
+            'location_precision',
+            'location_radius_km',
+            'location_disclosure_message',
             'guests',
             'price_per_day',
             'image',
@@ -112,8 +126,53 @@ class BoatListingSerializer(serializers.ModelSerializer):
             'distance_km',
             'is_favorited',
             'favorite_id',
+            'approximate_latitude',
+            'approximate_longitude',
+            'exact_location_available',
+            'location_precision',
+            'location_radius_km',
+            'location_disclosure_message',
             'created_at',
         ]
+
+    def _get_request_user(self):
+        request = self.context.get('request')
+        user = getattr(request, 'user', None)
+        return user if user and user.is_authenticated else None
+
+    def _get_location_payload(self, obj):
+        cache_key = '_tidemate_location_privacy_payload'
+        cached_payload = getattr(obj, cache_key, None)
+
+        if cached_payload is not None:
+            return cached_payload
+
+        payload = build_location_privacy_payload(obj, self._get_request_user())
+        setattr(obj, cache_key, payload)
+        return payload
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data.update(self._get_location_payload(instance))
+        return data
+
+    def get_approximate_latitude(self, obj):
+        return self._get_location_payload(obj)['approximate_latitude']
+
+    def get_approximate_longitude(self, obj):
+        return self._get_location_payload(obj)['approximate_longitude']
+
+    def get_exact_location_available(self, obj):
+        return self._get_location_payload(obj)['exact_location_available']
+
+    def get_location_precision(self, obj):
+        return self._get_location_payload(obj)['location_precision']
+
+    def get_location_radius_km(self, obj):
+        return self._get_location_payload(obj)['location_radius_km']
+
+    def get_location_disclosure_message(self, obj):
+        return self._get_location_payload(obj)['location_disclosure_message']
 
     def get_image(self, obj):
         image = obj.image

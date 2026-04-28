@@ -16,6 +16,12 @@ BOOKING_READ_ONLY_FIELDS = [
     'host_id',
     'latitude',
     'longitude',
+    'approximate_latitude',
+    'approximate_longitude',
+    'exact_location_available',
+    'location_precision',
+    'location_radius_km',
+    'location_disclosure_message',
     'renter',
     'renter_id',
     'renter_username',
@@ -68,6 +74,13 @@ class BookingReadSerializer(BookingRepresentationMixin, serializers.ModelSeriali
 
     latitude = serializers.SerializerMethodField()
     longitude = serializers.SerializerMethodField()
+    approximate_latitude = serializers.SerializerMethodField()
+    approximate_longitude = serializers.SerializerMethodField()
+    exact_location_available = serializers.SerializerMethodField()
+    location_precision = serializers.SerializerMethodField()
+    location_radius_km = serializers.SerializerMethodField()
+    location_disclosure_message = serializers.SerializerMethodField()
+
     duration_days = serializers.SerializerMethodField()
     rental_policy = serializers.SerializerMethodField()
     cancellation_policy = serializers.SerializerMethodField()
@@ -100,6 +113,12 @@ class BookingReadSerializer(BookingRepresentationMixin, serializers.ModelSeriali
             'host_id',
             'latitude',
             'longitude',
+            'approximate_latitude',
+            'approximate_longitude',
+            'exact_location_available',
+            'location_precision',
+            'location_radius_km',
+            'location_disclosure_message',
             'renter',
             'renter_id',
             'renter_username',

@@ -19,6 +19,12 @@
  * @property {string} location_name
  * @property {number|null} latitude
  * @property {number|null} longitude
+ * @property {number|null} approximate_latitude
+ * @property {number|null} approximate_longitude
+ * @property {boolean} exact_location_available
+ * @property {string} location_precision
+ * @property {number|null} location_radius_km
+ * @property {string} location_disclosure_message
  * @property {number|null} guests
  * @property {number|null} price_per_day
  * @property {ListingImage[]} images
@@ -55,6 +61,14 @@
  * @property {string} status
  * @property {number|string|null} total_price
  * @property {number|string|null} guests
+ * @property {number|null} latitude
+ * @property {number|null} longitude
+ * @property {number|null} approximate_latitude
+ * @property {number|null} approximate_longitude
+ * @property {boolean} exact_location_available
+ * @property {string} location_precision
+ * @property {number|null} location_radius_km
+ * @property {string} location_disclosure_message
  * @property {Listing|null} boat
  */
 
@@ -76,6 +90,14 @@ function normalizeImage(image) {
   }
 }
 
+function normalizeLocationPrecision(value) {
+  if (value === 'exact' || value === 'approximate' || value === 'unavailable') {
+    return value
+  }
+
+  return 'unavailable'
+}
+
 /** @returns {Listing} */
 export function normalizeListing(listing) {
   if (!listing || typeof listing !== 'object') {
@@ -87,6 +109,12 @@ export function normalizeListing(listing) {
       location_name: '',
       latitude: null,
       longitude: null,
+      approximate_latitude: null,
+      approximate_longitude: null,
+      exact_location_available: false,
+      location_precision: 'unavailable',
+      location_radius_km: null,
+      location_disclosure_message: '',
       guests: null,
       price_per_day: null,
       images: [],
@@ -104,6 +132,12 @@ export function normalizeListing(listing) {
     location_name: listing.location_name ?? '',
     latitude: toNumberOrNull(listing.latitude),
     longitude: toNumberOrNull(listing.longitude),
+    approximate_latitude: toNumberOrNull(listing.approximate_latitude),
+    approximate_longitude: toNumberOrNull(listing.approximate_longitude),
+    exact_location_available: Boolean(listing.exact_location_available),
+    location_precision: normalizeLocationPrecision(listing.location_precision),
+    location_radius_km: toNumberOrNull(listing.location_radius_km),
+    location_disclosure_message: listing.location_disclosure_message ?? '',
     guests: toNumberOrNull(listing.guests),
     price_per_day: toNumberOrNull(listing.price_per_day),
     images: Array.isArray(listing.images) ? listing.images.map(normalizeImage) : [],
@@ -172,6 +206,14 @@ export function normalizeBooking(booking) {
       status: '',
       total_price: null,
       guests: null,
+      latitude: null,
+      longitude: null,
+      approximate_latitude: null,
+      approximate_longitude: null,
+      exact_location_available: false,
+      location_precision: 'unavailable',
+      location_radius_km: null,
+      location_disclosure_message: '',
       boat: null,
     }
   }
@@ -184,6 +226,14 @@ export function normalizeBooking(booking) {
     status: booking.status ?? '',
     total_price: booking.total_price ?? null,
     guests: booking.guests ?? null,
+    latitude: toNumberOrNull(booking.latitude),
+    longitude: toNumberOrNull(booking.longitude),
+    approximate_latitude: toNumberOrNull(booking.approximate_latitude),
+    approximate_longitude: toNumberOrNull(booking.approximate_longitude),
+    exact_location_available: Boolean(booking.exact_location_available),
+    location_precision: normalizeLocationPrecision(booking.location_precision),
+    location_radius_km: toNumberOrNull(booking.location_radius_km),
+    location_disclosure_message: booking.location_disclosure_message ?? '',
     boat: booking.boat ? normalizeListing(booking.boat) : null,
   }
 }

@@ -7,6 +7,8 @@ import {
 
 export default function TripDetailsCard({ booking }) {
   const bookingWindow = formatBookingWindow(booking)
+  const hasExactLocation =
+    Boolean(booking?.exact_location_available) || booking?.location_precision === 'exact'
 
   return (
     <div className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm md:p-6">
@@ -35,11 +37,14 @@ export default function TripDetailsCard({ booking }) {
 
       <div className="mt-5">
         <h3 className="text-lg font-bold text-slate-900">
-          Where your trip takes place
+          {hasExactLocation ? 'Exact pickup location' : 'Where your trip takes place'}
         </h3>
 
         <p className="mt-1 text-sm text-slate-600">
-          See where the boat is located before your trip starts.
+          {booking?.location_disclosure_message ||
+            (hasExactLocation
+              ? 'See the exact pickup point before your trip starts.'
+              : 'The exact pickup point is shared after the booking is confirmed.')}
         </p>
 
         <div className="mt-4 overflow-hidden rounded-2xl">
@@ -47,6 +52,10 @@ export default function TripDetailsCard({ booking }) {
             locationName={booking.boat_location}
             latitude={booking.latitude}
             longitude={booking.longitude}
+            locationPrecision={booking.location_precision}
+            locationRadiusKm={booking.location_radius_km}
+            exactLocationAvailable={booking.exact_location_available}
+            disclosureMessage={booking.location_disclosure_message}
           />
         </div>
       </div>

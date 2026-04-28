@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet'
+import { Circle, MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
@@ -7,6 +7,11 @@ function parseCoordinate(value) {
   if (value === null || value === undefined || value === '') return null
   const number = Number(value)
   return Number.isFinite(number) ? number : null
+}
+
+function parseRadiusKm(value) {
+  const number = Number(value)
+  return Number.isFinite(number) && number > 0 ? number : 0
 }
 
 function MapResizer() {
@@ -23,15 +28,15 @@ function MapResizer() {
   return null
 }
 
-function MapFlyTo({ center }) {
+function MapFlyTo({ center, zoom }) {
   const map = useMap()
 
   useEffect(() => {
     if (!center) return
-    map.setView(center, 12, {
+    map.setView(center, zoom, {
       animate: true,
     })
-  }, [map, center])
+  }, [map, center, zoom])
 
   return null
 }
@@ -78,6 +83,16 @@ export default function BoatMap({ boat }) {
   const lng = parseCoordinate(boat?.longitude ?? boat?.lng)
   const hasCoordinates = lat !== null && lng !== null
 
+  const locationPrecision = boat?.location_precision || 'approximate'
+  const exactLocationAvailable =
+    Boolean(boat?.exact_location_available) || locationPrecision === 'exact'
+  const radiusKm = parseRadiusKm(boat?.location_radius_km)
+  const disclosureMessage =
+    boat?.location_disclosure_message ||
+    (exactLocationAvailable
+      ? 'Exact pickup location is available.'
+      : 'Exact pickup location is shared after booking confirmation.')
+
   if (!hasCoordinates) {
     return (
       <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white">
@@ -101,15 +116,18 @@ export default function BoatMap({ boat }) {
   }
 
   const position = [lat, lng]
+  const zoom = exactLocationAvailable ? 13 : 10
 
   return (
     <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-soft">
       <div className="border-b border-slate-100 bg-slate-50 px-5 py-4">
         <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
           <div>
-            <h3 className="text-lg font-bold text-slate-900">Explore the area</h3>
+            <h3 className="text-lg font-bold text-slate-900">
+              {exactLocationAvailable ? 'Exact pickup location' : 'Approximate boat area'}
+            </h3>
             <p className="text-sm text-slate-500">
-              Approximate boat location for planning your trip
+              {disclosureMessage}
             </p>
           </div>
 
@@ -124,52 +142,77 @@ export default function BoatMap({ boat }) {
       <div className="relative h-[360px] w-full md:h-[420px]">
         <MapContainer
           center={position}
-          zoom={12}
+          zoom={zoom}
           scrollWheelZoom={false}
           className="h-full w-full"
           attributionControl={true}
         >
           <MapResizer />
-          <MapFlyTo center={position} />
+          <MapFlyTo center={position} zoom={zoom} />
 
           <TileLayer
             attribution='&copy; OpenStreetMap contributors &copy; CARTO'
             url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           />
 
-          <Marker position={position} icon={boatMarkerIcon}>
-            <Popup>
-              <div className="min-w-[180px]">
-                <p className="text-base font-bold text-slate-900">{boat?.title || 'Boat'}</p>
+          {exactLocationAvailable ? (
+            <Marker position={position} icon={boatMarkerIcon}>
+              <Popup>
+                <div className="min-w-[180px]">
+                  <p className="text-base font-bold text-slate-900">{boat?.title || 'Boat'}</p>
 
-                {boat?.location_name ? (
-                  <p className="mt-1 text-sm text-slate-600">{boat.location_name}</p>
-                ) : null}
-
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {boat?.boat_type ? (
-                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold capitalize text-slate-700">
-                      {boat.boat_type}
-                    </span>
+                  {boat?.location_name ? (
+                    <p className="mt-1 text-sm text-slate-600">{boat.location_name}</p>
                   ) : null}
 
-                  {boat?.guests ? (
-                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
-                      {boat.guests} guests
-                    </span>
-                  ) : null}
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {boat?.boat_type ? (
+                      <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold capitalize text-slate-700">
+                        {boat.boat_type}
+                      </span>
+                    ) : null}
+
+                    {boat?.guests ? (
+                      <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                        {boat.guests} guests
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
-              </div>
-            </Popup>
-          </Marker>
+              </Popup>
+            </Marker>
+          ) : (
+            <Circle
+              center={position}
+              radius={Math.max(radiusKm, 5) * 1000}
+              pathOptions={{
+                color: '#0f2f4f',
+                fillColor: '#0f2f4f',
+                fillOpacity: 0.12,
+                opacity: 0.35,
+                weight: 2,
+              }}
+            >
+              <Popup>
+                <div className="min-w-[180px]">
+                  <p className="text-base font-bold text-slate-900">Approximate area</p>
+                  <p className="mt-1 text-sm text-slate-600">
+                    The exact pickup point is shared after confirmation.
+                  </p>
+                </div>
+              </Popup>
+            </Circle>
+          )}
         </MapContainer>
 
-        <div className="pointer-events-none absolute bottom-4 left-4 rounded-2xl bg-white/90 px-4 py-3 shadow-lg backdrop-blur">
+        <div className="pointer-events-none absolute bottom-4 left-4 max-w-xs rounded-2xl bg-white/90 px-4 py-3 shadow-lg backdrop-blur">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            TideMate location
+            TideMate location privacy
           </p>
           <p className="mt-1 text-sm font-semibold text-slate-800">
-            {lat.toFixed(4)}, {lng.toFixed(4)}
+            {exactLocationAvailable
+              ? `${lat.toFixed(4)}, ${lng.toFixed(4)}`
+              : `Approximate area within about ${Math.max(radiusKm, 5)} km`}
           </p>
         </div>
       </div>
