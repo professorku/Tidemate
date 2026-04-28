@@ -14,7 +14,7 @@ export default function EditBoatPage() {
     existingImages,
     newImages,
     newPreviews,
-    coverImageId,
+    coverSelection,
     loading,
     saving,
     error,
@@ -22,7 +22,8 @@ export default function EditBoatPage() {
     handleNewImagesChange,
     removeExistingImage,
     removeNewImage,
-    setCoverImageId,
+    setExistingImageAsCover,
+    setNewImageAsCover,
     handleSubmit,
   } = useEditBoatPageData()
 
@@ -60,9 +61,10 @@ export default function EditBoatPage() {
             <PhotosSection
               existingImages={existingImages}
               newPreviews={newPreviews}
-              coverImageId={coverImageId}
+              coverSelection={coverSelection}
               onFileChange={handleNewImagesChange}
-              onSetCover={setCoverImageId}
+              onSetExistingCover={setExistingImageAsCover}
+              onSetNewCover={setNewImageAsCover}
               onRemoveExisting={removeExistingImage}
               onRemoveNew={removeNewImage}
             />

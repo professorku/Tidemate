@@ -8,6 +8,19 @@ import {
   mapBoatToForm,
 } from '../utils/editBoatFormHelpers'
 
+function getInitialCoverSelection(images) {
+  const coverImage = images.find((img) => img.is_cover) || images[0]
+
+  if (!coverImage) {
+    return null
+  }
+
+  return {
+    type: 'existing',
+    id: coverImage.id,
+  }
+}
+
 export default function useEditBoatPageData() {
   const navigate = useNavigate()
   const { id } = useParams()
@@ -16,7 +29,7 @@ export default function useEditBoatPageData() {
   const [existingImages, setExistingImages] = useState([])
   const [removedImageIds, setRemovedImageIds] = useState([])
   const [newImages, setNewImages] = useState([])
-  const [coverImageId, setCoverImageId] = useState(null)
+  const [coverSelection, setCoverSelection] = useState(null)
 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -47,7 +60,7 @@ export default function useEditBoatPageData() {
 
         const images = Array.isArray(boat.images) ? boat.images : []
         setExistingImages(images)
-        setCoverImageId(images.find((img) => img.is_cover)?.id || images[0]?.id || null)
+        setCoverSelection(getInitialCoverSelection(images))
         setError('')
       } catch (err) {
         setError(getErrorMessage(err, 'Could not load this boat for editing.'))
@@ -70,22 +83,145 @@ export default function useEditBoatPageData() {
     const files = Array.from(e.target.files || [])
     if (!files.length) return
 
-    setNewImages((prev) => [...prev, ...files])
+    setNewImages((prev) => {
+      const next = [...prev, ...files]
+
+      if (!coverSelection && existingImages.length === 0) {
+        setCoverSelection({
+          type: 'new',
+          index: 0,
+        })
+      }
+
+      return next
+    })
+
     e.target.value = ''
+    if (error) setError('')
+  }
+
+  const setExistingImageAsCover = (imageId) => {
+    setCoverSelection({
+      type: 'existing',
+      id: imageId,
+    })
+  }
+
+  const setNewImageAsCover = (index) => {
+    setCoverSelection({
+      type: 'new',
+      index,
+    })
   }
 
   const removeExistingImage = (imageId) => {
     const nextExisting = existingImages.filter((img) => img.id !== imageId)
-    setExistingImages(nextExisting)
-    setRemovedImageIds((prev) => [...prev, imageId])
 
-    if (coverImageId === imageId) {
-      setCoverImageId(nextExisting[0]?.id || null)
-    }
+    setExistingImages(nextExisting)
+    setRemovedImageIds((prev) => {
+      if (prev.includes(imageId)) return prev
+      return [...prev, imageId]
+    })
+
+    setCoverSelection((prev) => {
+      const removedImageWasCover = prev?.type === 'existing' && prev.id === imageId
+
+      if (!removedImageWasCover) {
+        return prev
+      }
+
+      if (nextExisting.length > 0) {
+        return {
+          type: 'existing',
+          id: nextExisting[0].id,
+        }
+      }
+
+      if (newImages.length > 0) {
+        return {
+          type: 'new',
+          index: 0,
+        }
+      }
+
+      return null
+    })
+
+    if (error) setError('')
   }
 
   const removeNewImage = (indexToRemove) => {
-    setNewImages((prev) => prev.filter((_, index) => index !== indexToRemove))
+    const nextNewImages = newImages.filter((_, index) => index !== indexToRemove)
+
+    setNewImages(nextNewImages)
+
+    setCoverSelection((prev) => {
+      if (prev?.type !== 'new') {
+        return prev
+      }
+
+      if (prev.index === indexToRemove) {
+        if (nextNewImages.length > 0) {
+          return {
+            type: 'new',
+            index: Math.min(indexToRemove, nextNewImages.length - 1),
+          }
+        }
+
+        if (existingImages.length > 0) {
+          return {
+            type: 'existing',
+            id: existingImages[0].id,
+          }
+        }
+
+        return null
+      }
+
+      if (indexToRemove < prev.index) {
+        return {
+          type: 'new',
+          index: prev.index - 1,
+        }
+      }
+
+      return prev
+    })
+
+    if (error) setError('')
+  }
+
+  const getValidCoverSelection = () => {
+    if (
+      coverSelection?.type === 'existing' &&
+      existingImages.some((image) => image.id === coverSelection.id)
+    ) {
+      return coverSelection
+    }
+
+    if (
+      coverSelection?.type === 'new' &&
+      coverSelection.index >= 0 &&
+      coverSelection.index < newImages.length
+    ) {
+      return coverSelection
+    }
+
+    if (existingImages.length > 0) {
+      return {
+        type: 'existing',
+        id: existingImages[0].id,
+      }
+    }
+
+    if (newImages.length > 0) {
+      return {
+        type: 'new',
+        index: 0,
+      }
+    }
+
+    return null
   }
 
   const handleSubmit = formMethods.handleSubmit(async (values) => {
@@ -98,6 +234,13 @@ export default function useEditBoatPageData() {
 
     if (existingImages.length === 0 && newImages.length === 0) {
       setError('Please keep or upload at least one photo.')
+      return
+    }
+
+    const validCoverSelection = getValidCoverSelection()
+
+    if (!validCoverSelection) {
+      setError('Please choose a cover photo.')
       return
     }
 
@@ -114,8 +257,12 @@ export default function useEditBoatPageData() {
       data.append('guests', values.guests)
       data.append('price_per_day', values.price_per_day)
 
-      if (coverImageId) {
-        data.append('cover_image_id', String(coverImageId))
+      if (validCoverSelection.type === 'existing') {
+        data.append('cover_image_id', String(validCoverSelection.id))
+      }
+
+      if (validCoverSelection.type === 'new') {
+        data.append('cover_index', String(validCoverSelection.index))
       }
 
       removedImageIds.forEach((idValue) => {
@@ -147,7 +294,7 @@ export default function useEditBoatPageData() {
     newImages,
     newPreviews,
     removedImageIds,
-    coverImageId,
+    coverSelection,
     loading,
     saving,
     error,
@@ -155,7 +302,8 @@ export default function useEditBoatPageData() {
     handleNewImagesChange,
     removeExistingImage,
     removeNewImage,
-    setCoverImageId,
+    setExistingImageAsCover,
+    setNewImageAsCover,
     handleSubmit,
   }
 }
