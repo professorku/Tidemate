@@ -33,10 +33,18 @@ from .services.booking_ranges import get_blocked_ranges
 
 
 class BoatImageSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
     class Meta:
         model = BoatImage
         fields = ['id', 'image', 'is_cover', 'sort_order']
         read_only_fields = ['id']
+
+    def get_image(self, obj):
+        if not obj.image:
+            return None
+
+        return obj.image.url
 
 
 class BoatListingSerializer(serializers.ModelSerializer):
@@ -112,9 +120,7 @@ class BoatListingSerializer(serializers.ModelSerializer):
         if not image:
             return None
 
-        request = self.context.get('request')
-        url = image.url
-        return request.build_absolute_uri(url) if request else url
+        return image.url
 
     def get_rental_policy(self, obj):
         return build_booking_policy()
