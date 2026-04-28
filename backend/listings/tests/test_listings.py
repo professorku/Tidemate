@@ -282,3 +282,83 @@ class ListingSearchValidationTests(APITestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertIn("longitude", response.json())
+
+from django.core.cache import cache
+from django.test import override_settings
+
+from listings.services.marine_conditions import get_boat_conditions
+
+
+class MarineConditionsCacheTests(TestCase):
+    def setUp(self):
+        cache.clear()
+
+    @override_settings(MARINE_CONDITIONS_CACHE_TTL_SECONDS=1800)
+    @patch("listings.services.marine_conditions.fetch_boat_conditions")
+    def test_boat_conditions_are_cached_by_rounded_coordinates(self, mock_fetch_conditions):
+        mock_fetch_conditions.return_value = {
+            "current": {
+                "time": "2026-04-28T12:00",
+                "wave_height_m": 0.4,
+                "wind_speed_m_s": 4.2,
+                "air_temperature_c": 8.0,
+                "label": "Good",
+                "message": "Good for a calm day trip.",
+            },
+            "best_window_today": {
+                "time": "2026-04-28T12:00",
+                "wave_height_m": 0.4,
+                "wind_speed_m_s": 4.2,
+                "air_temperature_c": 8.0,
+                "label": "Good",
+                "message": "Good for a calm day trip.",
+            },
+            "next_12_hours": [],
+        }
+
+        first_response = get_boat_conditions(67.2804001, 14.4049001)
+        second_response = get_boat_conditions(67.2804002, 14.4049002)
+
+        self.assertEqual(first_response, second_response)
+        self.assertEqual(mock_fetch_conditions.call_count, 1)
+
+    @override_settings(MARINE_CONDITIONS_CACHE_TTL_SECONDS=0)
+    @patch("listings.services.marine_conditions.fetch_boat_conditions")
+    def test_boat_conditions_cache_can_be_disabled(self, mock_fetch_conditions):
+        mock_fetch_conditions.return_value = {
+            "current": {
+                "time": "2026-04-28T12:00",
+                "wave_height_m": 0.4,
+                "wind_speed_m_s": 4.2,
+                "air_temperature_c": 8.0,
+                "label": "Good",
+                "message": "Good for a calm day trip.",
+            },
+            "best_window_today": {
+                "time": "2026-04-28T12:00",
+                "wave_height_m": 0.4,
+                "wind_speed_m_s": 4.2,
+                "air_temperature_c": 8.0,
+                "label": "Good",
+                "message": "Good for a calm day trip.",
+            },
+            "next_12_hours": [],
+        }
+
+        get_boat_conditions(67.2804, 14.4049)
+        get_boat_conditions(67.2804, 14.4049)
+
+        self.assertEqual(mock_fetch_conditions.call_count, 2)
+
+    def test_boat_conditions_reject_invalid_coordinates_before_api_call(self):
+        with self.assertRaises(ValueError):
+            get_boat_conditions("not-a-latitude", 14.4049)
+
+        with self.assertRaises(ValueError):
+            get_boat_conditions(67.2804, "not-a-longitude")
+
+        with self.assertRaises(ValueError):
+            get_boat_conditions(120, 14.4049)
+
+        with self.assertRaises(ValueError):
+            get_boat_conditions(67.2804, 220)
