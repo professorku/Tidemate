@@ -35,8 +35,20 @@ def build_device_label(user_agent: str) -> str:
 
 
 def get_request_ip(request):
-    forwarded_for = (request.META.get("HTTP_X_FORWARDED_FOR") or "").split(",")[0].strip()
-    return forwarded_for or request.META.get("REMOTE_ADDR") or None
+
+    from rest_framework.settings import api_settings
+
+    num_proxies = api_settings.NUM_PROXIES
+    remote_addr = request.META.get("REMOTE_ADDR") or None
+
+    if num_proxies is not None and num_proxies > 0:
+        xff = (request.META.get("HTTP_X_FORWARDED_FOR") or "").strip()
+        if xff:
+            addrs = [addr.strip() for addr in xff.split(",")]
+            candidate = addrs[-min(num_proxies, len(addrs))]
+            return candidate or remote_addr
+
+    return remote_addr
 
 
 def upsert_device_session(*, user, refresh_token: str, request):

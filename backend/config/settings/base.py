@@ -124,7 +124,12 @@ CORS_ALLOWED_ORIGINS = env_list(
     "http://localhost:5173,http://127.0.0.1:5173",
 )
 
+_num_proxies_raw = os.getenv("NUM_PROXIES", "").strip()
+_NUM_PROXIES = int(_num_proxies_raw) if _num_proxies_raw != "" else None
+
 REST_FRAMEWORK = {
+
+    "NUM_PROXIES": _NUM_PROXIES,
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
