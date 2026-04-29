@@ -2,6 +2,11 @@ import { useEffect } from 'react'
 import { Circle, MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import {
+  canShowExactLocation,
+  getBoatLocationLabel,
+  getBoatLocationSubtitle,
+} from '../utils/locationPrivacy'
 
 function parseCoordinate(value) {
   if (value === null || value === undefined || value === '') return null
@@ -83,10 +88,10 @@ export default function BoatMap({ boat }) {
   const lng = parseCoordinate(boat?.longitude ?? boat?.lng)
   const hasCoordinates = lat !== null && lng !== null
 
-  const locationPrecision = boat?.location_precision || 'approximate'
-  const exactLocationAvailable =
-    Boolean(boat?.exact_location_available) || locationPrecision === 'exact'
+  const exactLocationAvailable = canShowExactLocation(boat)
   const radiusKm = parseRadiusKm(boat?.location_radius_km)
+  const locationLabel = getBoatLocationLabel(boat)
+  const locationSubtitle = getBoatLocationSubtitle(boat)
   const disclosureMessage =
     boat?.location_disclosure_message ||
     (exactLocationAvailable
@@ -105,9 +110,9 @@ export default function BoatMap({ boat }) {
             This boat does not have map coordinates yet. Add latitude and longitude to
             display its location here.
           </p>
-          {boat?.location_name ? (
+          {locationLabel ? (
             <div className="mt-5 rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200">
-              {boat.location_name}
+              {locationLabel}
             </div>
           ) : null}
         </div>
@@ -131,12 +136,23 @@ export default function BoatMap({ boat }) {
             </p>
           </div>
 
-          {boat?.location_name ? (
-            <div className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200">
-              {boat.location_name}
+          {locationLabel ? (
+            <div className="max-w-xs rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200">
+              <span className="line-clamp-2">{locationLabel}</span>
             </div>
           ) : null}
         </div>
+
+        {exactLocationAvailable && locationSubtitle ? (
+          <div className="mt-4 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Pickup instructions
+            </p>
+            <p className="mt-1 whitespace-pre-line text-sm text-slate-700">
+              {locationSubtitle}
+            </p>
+          </div>
+        ) : null}
       </div>
 
       <div className="relative h-[360px] w-full md:h-[420px]">
@@ -159,10 +175,16 @@ export default function BoatMap({ boat }) {
             <Marker position={position} icon={boatMarkerIcon}>
               <Popup>
                 <div className="min-w-[180px]">
-                  <p className="text-base font-bold text-slate-900">{boat?.title || 'Boat'}</p>
+                  <p className="text-base font-bold text-slate-900">
+                    {boat?.title || 'Boat'}
+                  </p>
 
-                  {boat?.location_name ? (
-                    <p className="mt-1 text-sm text-slate-600">{boat.location_name}</p>
+                  {locationLabel ? (
+                    <p className="mt-1 text-sm text-slate-600">{locationLabel}</p>
+                  ) : null}
+
+                  {locationSubtitle ? (
+                    <p className="mt-2 text-sm text-slate-600">{locationSubtitle}</p>
                   ) : null}
 
                   <div className="mt-3 flex flex-wrap gap-2">

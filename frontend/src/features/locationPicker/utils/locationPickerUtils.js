@@ -13,8 +13,9 @@ export function normalizeLocationName(result) {
 
   const address = result.address || {}
 
-  // Privacy rule:
-  // location_name must be public city/area only, never exact road/dock/address.
+  // Important:
+  // Do NOT use result.display_name here.
+  // display_name often contains exact house number, road, marina, postcode, etc.
   return firstNonEmpty(
     address.city,
     address.town,
@@ -22,7 +23,7 @@ export function normalizeLocationName(result) {
     address.municipality,
     address.county,
     address.state,
-    result.name,
+    address.region,
     address.country
   )
 }

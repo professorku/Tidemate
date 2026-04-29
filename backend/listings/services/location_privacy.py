@@ -1,5 +1,6 @@
 import hashlib
 import math
+import re
 from decimal import Decimal, InvalidOperation
 
 from bookings.models import Booking
@@ -16,6 +17,36 @@ APPROXIMATE_LOCATION_MESSAGE = (
     'Until then, this map only shows an approximate area.'
 )
 UNAVAILABLE_LOCATION_MESSAGE = 'This boat does not have saved map coordinates yet.'
+
+COUNTRY_NAMES = {
+    'norway',
+    'norge',
+}
+
+PRIVATE_ADDRESS_WORDS = {
+    'gate',
+    'gata',
+    'gaten',
+    'vei',
+    'veien',
+    'veg',
+    'vegen',
+    'road',
+    'street',
+    'avenue',
+    'dock',
+    'pier',
+    'slip',
+    'marina',
+    'brygge',
+    'kai',
+    'havn',
+    'harbor',
+    'harbour',
+}
+
+POSTCODE_PATTERN = re.compile(r'\b\d{4}\b')
+DIGIT_PATTERN = re.compile(r'\d')
 
 
 def _as_float(value):
@@ -42,6 +73,73 @@ def _round_public_coordinate(value):
         return None
 
     return round(float(value), 4)
+
+
+def _normalize_location_part(value):
+    return (value or '').strip().strip(',')
+
+
+def _part_looks_private(value):
+    normalized = _normalize_location_part(value)
+    lowered = normalized.lower()
+
+    if not normalized:
+        return True
+
+    if lowered in COUNTRY_NAMES:
+        return True
+
+    if POSTCODE_PATTERN.search(lowered):
+        return True
+
+    if lowered.isdigit():
+        return True
+
+    if len(normalized) <= 1:
+        return True
+
+    for word in PRIVATE_ADDRESS_WORDS:
+        if re.search(rf'\b{re.escape(word)}\b', lowered):
+            return True
+
+    return False
+
+
+def get_public_location_name(value):
+
+    raw_value = (value or '').strip()
+
+    if not raw_value:
+        return ''
+
+    parts = [_normalize_location_part(part) for part in raw_value.split(',')]
+    parts = [part for part in parts if part]
+
+    if not parts:
+        return ''
+
+    if len(parts) >= 5:
+        preferred_parts = parts[2:4]
+    elif len(parts) == 4:
+        preferred_parts = parts[1:3]
+    else:
+        preferred_parts = parts[:2]
+
+    safe_parts = [
+        part for part in preferred_parts
+        if not _part_looks_private(part)
+    ]
+
+    if not safe_parts:
+        safe_parts = [
+            part for part in parts
+            if not _part_looks_private(part)
+        ]
+
+    if not safe_parts:
+        return 'Approximate area'
+
+    return ', '.join(safe_parts[:2])
 
 
 def _destination_point(latitude, longitude, distance_km, bearing_degrees):
@@ -115,11 +213,15 @@ def build_location_privacy_payload(boat, user):
     exact_latitude = _as_float(getattr(boat, 'latitude', None))
     exact_longitude = _as_float(getattr(boat, 'longitude', None))
 
+    raw_location_name = (getattr(boat, 'location_name', '') or '').strip()
+    public_location_name = get_public_location_name(raw_location_name)
+
     pickup_address = (getattr(boat, 'pickup_address', '') or '').strip()
     pickup_instructions = (getattr(boat, 'pickup_instructions', '') or '').strip()
 
     if exact_latitude is None or exact_longitude is None:
         return {
+            'location_name': public_location_name,
             'latitude': None,
             'longitude': None,
             'approximate_latitude': None,
@@ -137,6 +239,8 @@ def build_location_privacy_payload(boat, user):
 
     if can_view_exact:
         return {
+            # Still keep location_name public/safe. Exact text belongs in pickup_address.
+            'location_name': public_location_name,
             'latitude': _round_coordinate(exact_latitude),
             'longitude': _round_coordinate(exact_longitude),
             'approximate_latitude': approximate_latitude,
@@ -145,11 +249,12 @@ def build_location_privacy_payload(boat, user):
             'location_precision': 'exact',
             'location_radius_km': 0,
             'location_disclosure_message': EXACT_LOCATION_MESSAGE,
-            'pickup_address': pickup_address or None,
+            'pickup_address': pickup_address or raw_location_name or None,
             'pickup_instructions': pickup_instructions or None,
         }
 
     return {
+        'location_name': public_location_name,
         'latitude': approximate_latitude,
         'longitude': approximate_longitude,
         'approximate_latitude': approximate_latitude,

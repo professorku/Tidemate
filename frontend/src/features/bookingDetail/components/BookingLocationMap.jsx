@@ -67,6 +67,8 @@ const bookingMarkerIcon = L.divIcon({
 
 export default function BookingLocationMap({
   locationName,
+  pickupAddress,
+  pickupInstructions,
   latitude,
   longitude,
   locationPrecision = 'approximate',
@@ -80,6 +82,7 @@ export default function BookingLocationMap({
 
   const isExact = Boolean(exactLocationAvailable) || locationPrecision === 'exact'
   const radiusKm = parseRadiusKm(locationRadiusKm)
+  const displayLocation = isExact ? pickupAddress || locationName : locationName
   const message =
     disclosureMessage ||
     (isExact
@@ -95,7 +98,7 @@ export default function BookingLocationMap({
             <p className="mt-2">
               This booking does not currently have saved coordinates for the boat location.
             </p>
-            {locationName ? <p className="mt-2 font-medium">{locationName}</p> : null}
+            {displayLocation ? <p className="mt-2 font-medium">{displayLocation}</p> : null}
           </div>
         </div>
       </div>
@@ -130,11 +133,16 @@ export default function BookingLocationMap({
               <Popup>
                 <div className="min-w-[180px]">
                   <p className="text-base font-bold text-slate-900">
-                    {locationName || 'Boat pickup location'}
+                    {displayLocation || 'Boat pickup location'}
                   </p>
                   <p className="mt-1 text-sm text-slate-600">
                     Exact pickup point for your trip.
                   </p>
+                  {pickupInstructions ? (
+                    <p className="mt-2 text-sm text-slate-600">
+                      {pickupInstructions}
+                    </p>
+                  ) : null}
                 </div>
               </Popup>
             </Marker>
@@ -170,7 +178,7 @@ export default function BookingLocationMap({
           </p>
 
           <p className="mt-1 font-semibold text-slate-900">
-            {locationName || 'Saved boat location'}
+            {displayLocation || 'Saved boat location'}
           </p>
 
           <p className="mt-1 max-w-xl text-sm text-slate-600">

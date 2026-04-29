@@ -157,11 +157,9 @@ class BoatListingSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-
-        # Important privacy override:
-        # The model stores exact latitude/longitude/pickup fields, but API responses
-        # only expose exact values when the viewer is allowed to know them.
         data.update(self._get_location_payload(instance))
+
+        return data
 
         return data
 

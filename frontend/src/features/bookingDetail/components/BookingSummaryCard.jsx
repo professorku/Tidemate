@@ -1,6 +1,7 @@
 import PolicyCard from '../../../components/PolicyCard'
 import InfoCard from './InfoCard'
 import { formatDateTime } from '../utils/bookingFormatters'
+import { getBoatLocationLabel } from '../../../utils/locationPrivacy'
 
 const fallbackRentalPolicy = {
   title: 'Rental rules',
@@ -41,7 +42,7 @@ export default function BookingSummaryCard({ booking }) {
         />
         <InfoCard
           label="Location"
-          value={booking.boat_location || 'Location unavailable'}
+          value={getBoatLocationLabel(booking, 'Location unavailable')}
           muted
         />
       </div>

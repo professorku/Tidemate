@@ -9,10 +9,16 @@ import {
 import BaseBoatCard from '../../../components/boats/BaseBoatCard'
 import BoatCardMedia from '../../../components/boats/BoatCardMedia'
 import useLongPressReveal from '../../../utils/useLongPressReveal'
+import {
+  getBoatLocationLabel,
+  getBoatPublicLocationLabel,
+} from '../../../utils/locationPrivacy'
 
 export default function BoatCard({ boat, onDelete, deletingId }) {
   const { revealed, toggle, hide, bind } = useLongPressReveal()
   const isDeleting = deletingId === boat.id
+  const locationLabel = getBoatLocationLabel(boat)
+  const publicLocationLabel = getBoatPublicLocationLabel(boat, '')
 
   return (
     <BaseBoatCard
@@ -86,8 +92,8 @@ export default function BoatCard({ boat, onDelete, deletingId }) {
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/65 via-slate-950/20 to-transparent px-4 pb-3 pt-10 text-white">
               <h2 className="text-lg font-bold tracking-tight">{boat.title}</h2>
               <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-white/90">
-                <MapPinIcon className="h-4 w-4" />
-                {boat.location_name}
+                <MapPinIcon className="h-4 w-4 shrink-0" />
+                <span className="truncate">{locationLabel}</span>
               </p>
             </div>
           )}
@@ -95,6 +101,17 @@ export default function BoatCard({ boat, onDelete, deletingId }) {
       )}
       content={(
         <>
+          {publicLocationLabel && publicLocationLabel !== locationLabel ? (
+            <div className="rounded-[20px] bg-emerald-50 p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+                Public area
+              </p>
+              <p className="mt-1 text-sm font-semibold text-emerald-900">
+                {publicLocationLabel}
+              </p>
+            </div>
+          ) : null}
+
           <div className="rounded-[20px] bg-slate-50 p-4">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
               Price per day

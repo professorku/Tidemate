@@ -76,6 +76,8 @@ export default function TripDetailsCard({ booking }) {
         <div className="mt-4 overflow-hidden rounded-2xl">
           <BookingLocationMap
             locationName={booking.boat_location}
+            pickupAddress={booking.pickup_address}
+            pickupInstructions={booking.pickup_instructions}
             latitude={booking.latitude}
             longitude={booking.longitude}
             locationPrecision={booking.location_precision}

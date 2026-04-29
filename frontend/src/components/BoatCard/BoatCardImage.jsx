@@ -1,9 +1,11 @@
 import { PhotoIcon, MapPinIcon } from '@heroicons/react/24/outline'
 import { formatBoatType, getNewLabel, formatPrice } from './formatters'
+import { getBoatLocationLabel } from '../../utils/locationPrivacy'
 
 export default function BoatCardImage({ boat, imageCount }) {
   const newLabel = getNewLabel(boat.created_at)
   const boatType = formatBoatType(boat.boat_type)
+  const locationLabel = getBoatLocationLabel(boat)
 
   return (
     <div className="relative h-44 overflow-hidden rounded-3xl bg-slate-200">
@@ -39,7 +41,7 @@ export default function BoatCardImage({ boat, imageCount }) {
 
           <div className="flex items-center gap-1 text-xs">
             <MapPinIcon className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate">{boat.location_name}</span>
+            <span className="truncate">{locationLabel}</span>
             <span className="mx-1">·</span>
             <span className="shrink-0">{formatPrice(boat.price_per_day)} kr</span>
           </div>

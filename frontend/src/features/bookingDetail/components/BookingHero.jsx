@@ -1,6 +1,15 @@
 import { statusBadgeClass } from '../utils/bookingFormatters'
+import {
+  canShowExactLocation,
+  getBoatLocationLabel,
+  getBoatPublicLocationLabel,
+} from '../../../utils/locationPrivacy'
 
 export default function BookingHero({ booking, summaryText }) {
+  const hasExactLocation = canShowExactLocation(booking)
+  const locationLabel = getBoatLocationLabel(booking, 'Location unavailable')
+  const publicLocationLabel = getBoatPublicLocationLabel(booking, '')
+
   return (
     <section className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm">
       <div className="flex flex-col md:flex-row">
@@ -29,22 +38,36 @@ export default function BookingHero({ booking, summaryText }) {
                 {booking.boat_title}
               </h1>
 
-              <p className="mt-2 text-sm text-slate-600">
-                {booking.boat_location || 'Location unavailable'}
+              <p className="mt-2 text-sm font-semibold text-slate-700">
+                {locationLabel}
               </p>
+
+              {hasExactLocation && publicLocationLabel && publicLocationLabel !== locationLabel ? (
+                <p className="mt-1 text-xs text-slate-500">
+                  Public area: {publicLocationLabel}
+                </p>
+              ) : null}
 
               <p className="mt-3 text-sm text-slate-700 md:text-base">
                 {summaryText}
               </p>
             </div>
 
-            <span
-              className={`inline-flex w-fit rounded-full px-3 py-1.5 text-xs font-bold ${statusBadgeClass(
-                booking.status
-              )}`}
-            >
-              {booking.status}
-            </span>
+            <div className="flex flex-col items-start gap-2 md:items-end">
+              <span
+                className={`inline-flex w-fit rounded-full px-3 py-1.5 text-xs font-bold ${statusBadgeClass(
+                  booking.status
+                )}`}
+              >
+                {booking.status}
+              </span>
+
+              {hasExactLocation ? (
+                <span className="inline-flex w-fit rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">
+                  Exact pickup visible
+                </span>
+              ) : null}
+            </div>
           </div>
         </div>
       </div>
