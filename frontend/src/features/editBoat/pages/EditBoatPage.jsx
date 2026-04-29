@@ -73,6 +73,7 @@ export default function EditBoatPage() {
           <aside className="xl:sticky xl:top-24 xl:self-start">
             <UpdateListingSidebar
               locationName={form.location_name}
+              pickupAddress={form.pickup_address}
               existingImagesCount={existingImages.length}
               newImagesCount={newImages.length}
               error={error}

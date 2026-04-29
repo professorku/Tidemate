@@ -232,6 +232,16 @@ export default function useEditBoatPageData() {
       return
     }
 
+    if (!values.location_name?.trim()) {
+      setError('Please add a public city or area for the listing.')
+      return
+    }
+
+    if (!values.pickup_address?.trim()) {
+      setError('Please add the private pickup address.')
+      return
+    }
+
     if (existingImages.length === 0 && newImages.length === 0) {
       setError('Please keep or upload at least one photo.')
       return
@@ -252,6 +262,8 @@ export default function useEditBoatPageData() {
       data.append('description', values.description)
       data.append('boat_type', values.boat_type)
       data.append('location_name', values.location_name)
+      data.append('pickup_address', values.pickup_address)
+      data.append('pickup_instructions', values.pickup_instructions || '')
       data.append('latitude', values.latitude)
       data.append('longitude', values.longitude)
       data.append('guests', values.guests)

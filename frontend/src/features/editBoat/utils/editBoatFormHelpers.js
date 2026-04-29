@@ -12,6 +12,8 @@ export const createInitialForm = () => ({
   description: '',
   boat_type: 'rib',
   location_name: '',
+  pickup_address: '',
+  pickup_instructions: '',
   latitude: '',
   longitude: '',
   guests: '',
@@ -23,6 +25,8 @@ export const mapBoatToForm = (boat) => ({
   description: boat.description || '',
   boat_type: boat.boat_type || 'rib',
   location_name: boat.location_name || '',
+  pickup_address: boat.pickup_address || '',
+  pickup_instructions: boat.pickup_instructions || '',
   latitude: String(boat.latitude ?? ''),
   longitude: String(boat.longitude ?? ''),
   guests: String(boat.guests ?? ''),
@@ -36,6 +40,8 @@ export const getFirstBoatUpdateError = (data) => {
     data?.description?.[0] ||
     data?.boat_type?.[0] ||
     data?.location_name?.[0] ||
+    data?.pickup_address?.[0] ||
+    data?.pickup_instructions?.[0] ||
     data?.latitude?.[0] ||
     data?.longitude?.[0] ||
     data?.guests?.[0] ||

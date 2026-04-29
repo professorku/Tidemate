@@ -1,5 +1,6 @@
 export default function UpdateListingSidebar({
   locationName,
+  pickupAddress,
   existingImagesCount,
   newImagesCount,
   error,
@@ -12,9 +13,16 @@ export default function UpdateListingSidebar({
 
       <div className="mt-6 space-y-4 rounded-[24px] bg-mist p-5 text-sm">
         <div>
-          <p className="text-slate-500">Location</p>
+          <p className="text-slate-500">Public location</p>
           <p className="mt-1 font-semibold text-slate-900">
             {locationName || 'Not selected yet'}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-slate-500">Private pickup address</p>
+          <p className="mt-1 font-semibold text-slate-900">
+            {pickupAddress || 'Not added yet'}
           </p>
         </div>
 

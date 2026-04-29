@@ -22,6 +22,8 @@ BOOKING_READ_ONLY_FIELDS = [
     'location_precision',
     'location_radius_km',
     'location_disclosure_message',
+    'pickup_address',
+    'pickup_instructions',
     'renter',
     'renter_id',
     'renter_username',
@@ -80,6 +82,8 @@ class BookingReadSerializer(BookingRepresentationMixin, serializers.ModelSeriali
     location_precision = serializers.SerializerMethodField()
     location_radius_km = serializers.SerializerMethodField()
     location_disclosure_message = serializers.SerializerMethodField()
+    pickup_address = serializers.SerializerMethodField()
+    pickup_instructions = serializers.SerializerMethodField()
 
     duration_days = serializers.SerializerMethodField()
     rental_policy = serializers.SerializerMethodField()
@@ -119,6 +123,8 @@ class BookingReadSerializer(BookingRepresentationMixin, serializers.ModelSeriali
             'location_precision',
             'location_radius_km',
             'location_disclosure_message',
+            'pickup_address',
+            'pickup_instructions',
             'renter',
             'renter_id',
             'renter_username',

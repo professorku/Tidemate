@@ -115,6 +115,9 @@ def build_location_privacy_payload(boat, user):
     exact_latitude = _as_float(getattr(boat, 'latitude', None))
     exact_longitude = _as_float(getattr(boat, 'longitude', None))
 
+    pickup_address = (getattr(boat, 'pickup_address', '') or '').strip()
+    pickup_instructions = (getattr(boat, 'pickup_instructions', '') or '').strip()
+
     if exact_latitude is None or exact_longitude is None:
         return {
             'latitude': None,
@@ -125,6 +128,8 @@ def build_location_privacy_payload(boat, user):
             'location_precision': 'unavailable',
             'location_radius_km': None,
             'location_disclosure_message': UNAVAILABLE_LOCATION_MESSAGE,
+            'pickup_address': None,
+            'pickup_instructions': None,
         }
 
     approximate_latitude, approximate_longitude = get_approximate_boat_coordinates(boat)
@@ -140,6 +145,8 @@ def build_location_privacy_payload(boat, user):
             'location_precision': 'exact',
             'location_radius_km': 0,
             'location_disclosure_message': EXACT_LOCATION_MESSAGE,
+            'pickup_address': pickup_address or None,
+            'pickup_instructions': pickup_instructions or None,
         }
 
     return {
@@ -151,4 +158,6 @@ def build_location_privacy_payload(boat, user):
         'location_precision': 'approximate',
         'location_radius_km': APPROXIMATE_LOCATION_RADIUS_KM,
         'location_disclosure_message': APPROXIMATE_LOCATION_MESSAGE,
+        'pickup_address': None,
+        'pickup_instructions': None,
     }

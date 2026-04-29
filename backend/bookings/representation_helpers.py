@@ -203,6 +203,12 @@ class BookingRepresentationMixin(BookingReviewMixin):
     def get_location_disclosure_message(self, obj):
         return self._get_location_payload(obj)['location_disclosure_message']
 
+    def get_pickup_address(self, obj):
+        return self._get_location_payload(obj)['pickup_address']
+
+    def get_pickup_instructions(self, obj):
+        return self._get_location_payload(obj)['pickup_instructions']
+
     def get_pickup_datetime(self, obj):
         return booking_pickup_datetime(obj)
 

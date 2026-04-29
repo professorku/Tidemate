@@ -16,6 +16,8 @@ from .models import (
     MAX_LISTING_TITLE_LENGTH,
     MAX_LOCATION_NAME_LENGTH,
     MAX_LONGITUDE,
+    MAX_PICKUP_ADDRESS_LENGTH,
+    MAX_PICKUP_INSTRUCTIONS_LENGTH,
     MAX_PRICE_PER_DAY,
     MIN_BOAT_GUESTS,
     MIN_LATITUDE,
@@ -88,6 +90,8 @@ class BoatListingSerializer(serializers.ModelSerializer):
             'description',
             'boat_type',
             'location_name',
+            'pickup_address',
+            'pickup_instructions',
             'latitude',
             'longitude',
             'approximate_latitude',
@@ -153,7 +157,12 @@ class BoatListingSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
+
+        # Important privacy override:
+        # The model stores exact latitude/longitude/pickup fields, but API responses
+        # only expose exact values when the viewer is allowed to know them.
         data.update(self._get_location_payload(instance))
+
         return data
 
     def get_approximate_latitude(self, obj):
@@ -230,15 +239,35 @@ class BoatListingSerializer(serializers.ModelSerializer):
 
         if len(location_name) < MIN_LOCATION_NAME_LENGTH:
             raise serializers.ValidationError(
-                f'Location name must be at least {MIN_LOCATION_NAME_LENGTH} characters.'
+                f'Public location must be at least {MIN_LOCATION_NAME_LENGTH} characters.'
             )
 
         if len(location_name) > MAX_LOCATION_NAME_LENGTH:
             raise serializers.ValidationError(
-                f'Location name cannot exceed {MAX_LOCATION_NAME_LENGTH} characters.'
+                f'Public location cannot exceed {MAX_LOCATION_NAME_LENGTH} characters.'
             )
 
         return location_name
+
+    def validate_pickup_address(self, value):
+        pickup_address = (value or '').strip()
+
+        if len(pickup_address) > MAX_PICKUP_ADDRESS_LENGTH:
+            raise serializers.ValidationError(
+                f'Pickup address cannot exceed {MAX_PICKUP_ADDRESS_LENGTH} characters.'
+            )
+
+        return pickup_address
+
+    def validate_pickup_instructions(self, value):
+        pickup_instructions = (value or '').strip()
+
+        if len(pickup_instructions) > MAX_PICKUP_INSTRUCTIONS_LENGTH:
+            raise serializers.ValidationError(
+                f'Pickup instructions cannot exceed {MAX_PICKUP_INSTRUCTIONS_LENGTH} characters.'
+            )
+
+        return pickup_instructions
 
     def validate_guests(self, value):
         if value < MIN_BOAT_GUESTS:

@@ -9,6 +9,8 @@ const INITIAL_FORM = {
   description: '',
   boat_type: 'rib',
   location_name: '',
+  pickup_address: '',
+  pickup_instructions: '',
   latitude: '',
   longitude: '',
   guests: '',
@@ -78,6 +80,16 @@ export function useAddBoatPage() {
       return
     }
 
+    if (!form.location_name?.trim()) {
+      setError('Please add a public city or area for the listing.')
+      return
+    }
+
+    if (!form.pickup_address?.trim()) {
+      setError('Please add the private pickup address.')
+      return
+    }
+
     if (images.length === 0) {
       setError('Please upload at least one photo.')
       return
@@ -91,6 +103,8 @@ export function useAddBoatPage() {
       data.append('description', form.description)
       data.append('boat_type', form.boat_type)
       data.append('location_name', form.location_name)
+      data.append('pickup_address', form.pickup_address)
+      data.append('pickup_instructions', form.pickup_instructions || '')
       data.append('latitude', form.latitude)
       data.append('longitude', form.longitude)
       data.append('guests', form.guests)

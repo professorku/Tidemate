@@ -17,6 +17,8 @@
  * @property {string} description
  * @property {string} boat_type
  * @property {string} location_name
+ * @property {string|null} pickup_address
+ * @property {string|null} pickup_instructions
  * @property {number|null} latitude
  * @property {number|null} longitude
  * @property {number|null} approximate_latitude
@@ -69,6 +71,8 @@
  * @property {string} location_precision
  * @property {number|null} location_radius_km
  * @property {string} location_disclosure_message
+ * @property {string|null} pickup_address
+ * @property {string|null} pickup_instructions
  * @property {Listing|null} boat
  */
 
@@ -107,6 +111,8 @@ export function normalizeListing(listing) {
       description: '',
       boat_type: 'other',
       location_name: '',
+      pickup_address: null,
+      pickup_instructions: null,
       latitude: null,
       longitude: null,
       approximate_latitude: null,
@@ -130,6 +136,8 @@ export function normalizeListing(listing) {
     description: listing.description ?? '',
     boat_type: listing.boat_type ?? 'other',
     location_name: listing.location_name ?? '',
+    pickup_address: listing.pickup_address ?? null,
+    pickup_instructions: listing.pickup_instructions ?? null,
     latitude: toNumberOrNull(listing.latitude),
     longitude: toNumberOrNull(listing.longitude),
     approximate_latitude: toNumberOrNull(listing.approximate_latitude),
@@ -214,6 +222,8 @@ export function normalizeBooking(booking) {
       location_precision: 'unavailable',
       location_radius_km: null,
       location_disclosure_message: '',
+      pickup_address: null,
+      pickup_instructions: null,
       boat: null,
     }
   }
@@ -234,6 +244,8 @@ export function normalizeBooking(booking) {
     location_precision: normalizeLocationPrecision(booking.location_precision),
     location_radius_km: toNumberOrNull(booking.location_radius_km),
     location_disclosure_message: booking.location_disclosure_message ?? '',
+    pickup_address: booking.pickup_address ?? null,
+    pickup_instructions: booking.pickup_instructions ?? null,
     boat: booking.boat ? normalizeListing(booking.boat) : null,
   }
 }

@@ -77,6 +77,48 @@ export default function BoatDetailsForm({ register, errors }) {
           />
           <FieldError message={errors.description?.message} />
         </Field>
+
+        <div className="rounded-[24px] border border-slate-200 bg-white p-5">
+          <h3 className="text-lg font-bold text-slate-900">Private pickup details</h3>
+          <p className="mt-1 text-sm text-slate-600">
+            These details are only shown to you, admins, and renters after their booking is confirmed.
+            Public users only see the city/area from the map picker below.
+          </p>
+
+          <div className="mt-5 grid gap-5">
+            <Field label="Exact pickup address" htmlFor="edit-boat-pickup-address">
+              <Input
+                id="edit-boat-pickup-address"
+                maxLength={255}
+                placeholder="Mo i Rana Marina, Dock B"
+                {...register('pickup_address', {
+                  required: 'Please add the private pickup address.',
+                  maxLength: {
+                    value: 255,
+                    message: 'Pickup address cannot exceed 255 characters.',
+                  },
+                })}
+              />
+              <FieldError message={errors.pickup_address?.message} />
+            </Field>
+
+            <Field label="Pickup instructions" htmlFor="edit-boat-pickup-instructions">
+              <Textarea
+                id="edit-boat-pickup-instructions"
+                rows="4"
+                maxLength={1000}
+                placeholder="Example: Meet beside the red service building. Call me 10 minutes before arrival."
+                {...register('pickup_instructions', {
+                  maxLength: {
+                    value: 1000,
+                    message: 'Pickup instructions cannot exceed 1000 characters.',
+                  },
+                })}
+              />
+              <FieldError message={errors.pickup_instructions?.message} />
+            </Field>
+          </div>
+        </div>
       </div>
     </SectionShell>
   )

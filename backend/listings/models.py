@@ -10,6 +10,9 @@ MAX_LISTING_TITLE_LENGTH = 120
 MIN_LOCATION_NAME_LENGTH = 2
 MAX_LOCATION_NAME_LENGTH = 120
 
+MAX_PICKUP_ADDRESS_LENGTH = 255
+MAX_PICKUP_INSTRUCTIONS_LENGTH = 1000
+
 MIN_BOAT_GUESTS = 1
 MAX_BOAT_GUESTS = 100
 
@@ -36,9 +39,18 @@ class BoatListing(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
     boat_type = models.CharField(max_length=20, choices=BOAT_TYPES)
+
+    # Public area/city shown to everyone. Do not store exact dock/address here.
     location_name = models.CharField(max_length=255)
+
+    # Exact private pickup details. Only exposed to host, staff/admin, or confirmed renter.
+    pickup_address = models.CharField(max_length=MAX_PICKUP_ADDRESS_LENGTH, blank=True)
+    pickup_instructions = models.TextField(blank=True)
+
+    # Exact coordinates are stored privately. Serializers decide whether to expose exact or approximate values.
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+
     guests = models.PositiveIntegerField()
     price_per_day = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)

@@ -14,9 +14,16 @@ export default function AddBoatPublishCard({
 
       <div className="mt-6 space-y-4 rounded-[24px] bg-mist p-5 text-sm">
         <div>
-          <p className="text-slate-500">Location</p>
+          <p className="text-slate-500">Public location</p>
           <p className="mt-1 font-semibold text-slate-900">
             {form.location_name || 'Not selected yet'}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-slate-500">Private pickup address</p>
+          <p className="mt-1 font-semibold text-slate-900">
+            {form.pickup_address || 'Not added yet'}
           </p>
         </div>
 
