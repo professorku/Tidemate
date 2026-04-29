@@ -30,6 +30,10 @@ MAX_IMAGE_WIDTH_PX = 8000
 MAX_IMAGE_HEIGHT_PX = 8000
 MAX_IMAGE_TOTAL_PIXELS = 25_000_000
 
+# Make Pillow reject decompression-bomb candidates before full decoding.
+# This protects memory before image.load() is ever reached.
+Image.MAX_IMAGE_PIXELS = MAX_IMAGE_TOTAL_PIXELS
+
 SANITIZED_JPEG_QUALITY = 85
 SANITIZED_IMAGE_SUFFIX = "sanitized"
 
@@ -63,13 +67,44 @@ def _restore_position(upload, position):
             pass
 
 
+def _validate_image_dimensions(image, *, field_label):
+    width, height = image.size
+    total_pixels = width * height
+
+    if (
+        width > MAX_IMAGE_WIDTH_PX
+        or height > MAX_IMAGE_HEIGHT_PX
+        or total_pixels > MAX_IMAGE_TOTAL_PIXELS
+    ):
+        raise serializers.ValidationError(
+            f"{field_label} dimensions are too large. "
+            f"Maximum supported size is {MAX_IMAGE_WIDTH_PX}x{MAX_IMAGE_HEIGHT_PX} pixels "
+            f"and {MAX_IMAGE_TOTAL_PIXELS:,} total pixels."
+        )
+
+    return width, height
+
+
 def _inspect_image_bytes(upload, *, field_label):
     current_position = _remember_position(upload)
 
     try:
         with catch_warnings():
             simplefilter("error", DecompressionBombWarning)
+
             with Image.open(upload) as image:
+                image_format = (image.format or "").upper()
+
+                width, height = _validate_image_dimensions(
+                    image,
+                    field_label=field_label,
+                )
+
+                if image_format not in ALLOWED_IMAGE_FORMATS:
+                    raise serializers.ValidationError(
+                        _build_invalid_type_message(field_label)
+                    )
+
                 image.verify()
 
         if hasattr(upload, "seek"):
@@ -77,27 +112,21 @@ def _inspect_image_bytes(upload, *, field_label):
 
         with catch_warnings():
             simplefilter("error", DecompressionBombWarning)
+
             with Image.open(upload) as image:
-                image.load()
                 image_format = (image.format or "").upper()
-                width, height = image.size
 
-        if image_format not in ALLOWED_IMAGE_FORMATS:
-            raise serializers.ValidationError(
-                _build_invalid_type_message(field_label)
-            )
+                width, height = _validate_image_dimensions(
+                    image,
+                    field_label=field_label,
+                )
 
-        total_pixels = width * height
+                if image_format not in ALLOWED_IMAGE_FORMATS:
+                    raise serializers.ValidationError(
+                        _build_invalid_type_message(field_label)
+                    )
 
-        if (
-            width > MAX_IMAGE_WIDTH_PX
-            or height > MAX_IMAGE_HEIGHT_PX
-            or total_pixels > MAX_IMAGE_TOTAL_PIXELS
-        ):
-            raise serializers.ValidationError(
-                f"{field_label} dimensions are too large. "
-                f"Maximum supported size is {MAX_IMAGE_WIDTH_PX}x{MAX_IMAGE_HEIGHT_PX} pixels."
-            )
+                image.load()
 
         return ImageUploadInfo(
             image_format=image_format,
@@ -191,6 +220,18 @@ def sanitize_image_upload(upload, *, field_label, max_size_bytes):
             simplefilter("error", DecompressionBombWarning)
 
             with Image.open(upload) as image:
+                image_format = (image.format or "").upper()
+
+                _validate_image_dimensions(
+                    image,
+                    field_label=field_label,
+                )
+
+                if image_format not in ALLOWED_IMAGE_FORMATS:
+                    raise serializers.ValidationError(
+                        _build_invalid_type_message(field_label)
+                    )
+
                 image.load()
 
                 sanitized_image, save_format, extension, content_type = (

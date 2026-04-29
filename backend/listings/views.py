@@ -1,6 +1,5 @@
 # backend/listings/views.py
 import logging
-from urllib.error import URLError
 
 from rest_framework import generics, permissions, status
 from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
@@ -24,6 +23,7 @@ from .selectors import (
     get_my_boats_queryset,
 )
 from .services.listing_search import filter_listings
+from .services.location_privacy import build_location_privacy_payload
 from .services.marine_conditions import MarineConditionsError, get_boat_conditions
 
 logger = logging.getLogger(__name__)
@@ -73,11 +73,15 @@ class BoatConditionsView(APIView):
 
     def get(self, request, pk):
         try:
-            boat = BoatListing.objects.get(pk=pk)
+            boat = get_boat_detail_queryset(request.user).get(pk=pk)
         except BoatListing.DoesNotExist:
             return Response({"detail": "Boat not found."}, status=404)
 
-        if boat.latitude is None or boat.longitude is None:
+        location_payload = build_location_privacy_payload(boat, request.user)
+        latitude = location_payload.get("latitude")
+        longitude = location_payload.get("longitude")
+
+        if latitude is None or longitude is None:
             return Response(
                 {"detail": "This boat does not have map coordinates yet."},
                 status=400,
@@ -85,17 +89,27 @@ class BoatConditionsView(APIView):
 
         try:
             conditions = get_boat_conditions(
-                latitude=float(boat.latitude),
-                longitude=float(boat.longitude),
+                latitude=latitude,
+                longitude=longitude,
             )
         except (TypeError, ValueError) as exc:
-            logger.warning("Invalid coordinates for boat %s: %s", boat.id, exc)
+            logger.warning(
+                "Invalid %s coordinates for boat %s: %s",
+                location_payload.get("location_precision", "public"),
+                boat.id,
+                exc,
+            )
             return Response(
                 {"detail": "This boat has invalid map coordinates."},
                 status=400,
             )
         except MarineConditionsError as exc:
-            logger.warning("Marine conditions lookup failed for boat %s: %s", boat.id, exc)
+            logger.warning(
+                "Marine conditions lookup failed for boat %s using %s coordinates: %s",
+                boat.id,
+                location_payload.get("location_precision", "public"),
+                exc,
+            )
             return Response(
                 {"detail": "Could not fetch forecast data right now."},
                 status=502,
@@ -109,7 +123,9 @@ class BoatConditionsView(APIView):
 
         return Response({
             "boat_id": boat.id,
-            "location_name": boat.location_name,
+            "location_name": location_payload.get("location_name"),
+            "location_precision": location_payload.get("location_precision"),
+            "location_radius_km": location_payload.get("location_radius_km"),
             **conditions,
         })
 
