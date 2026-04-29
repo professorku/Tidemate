@@ -50,7 +50,12 @@ class BoatListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         queryset = get_public_listings_queryset(self.request.user)
-        return filter_listings(queryset, self.request.query_params)
+
+        return filter_listings(
+            queryset=queryset,
+            params=self.request.query_params,
+            user=self.request.user,
+        )
 
     def get_serializer_context(self):
         return build_serializer_context(self, super().get_serializer_context())

@@ -1,9 +1,15 @@
+# backend/listings/models.py
+
+import logging
 from decimal import Decimal
 
 from django.contrib.auth.models import User
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
+from django.db.models.signals import post_delete, pre_save
+from django.dispatch import receiver
 
+logger = logging.getLogger(__name__)
 
 MIN_LISTING_TITLE_LENGTH = 3
 MAX_LISTING_TITLE_LENGTH = 120
@@ -118,3 +124,57 @@ class BoatImage(models.Model):
 
     def __str__(self):
         return f'Image for {self.boat.title}'
+
+
+def _delete_boat_image_file_after_commit(file_field):
+
+    if not file_field:
+        return
+
+    file_name = getattr(file_field, 'name', None)
+    storage = getattr(file_field, 'storage', None)
+
+    if not file_name or storage is None:
+        return
+
+    def delete_file():
+        try:
+            still_used = BoatImage.objects.filter(image=file_name).exists()
+
+            if still_used:
+                return
+
+            if storage.exists(file_name):
+                storage.delete(file_name)
+
+        except Exception:
+            logger.exception("Failed to delete boat image file from storage: %s", file_name)
+
+    transaction.on_commit(delete_file)
+
+
+@receiver(post_delete, sender=BoatImage)
+def delete_boat_image_file_on_row_delete(sender, instance, **kwargs):
+ 
+    _delete_boat_image_file_after_commit(instance.image)
+
+
+@receiver(pre_save, sender=BoatImage)
+def delete_old_boat_image_file_on_replacement(sender, instance, **kwargs):
+
+    if not instance.pk:
+        return
+
+    try:
+        old_instance = BoatImage.objects.only('image').get(pk=instance.pk)
+    except BoatImage.DoesNotExist:
+        return
+
+    old_file = old_instance.image
+    new_file = instance.image
+
+    old_name = getattr(old_file, 'name', None)
+    new_name = getattr(new_file, 'name', None)
+
+    if old_name and old_name != new_name:
+        _delete_boat_image_file_after_commit(old_file)

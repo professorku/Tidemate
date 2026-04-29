@@ -72,10 +72,23 @@ export default function useEditBoatPageData() {
     loadBoat()
   }, [formMethods, id])
 
-  const handleLocationChange = ({ latitude, longitude, location_name }) => {
+  const handleLocationChange = ({
+    latitude,
+    longitude,
+    location_name,
+    pickup_address,
+  }) => {
     formMethods.setValue('latitude', latitude, { shouldDirty: true })
     formMethods.setValue('longitude', longitude, { shouldDirty: true })
-    formMethods.setValue('location_name', location_name, { shouldDirty: true })
+
+    formMethods.setValue('location_name', location_name || '', {
+      shouldDirty: true,
+    })
+
+    formMethods.setValue('pickup_address', pickup_address || '', {
+      shouldDirty: true,
+    })
+
     if (error) setError('')
   }
 
@@ -237,10 +250,6 @@ export default function useEditBoatPageData() {
       return
     }
 
-    if (!values.pickup_address?.trim()) {
-      setError('Please add the private pickup address.')
-      return
-    }
 
     if (existingImages.length === 0 && newImages.length === 0) {
       setError('Please keep or upload at least one photo.')
@@ -262,7 +271,7 @@ export default function useEditBoatPageData() {
       data.append('description', values.description)
       data.append('boat_type', values.boat_type)
       data.append('location_name', values.location_name)
-      data.append('pickup_address', values.pickup_address)
+      data.append('pickup_address', values.pickup_address || '')
       data.append('pickup_instructions', values.pickup_instructions || '')
       data.append('latitude', values.latitude)
       data.append('longitude', values.longitude)

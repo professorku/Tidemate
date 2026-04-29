@@ -22,55 +22,63 @@ export default function LocationPickerMap(props) {
     handleClearSearch,
   } = useLocationPicker(props)
 
-  const { latitude, longitude, locationName } = props
+  const {
+    latitude,
+    longitude,
+    locationName,
+    pickupAddress,
+  } = props
 
   return (
     <div className="rounded-[28px] bg-white p-6 shadow-soft md:p-8">
       <div className="flex flex-col gap-2">
         <h2 className="text-2xl font-bold text-slate-900">
-          Choose boat location
+          Choose exact boat location
         </h2>
         <p className="text-slate-600">
-          Search for a marina, harbor, city, or click directly on the map.
+          Search for a place or click directly on the map. Public users only see
+          the nearest city or area. You, admins, and confirmed renters can see the
+          exact location.
         </p>
       </div>
 
-    <div className="mt-6 space-y-4">
-      <LocationPickerSearchPanel
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        searching={searching}
-        searchError={searchError}
-        results={results}
-        onClearSearch={handleClearSearch}
-        onSearchSelect={handleSearchSelect}
-      />
-
-      <SelectedLocationCard
-        locationName={locationName}
-        latitude={latitude}
-        longitude={longitude}
-        reverseLoading={reverseLoading}
-      />
-
-      <Suspense
-        fallback={
-          <RouteLoadingFallback
-            title="Loading map"
-            text="Preparing the interactive location picker."
-          />
-        }
-      >
-        <LocationPickerLeafletMap
-          markerPosition={markerPosition}
-          initialCenter={initialCenter}
-          locationName={locationName}
-          onPickCoordinates={handlePickCoordinates}
+      <div className="mt-6 space-y-4">
+        <LocationPickerSearchPanel
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          searching={searching}
+          searchError={searchError}
+          results={results}
+          onClearSearch={handleClearSearch}
+          onSearchSelect={handleSearchSelect}
         />
-      </Suspense>
 
-      <LocationPickerHelpCard />
-    </div>
+        <SelectedLocationCard
+          locationName={locationName}
+          pickupAddress={pickupAddress}
+          latitude={latitude}
+          longitude={longitude}
+          reverseLoading={reverseLoading}
+        />
+
+        <Suspense
+          fallback={
+            <RouteLoadingFallback
+              title="Loading map"
+              text="Preparing the interactive location picker."
+            />
+          }
+        >
+          <LocationPickerLeafletMap
+            markerPosition={markerPosition}
+            initialCenter={initialCenter}
+            locationName={locationName}
+            onPickCoordinates={handlePickCoordinates}
+          />
+        </Suspense>
+
+        <LocationPickerHelpCard />
+      </div>
     </div>
   )
 }

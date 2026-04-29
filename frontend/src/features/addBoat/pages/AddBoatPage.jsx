@@ -42,6 +42,7 @@ export default function AddBoatPage() {
               latitude={form.latitude}
               longitude={form.longitude}
               locationName={form.location_name}
+              pickupAddress={form.pickup_address}
               onLocationChange={handleLocationChange}
             />
 

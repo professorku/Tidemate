@@ -40,10 +40,23 @@ export function useAddBoatPage() {
     }
   }, [previews])
 
-  const handleLocationChange = ({ latitude, longitude, location_name }) => {
+  const handleLocationChange = ({
+    latitude,
+    longitude,
+    location_name,
+    pickup_address,
+  }) => {
     formMethods.setValue('latitude', latitude, { shouldDirty: true })
     formMethods.setValue('longitude', longitude, { shouldDirty: true })
-    formMethods.setValue('location_name', location_name, { shouldDirty: true })
+
+    formMethods.setValue('location_name', location_name || '', {
+      shouldDirty: true,
+    })
+
+    formMethods.setValue('pickup_address', pickup_address || '', {
+      shouldDirty: true,
+    })
+
     if (error) setError('')
   }
 
@@ -76,17 +89,17 @@ export function useAddBoatPage() {
     setError('')
 
     if (!form.latitude || !form.longitude) {
-      setError('Please choose a location on the map.')
+      setError('Please choose the exact boat location on the map.')
       return
     }
 
     if (!form.location_name?.trim()) {
-      setError('Please add a public city or area for the listing.')
+      setError('Please choose a city or area for the public listing.')
       return
     }
 
     if (!form.pickup_address?.trim()) {
-      setError('Please add the private pickup address.')
+      setError('Please choose the exact private location on the map.')
       return
     }
 

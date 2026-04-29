@@ -1,11 +1,15 @@
 export default function UpdateListingSidebar({
   locationName,
   pickupAddress,
+  latitude,
+  longitude,
   existingImagesCount,
   newImagesCount,
   error,
   saving,
 }) {
+  const hasExactPoint = Boolean(latitude && longitude)
+
   return (
     <div className="rounded-[28px] bg-white p-6 shadow-soft">
       <h2 className="text-2xl font-bold text-slate-900">Update listing</h2>
@@ -13,16 +17,26 @@ export default function UpdateListingSidebar({
 
       <div className="mt-6 space-y-4 rounded-[24px] bg-mist p-5 text-sm">
         <div>
-          <p className="text-slate-500">Public location</p>
+          <p className="text-slate-500">Location shown publicly</p>
           <p className="mt-1 font-semibold text-slate-900">
             {locationName || 'Not selected yet'}
           </p>
         </div>
 
         <div>
-          <p className="text-slate-500">Private pickup address</p>
+          <p className="text-slate-500">Exact private location</p>
           <p className="mt-1 font-semibold text-slate-900">
-            {pickupAddress || 'Not added yet'}
+            {pickupAddress || 'Not selected yet'}
+          </p>
+
+          {hasExactPoint ? (
+            <p className="mt-1 text-xs text-slate-500">
+              {latitude}, {longitude}
+            </p>
+          ) : null}
+
+          <p className="mt-1 text-xs text-slate-500">
+            Only you, admins, and confirmed renters can see this.
           </p>
         </div>
 

@@ -55,6 +55,7 @@ export default function EditBoatPage() {
               latitude={form.latitude}
               longitude={form.longitude}
               locationName={form.location_name}
+              pickupAddress={form.pickup_address}
               onLocationChange={handleLocationChange}
             />
 
@@ -74,6 +75,8 @@ export default function EditBoatPage() {
             <UpdateListingSidebar
               locationName={form.location_name}
               pickupAddress={form.pickup_address}
+              latitude={form.latitude}
+              longitude={form.longitude}
               existingImagesCount={existingImages.length}
               newImagesCount={newImages.length}
               error={error}
