@@ -147,29 +147,11 @@ export default function BoatMap({ boat }) {
         <div className="border-b border-slate-100 bg-slate-50 px-5 py-4">
           <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
             <div>
-              <h3 className="text-lg font-bold text-slate-900">
-                Approximate location
-              </h3>
+        
               <p className="text-sm text-slate-500">
                 {publicDisclosureMessage}
               </p>
             </div>
-
-            {locationLabel ? (
-              <div className="max-w-xs rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200">
-                <span className="line-clamp-2">{locationLabel}</span>
-              </div>
-            ) : null}
-          </div>
-
-          <div className="mt-4 rounded-2xl border border-slate-200 bg-white px-4 py-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Public area
-            </p>
-            <p className="mt-1 text-sm text-slate-700">
-              This boat is located in or near <span className="font-semibold">{locationLabel || 'this area'}</span>.
-              The map below shows only an approximate area, not the exact pickup point.
-            </p>
           </div>
         </div>
 
