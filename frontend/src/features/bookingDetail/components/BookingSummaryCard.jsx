@@ -1,6 +1,17 @@
+import {
+  CalendarDaysIcon,
+  ClockIcon,
+  MapPinIcon,
+  ReceiptPercentIcon,
+  WalletIcon,
+} from '@heroicons/react/24/outline'
 import PolicyCard from '../../../components/PolicyCard'
 import InfoCard from './InfoCard'
-import { formatDateTime } from '../utils/bookingFormatters'
+import {
+  formatDateTime,
+  formatMoney,
+  formatStatusLabel,
+} from '../utils/bookingFormatters'
 import { getBoatLocationLabel } from '../../../utils/locationPrivacy'
 
 const fallbackRentalPolicy = {
@@ -30,37 +41,78 @@ export default function BookingSummaryCard({ booking }) {
     booking?.cancellation_policy || fallbackCancellationPolicy
 
   return (
-    <div className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">
-      <h2 className="text-xl font-bold text-slate-900">Booking summary</h2>
-
-      <div className="mt-4 space-y-3">
-        <InfoCard label="Status" value={booking.status} />
-        <InfoCard
-          label="Requested"
-          value={booking.created_at ? formatDateTime(booking.created_at) : 'Not available'}
-          muted
-        />
-        <InfoCard
-          label="Location"
-          value={getBoatLocationLabel(booking, 'Location unavailable')}
-          muted
-        />
+    <div className="overflow-hidden rounded-[30px] border border-slate-200 bg-white shadow-sm lg:sticky lg:top-24">
+      <div className="bg-gradient-to-br from-navy to-ocean px-5 py-6 text-white">
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/70">
+          Price summary
+        </p>
+        <p className="mt-3 text-4xl font-extrabold tracking-tight">
+          {formatMoney(booking.total_price)}
+        </p>
+        <p className="mt-1 text-sm text-white/70">
+          {formatMoney(booking.price_per_day)} per day · {booking.duration_days} day
+          {booking.duration_days !== 1 ? 's' : ''}
+        </p>
       </div>
 
-      <div className="mt-4 grid gap-3">
-        <PolicyCard
-          title={rentalPolicy.title}
-          subtitle={rentalPolicy.short_text}
-          items={rentalPolicy.items}
-          tone="info"
-        />
+      <div className="p-5">
+        <div className="space-y-3">
+          <InfoCard
+            label="Status"
+            value={formatStatusLabel(booking.status)}
+            icon={<ClockIcon className="h-4 w-4" />}
+          />
+          <InfoCard
+            label="Requested"
+            value={booking.created_at ? formatDateTime(booking.created_at) : 'Not available'}
+            muted
+            icon={<CalendarDaysIcon className="h-4 w-4" />}
+          />
+          <InfoCard
+            label="Location"
+            value={getBoatLocationLabel(booking, 'Location unavailable')}
+            muted
+            icon={<MapPinIcon className="h-4 w-4" />}
+          />
+          <InfoCard
+            label="Booking value"
+            value={`${formatMoney(booking.price_per_day)} × ${booking.duration_days} day${
+              booking.duration_days !== 1 ? 's' : ''
+            }`}
+            muted
+            icon={<WalletIcon className="h-4 w-4" />}
+          />
+        </div>
 
-        <PolicyCard
-          title={cancellationPolicy.title}
-          subtitle={cancellationPolicy.short_text}
-          items={cancellationPolicy.items}
-          tone="warning"
-        />
+        <div className="mt-5 rounded-[24px] border border-slate-200 bg-slate-50 p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-navy ring-1 ring-slate-200">
+              <ReceiptPercentIcon className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-slate-900">Policies</p>
+              <p className="mt-1 text-sm leading-6 text-slate-600">
+                Rental and cancellation rules are shown below for quick reference.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-3">
+          <PolicyCard
+            title={rentalPolicy.title}
+            subtitle={rentalPolicy.short_text}
+            items={rentalPolicy.items}
+            tone="info"
+          />
+
+          <PolicyCard
+            title={cancellationPolicy.title}
+            subtitle={cancellationPolicy.short_text}
+            items={cancellationPolicy.items}
+            tone="warning"
+          />
+        </div>
       </div>
     </div>
   )

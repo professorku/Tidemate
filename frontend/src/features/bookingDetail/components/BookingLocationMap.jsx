@@ -189,7 +189,7 @@ export default function BookingLocationMap({
         <a
           href={openMapHref}
           target="_blank"
-          rel="noreferrer"
+          rel="noopener noreferrer"
           className="inline-flex w-fit rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
         >
           Open larger map

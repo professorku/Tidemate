@@ -60,7 +60,7 @@ def confirm_pending_booking(*, booking):
     locked_booking.expires_at = None
     locked_booking.save(update_fields=['status', 'expires_at'])
 
-    overlapping_pending = (
+    overlapping_pending = list(
         Booking.objects.filter(
             active_pending_booking_filter(now=current_time),
             boat=locked_boat,
@@ -93,4 +93,4 @@ def confirm_pending_booking(*, booking):
             ]
         )
 
-    return locked_booking, list(overlapping_pending)
+    return locked_booking, overlapping_pending

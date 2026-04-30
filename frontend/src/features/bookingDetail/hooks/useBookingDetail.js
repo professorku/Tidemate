@@ -1,13 +1,20 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useParams } from 'react-router-dom'
+import { useAuth } from '../../../context/useAuth'
 import { useToast } from '../../../context/useToast'
-import { cancelBooking, getBookingDetail } from '../../../api/domains/bookings'
+import {
+  cancelBooking,
+  confirmBooking,
+  getBookingDetail,
+} from '../../../api/domains/bookings'
 import { getErrorMessage } from '../../../utils/errors'
 import { queryKeys } from '../../../query/keys'
+import { formatMoney } from '../utils/bookingFormatters'
 
 export function useBookingDetail() {
   const { id } = useParams()
+  const { user } = useAuth()
   const { showToast } = useToast()
   const queryClient = useQueryClient()
   const [cancelReason, setCancelReason] = useState('')
@@ -18,33 +25,76 @@ export function useBookingDetail() {
     enabled: Boolean(id),
   })
 
+  const invalidateBookingData = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.bookings.detail(id) }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.bookings.all }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.bookings.mineCounts }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.bookings.hostCounts }),
+    ])
+  }
+
+  const confirmMutation = useMutation({
+    mutationFn: () => confirmBooking(id),
+    onSuccess: async () => {
+      await invalidateBookingData()
+      showToast({ tone: 'success', message: 'Booking confirmed.' })
+    },
+    onError: (err) => {
+      showToast({
+        tone: 'error',
+        message: getErrorMessage(err, 'Could not confirm booking.'),
+      })
+    },
+  })
+
   const cancelMutation = useMutation({
     mutationFn: () => cancelBooking(id, cancelReason),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: queryKeys.bookings.detail(id) })
-      await queryClient.invalidateQueries({ queryKey: queryKeys.bookings.all })
+      setCancelReason('')
+      await invalidateBookingData()
+      showToast({ tone: 'success', message: 'Booking cancelled.' })
     },
     onError: (err) => {
-      showToast({ tone: 'error', message: getErrorMessage(err, 'Could not cancel booking.') })
+      showToast({
+        tone: 'error',
+        message: getErrorMessage(err, 'Could not cancel booking.'),
+      })
     },
   })
 
   const booking = bookingQuery.data || null
 
+  const viewerRole = useMemo(() => {
+    if (!booking || !user?.id) return 'renter'
+    return Number(user.id) === Number(booking.host_id) ? 'host' : 'renter'
+  }, [booking, user?.id])
+
   const summaryText = useMemo(() => {
     if (!booking) return ''
-    return `${booking.duration_days} day${booking.duration_days !== 1 ? 's' : ''} · ${booking.total_price} kr total`
+
+    const dayLabel = booking.duration_days === 1 ? 'day' : 'days'
+    return `${booking.duration_days} ${dayLabel} · ${formatMoney(booking.total_price)} total`
   }, [booking])
+
+  const reloadBooking = () =>
+    queryClient.invalidateQueries({ queryKey: queryKeys.bookings.detail(id) })
 
   return {
     booking,
+    viewerRole,
     loading: bookingQuery.isLoading,
-    error: bookingQuery.error ? getErrorMessage(bookingQuery.error, 'Could not load booking.') : '',
+    error: bookingQuery.error
+      ? getErrorMessage(bookingQuery.error, 'Could not load booking.')
+      : '',
     cancelReason,
     setCancelReason,
-    actionLoading: cancelMutation.isPending,
+    actionLoading: confirmMutation.isPending || cancelMutation.isPending,
+    confirming: confirmMutation.isPending,
+    cancelling: cancelMutation.isPending,
     summaryText,
+    handleConfirm: () => confirmMutation.mutateAsync(),
     handleCancel: () => cancelMutation.mutateAsync(),
-    reloadBooking: () => queryClient.invalidateQueries({ queryKey: queryKeys.bookings.detail(id) }),
+    reloadBooking,
   }
 }

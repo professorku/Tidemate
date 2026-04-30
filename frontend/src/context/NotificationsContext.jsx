@@ -35,7 +35,7 @@ export function NotificationsProvider({ children }) {
   const fetchNotificationPage = useCallback(async ({ page = 1, pageSize = 12, syncStore = false } = {}) => {
     const pageData = await listNotifications({ page, page_size: pageSize })
 
-    if (syncStore || page === 1) {
+    if (syncStore) {
       replaceNotifications(pageData.results)
     }
 
@@ -125,15 +125,9 @@ export function NotificationsProvider({ children }) {
   }, [])
 
   const markAllAsRead = useCallback(async () => {
-    const hasUnreadNotifications = notifications.some((item) => !item.is_read)
-
-    if (!hasUnreadNotifications) {
-      return
-    }
-
     await markAllNotificationsRead()
     setNotifications((prev) => prev.map((item) => ({ ...item, is_read: true })))
-  }, [notifications])
+  }, [])
 
   const visibleNotifications = useMemo(
     () => (isAuthenticated ? notifications : []),

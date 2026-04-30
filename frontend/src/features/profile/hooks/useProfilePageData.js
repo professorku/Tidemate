@@ -6,6 +6,11 @@ import { patchCurrentUser } from '../../../api/domains/users'
 import { createEmptyReviewPage, getUserReviews } from '../../../api/domains/reviews'
 import { getErrorMessage } from '../../../utils/errors'
 import { queryKeys } from '../../../query/keys'
+import {
+  getMissingProfileItems,
+  getProfileCompletion,
+  getProfileInitials,
+} from '../utils/profileFormatters'
 
 export default function useProfilePageData() {
   const { user, setUser } = useAuth()
@@ -38,35 +43,33 @@ export default function useProfilePageData() {
     },
   })
 
-  const initials = useMemo(() => {
-    const username = user?.username || 'TM'
-    return username.slice(0, 2).toUpperCase()
-  }, [user])
+  const initials = useMemo(() => getProfileInitials(user), [user])
 
-  const profileCompletion = useMemo(() => {
-    if (!user) return 0
+  const profileCompletion = useMemo(() => getProfileCompletion(user), [user])
 
-    let score = 0
-    if (user.avatar) score += 1
-    if (user.bio) score += 1
-    if (user.location) score += 1
-    if (user.email) score += 1
+  const missingProfileItems = useMemo(() => getMissingProfileItems(user), [user])
 
-    return Math.round((score / 4) * 100)
-  }, [user])
-
-  const handleAvatarChange = async (e) => {
-    const file = e.target.files?.[0]
+  const handleAvatarChange = async (event) => {
+    const file = event.target.files?.[0]
     if (!file) return
 
     try {
       await avatarMutation.mutateAsync(file)
     } finally {
-      e.target.value = ''
+      event.target.value = ''
     }
   }
 
+  const reload = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.current }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.reviews(user?.id, reviewsPage) }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.listings.byHost(user?.id) }),
+    ])
+  }
+
   const loading = Boolean(user?.id) && (reviewsQuery.isLoading || boatsQuery.isLoading)
+
   const error =
     getErrorMessage(reviewsQuery.error, '') ||
     getErrorMessage(boatsQuery.error, '') ||
@@ -83,6 +86,8 @@ export default function useProfilePageData() {
     uploading: avatarMutation.isPending,
     initials,
     profileCompletion,
+    missingProfileItems,
     handleAvatarChange,
+    reload,
   }
 }
