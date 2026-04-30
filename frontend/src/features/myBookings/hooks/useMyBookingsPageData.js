@@ -42,7 +42,7 @@ export default function useMyBookingsPageData() {
   }
 
   const cancelMutation = useMutation({
-    mutationFn: cancelBooking,
+    mutationFn: ({ bookingId, reason = '' }) => cancelBooking(bookingId, reason),
     onSuccess: invalidateBookings,
     onError: (err) => {
       showToast({ tone: 'error', message: getErrorMessage(err, 'Could not cancel booking.') })
@@ -60,16 +60,17 @@ export default function useMyBookingsPageData() {
   const pagination = bookingsQuery.data
     ? { count: bookingsQuery.data.count, page: bookingsQuery.data.page, totalPages: bookingsQuery.data.totalPages }
     : EMPTY_PAGINATION
+
   const filteredBookings = useMemo(() => bookingsQuery.data?.results || [], [bookingsQuery.data])
 
   return {
     activeTab,
-    cancellingId: cancelMutation.isPending ? cancelMutation.variables : null,
+    cancellingId: cancelMutation.isPending ? cancelMutation.variables?.bookingId : null,
     deletingId: deleteMutation.isPending ? deleteMutation.variables : null,
     counts: countsQuery.data || EMPTY_COUNTS,
     error: bookingsQuery.error ? getErrorMessage(bookingsQuery.error, 'Could not load your bookings.') : '',
     filteredBookings,
-    cancelBooking: (bookingId) => cancelMutation.mutateAsync(bookingId),
+    cancelBooking: (bookingId, reason = '') => cancelMutation.mutateAsync({ bookingId, reason }),
     deleteBooking: async (booking) => {
       const nextPage = (bookingsQuery.data?.results?.length ?? 0) <= 1 && page > 1 ? page - 1 : page
       if (nextPage !== page) {

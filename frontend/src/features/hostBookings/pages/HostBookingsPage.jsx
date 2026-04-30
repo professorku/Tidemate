@@ -4,7 +4,6 @@ import PaginationControls from '../../../components/ui/PaginationControls'
 import HostBookingsFilters from '../../hostBookings/components/HostBookingsFilters'
 import HostBookingsHero from '../../hostBookings/components/HostBookingsHero'
 import HostBookingsResults from '../../hostBookings/components/HostBookingsResults'
-import HostBookingsStats from '../../hostBookings/components/HostBookingsStats'
 import useHostBookingsPageData from '../../hostBookings/hooks/useHostBookingsPageData'
 import useConfirmAction from '../../../hooks/useConfirmAction'
 import { useToast } from '../../../context/useToast'
@@ -42,7 +41,8 @@ export default function HostBookingsPage() {
   const requestCancelBooking = (bookingId) => {
     openConfirm({
       title: 'Cancel booking as host?',
-      message: 'This will cancel the booking for the guest and send a notification. Add a reason first if you want the guest to see more context.',
+      message:
+        'This will cancel the booking for the guest and send a notification. Add a reason first if you want the guest to see more context.',
       confirmLabel: 'Cancel booking',
       tone: 'warning',
       action: async () => {
@@ -85,8 +85,6 @@ export default function HostBookingsPage() {
     <>
       <PageContainer>
         <HostBookingsHero stats={safeStats} />
-
-        <HostBookingsStats stats={safeStats} />
 
         <HostBookingsFilters
           activeTab={activeTab}

@@ -47,7 +47,7 @@ export function useBookingForm({ boat, onBookingCreated }) {
     const start = parseISODate(form.start_date)
     const end = parseISODate(form.end_date)
 
-    if (!start || !end || end < start) return null
+    if (!start || !end || end <= start) return null
 
     const days = daysBetweenInclusive(start, end)
     const pricePerDay = Number(boat?.price_per_day || 0)
@@ -66,9 +66,11 @@ export function useBookingForm({ boat, onBookingCreated }) {
     const end = parseISODate(form.end_date)
 
     if (!start || !end) return 'Invalid date selection.'
-    if (end < start) return 'End date must be after start date.'
+    if (end <= start) return 'Return date must be after the pickup date.'
 
-    const overlapsBlocked = blockedRanges.some((range) => rangeOverlaps(start, end, range.start, range.end))
+    const overlapsBlocked = blockedRanges.some((range) =>
+      rangeOverlaps(start, end, range.start, range.end)
+    )
 
     if (overlapsBlocked) return 'Your selected dates include unavailable days.'
 
@@ -95,6 +97,11 @@ export function useBookingForm({ boat, onBookingCreated }) {
       return
     }
 
+    if (isoDate === form.start_date) {
+      setError('Return date must be after the pickup date.')
+      return
+    }
+
     setForm((prev) => ({
       ...prev,
       end_date: isoDate,
@@ -114,7 +121,7 @@ export function useBookingForm({ boat, onBookingCreated }) {
     }
 
     if (!form.start_date || !form.end_date) {
-      setError('Please choose both a start date and an end date.')
+      setError('Please choose both a pickup date and a return date.')
       return
     }
 

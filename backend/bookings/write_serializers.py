@@ -1,5 +1,4 @@
-from datetime import date
-
+from django.utils import timezone
 from rest_framework import serializers
 
 from .creation import create_pending_booking, validate_booking_duration
@@ -37,12 +36,12 @@ class BookingCreateSerializer(serializers.ModelSerializer):
                 'detail': ['Start date and end date are required.']
             })
 
-        if end_date < start_date:
+        if end_date <= start_date:
             raise serializers.ValidationError({
-                'end_date': ['End date must be after start date.']
+                'end_date': ['Return date must be after the pickup date.']
             })
 
-        if start_date < date.today():
+        if start_date < timezone.localdate():
             raise serializers.ValidationError({
                 'start_date': ['You cannot book dates in the past.']
             })

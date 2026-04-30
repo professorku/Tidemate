@@ -59,8 +59,8 @@ class Booking(models.Model):
         ordering = ['-created_at']
         constraints = [
             models.CheckConstraint(
-                condition=Q(end_date__gte=F('start_date')),
-                name='booking_end_date_on_or_after_start_date',
+                condition=Q(end_date__gt=F('start_date')),
+                name='booking_end_date_after_start_date',
             ),
             models.CheckConstraint(
                 condition=Q(total_price__gte=MIN_BOOKING_TOTAL_PRICE),

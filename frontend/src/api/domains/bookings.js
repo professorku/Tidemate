@@ -19,8 +19,12 @@ export function getBookingDetail(bookingId) {
   return apiGet(`/bookings/${bookingId}/`)
 }
 
-export function cancelBooking(bookingId, reason) {
-  return apiPost(`/bookings/${bookingId}/cancel/`, { reason })
+export function cancelBooking(bookingId, reason = '') {
+  const cleanReason = typeof reason === 'string' ? reason.trim() : ''
+
+  return apiPost(`/bookings/${bookingId}/cancel/`, {
+    reason: cleanReason,
+  })
 }
 
 export function confirmBooking(bookingId) {

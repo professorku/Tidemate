@@ -93,4 +93,23 @@ describe('useBookingForm', () => {
     expect(onBookingCreated).toHaveBeenCalled()
     expect(result.current.form).toEqual({ start_date: '', end_date: '' })
   })
+
+  it('blocks same-day return selections', async () => {
+  const { result } = renderHook(() => useBookingForm({ boat }))
+
+  act(() => {
+    result.current.handleDateClick('2026-06-14')
+  })
+
+  act(() => {
+    result.current.handleDateClick('2026-06-14')
+  })
+
+  await act(async () => {
+    await result.current.submitBooking()
+  })
+
+  expect(result.current.error).toMatch(/return date must be after/i)
+  expect(createBooking).not.toHaveBeenCalled()
+  })
 })

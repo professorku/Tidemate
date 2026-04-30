@@ -4,7 +4,6 @@ import PaginationControls from '../../../components/ui/PaginationControls'
 import BookingsFilters from '../../myBookings/components/BookingsFilters'
 import BookingsHero from '../../myBookings/components/BookingsHero'
 import BookingsResults from '../../myBookings/components/BookingsResults'
-import BookingsStats from '../../myBookings/components/BookingsStats'
 import useMyBookingsPageData from '../../myBookings/hooks/useMyBookingsPageData'
 import useConfirmAction from '../../../hooks/useConfirmAction'
 
@@ -25,6 +24,15 @@ export default function MyBookingsPage() {
     setPage,
   } = useMyBookingsPageData()
   const { openConfirm, modalProps } = useConfirmAction()
+
+  const safeCounts = {
+    all: counts?.all ?? 0,
+    upcoming: counts?.upcoming ?? 0,
+    active: counts?.active ?? 0,
+    pending: counts?.pending ?? 0,
+    completed: counts?.completed ?? 0,
+    cancelled: counts?.cancelled ?? 0,
+  }
 
   const requestCancelBooking = (bookingId) => {
     openConfirm({
@@ -53,11 +61,9 @@ export default function MyBookingsPage() {
   return (
     <>
       <PageContainer>
-        <BookingsHero />
+        <BookingsHero counts={safeCounts} />
 
-        <BookingsStats counts={counts} />
-
-        <BookingsFilters activeTab={activeTab} counts={counts} onChange={setActiveTab} />
+        <BookingsFilters activeTab={activeTab} counts={safeCounts} onChange={setActiveTab} />
 
         <BookingsResults
           activeTab={activeTab}

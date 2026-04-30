@@ -54,7 +54,7 @@ export default function useHostBookingsPageData() {
   })
 
   const cancelMutation = useMutation({
-    mutationFn: (bookingId) => cancelBooking(bookingId, cancelReason[bookingId] || ''),
+    mutationFn: ({ bookingId, reason = '' }) => cancelBooking(bookingId, reason),
     onSuccess: invalidateBookings,
   })
 
@@ -73,14 +73,18 @@ export default function useHostBookingsPageData() {
     activeTab,
     actionLoadingId:
       (confirmMutation.isPending && confirmMutation.variables) ||
-      (cancelMutation.isPending && cancelMutation.variables) ||
+      (cancelMutation.isPending && cancelMutation.variables?.bookingId) ||
       (deleteMutation.isPending && deleteMutation.variables) ||
       null,
     bookings: bookingsQuery.data?.results || [],
     cancelReason,
     error: bookingsQuery.error ? getErrorMessage(bookingsQuery.error, 'Could not load host bookings.') : '',
     filteredBookings: bookingsQuery.data?.results || [],
-    cancelBooking: (bookingId) => cancelMutation.mutateAsync(bookingId),
+    cancelBooking: (bookingId) =>
+      cancelMutation.mutateAsync({
+        bookingId,
+        reason: cancelReason[bookingId] || '',
+      }),
     confirmBooking: (bookingId) => confirmMutation.mutateAsync(bookingId),
     deleteBooking: async (booking) => {
       const nextPage = (bookingsQuery.data?.results?.length ?? 0) <= 1 && page > 1 ? page - 1 : page
