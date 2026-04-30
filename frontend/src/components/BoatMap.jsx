@@ -147,7 +147,6 @@ export default function BoatMap({ boat }) {
         <div className="border-b border-slate-100 bg-slate-50 px-5 py-4">
           <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
             <div>
-        
               <p className="text-sm text-slate-500">
                 {publicDisclosureMessage}
               </p>
@@ -205,7 +204,7 @@ export default function BoatMap({ boat }) {
   return (
     <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-soft">
       <div className="border-b border-slate-100 bg-slate-50 px-5 py-4">
-        <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-1">
           <div>
             <h3 className="text-lg font-bold text-slate-900">
               Exact pickup location
@@ -214,12 +213,6 @@ export default function BoatMap({ boat }) {
               {exactDisclosureMessage}
             </p>
           </div>
-
-          {locationLabel ? (
-            <div className="max-w-xs rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200">
-              <span className="line-clamp-2">{locationLabel}</span>
-            </div>
-          ) : null}
         </div>
 
         {locationSubtitle ? (
@@ -292,6 +285,17 @@ export default function BoatMap({ boat }) {
           </p>
         </div>
       </div>
+
+      {locationLabel ? (
+        <div className="border-t border-slate-100 bg-slate-50 px-5 py-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Exact pickup address
+          </p>
+          <p className="mt-1 max-w-4xl break-words text-xs font-extrabold text-slate-800 sm:text-sm">
+            {locationLabel}
+          </p>
+        </div>
+      ) : null}
     </div>
   )
 }

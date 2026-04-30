@@ -142,7 +142,11 @@ def get_target_user_by_id(user_id):
         return None
 
     try:
-        return User.objects.get(pk=user_id)
+        return (
+            User.objects
+            .select_related('profile')
+            .get(pk=user_id, is_active=True)
+        )
     except (User.DoesNotExist, TypeError, ValueError):
         return None
 

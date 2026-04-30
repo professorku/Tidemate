@@ -48,6 +48,48 @@ PRIVATE_ADDRESS_WORDS = {
 POSTCODE_PATTERN = re.compile(r'\b\d{4}\b')
 DIGIT_PATTERN = re.compile(r'\d')
 
+# Public listing text is visible to everyone, so exact pickup details must stay out
+# of title, description, and location_name. These patterns catch strong address/dock
+# indicators while still allowing broad public areas like "Oslo", "Bergen sentrum",
+# "Frognerkilen", or "Aker Brygge".
+COORDINATE_PAIR_PATTERN = re.compile(
+    r'\b-?\d{1,2}\.\d{4,}\s*,\s*-?\d{1,3}\.\d{4,}\b'
+)
+
+STREET_WORD_PATTERN = (
+    r'gate|gata|gaten|vei|veien|veg|vegen|road|street|avenue|aveny|'
+    r'lane|drive|boulevard|blvd|place|plass|allé|alle'
+)
+
+STREET_ADDRESS_PATTERN = re.compile(
+    rf"\b[\wÀ-ÖØ-öø-ÿ .’'-]{{1,80}}(?:{STREET_WORD_PATTERN})\s+\d+[a-z]?\b|"
+    rf"\b\d+[a-z]?\s+[\wÀ-ÖØ-öø-ÿ .’'-]{{1,80}}(?:{STREET_WORD_PATTERN})\b",
+    re.IGNORECASE,
+)
+
+PRIVATE_DOCK_WORD_PATTERN = (
+    r'dock|pier|slip|berth|mooring|pontoon|jetty|båtplass|baatplass|'
+    r'brygge|kai|marina|havn|harbor|harbour'
+)
+
+PRIVATE_DOCK_WITH_IDENTIFIER_PATTERN = re.compile(
+    rf'\b(?:{PRIVATE_DOCK_WORD_PATTERN})\b\s*(?:nr\.?|no\.?|number|#)?\s*[a-z]?[- ]?\d+[a-z]?\b|'
+    rf'\b(?:{PRIVATE_DOCK_WORD_PATTERN})\b\s+[a-z]\d+\b',
+    re.IGNORECASE,
+)
+
+PICKUP_DETAIL_PATTERN = re.compile(
+    rf'\b(?:pickup|pick-up|pick up|meet|meeting point|hent|henting|møt|mote|møteplass|oppmøte|address|adresse)\b'
+    rf'.{{0,60}}\b(?:{STREET_WORD_PATTERN}|{PRIVATE_DOCK_WORD_PATTERN}|address|adresse)\b',
+    re.IGNORECASE,
+)
+
+PUBLIC_LOCATION_TEXT_PRIVACY_ERROR = (
+    'Do not put exact pickup details in public listing text. '
+    'Use the private pickup address/instructions fields for street addresses, dock numbers, '
+    'marina slips, coordinates, or meeting-point details.'
+)
+
 
 def _as_float(value):
     if value is None:
@@ -103,6 +145,32 @@ def _part_looks_private(value):
             return True
 
     return False
+
+
+def get_public_location_text_privacy_error(value):
+    text = (value or '').strip()
+
+    if not text:
+        return None
+
+    lowered = text.lower()
+
+    if COORDINATE_PAIR_PATTERN.search(text):
+        return PUBLIC_LOCATION_TEXT_PRIVACY_ERROR
+
+    if POSTCODE_PATTERN.search(lowered):
+        return PUBLIC_LOCATION_TEXT_PRIVACY_ERROR
+
+    if STREET_ADDRESS_PATTERN.search(text):
+        return PUBLIC_LOCATION_TEXT_PRIVACY_ERROR
+
+    if PRIVATE_DOCK_WITH_IDENTIFIER_PATTERN.search(text):
+        return PUBLIC_LOCATION_TEXT_PRIVACY_ERROR
+
+    if PICKUP_DETAIL_PATTERN.search(text):
+        return PUBLIC_LOCATION_TEXT_PRIVACY_ERROR
+
+    return None
 
 
 def get_public_location_name(value):

@@ -32,7 +32,10 @@ from .services.listing_images import (
     sync_cover_image_field,
 )
 from .services.booking_ranges import get_blocked_ranges
-from .services.location_privacy import build_location_privacy_payload
+from .services.location_privacy import (
+    build_location_privacy_payload,
+    get_public_location_text_privacy_error,
+)
 
 
 class BoatImageSerializer(serializers.ModelSerializer):
@@ -239,6 +242,14 @@ class BoatListingWriteMixin(serializers.Serializer):
         required=False,
     )
 
+    def _validate_public_location_text(self, value):
+        privacy_error = get_public_location_text_privacy_error(value)
+
+        if privacy_error:
+            raise serializers.ValidationError(privacy_error)
+
+        return value
+
     def validate_title(self, value):
         title = (value or '').strip()
 
@@ -252,7 +263,7 @@ class BoatListingWriteMixin(serializers.Serializer):
                 f'Title cannot exceed {MAX_LISTING_TITLE_LENGTH} characters.'
             )
 
-        return title
+        return self._validate_public_location_text(title)
 
     def validate_description(self, value):
         description = (value or '').strip()
@@ -263,7 +274,7 @@ class BoatListingWriteMixin(serializers.Serializer):
         if len(description) > 2000:
             raise serializers.ValidationError('Description cannot exceed 2000 characters.')
 
-        return description
+        return self._validate_public_location_text(description)
 
     def validate_location_name(self, value):
         location_name = (value or '').strip()
@@ -278,7 +289,7 @@ class BoatListingWriteMixin(serializers.Serializer):
                 f'Public location cannot exceed {MAX_LOCATION_NAME_LENGTH} characters.'
             )
 
-        return location_name
+        return self._validate_public_location_text(location_name)
 
     def validate_pickup_address(self, value):
         pickup_address = (value or '').strip()
@@ -363,34 +374,100 @@ class BoatListingWriteMixin(serializers.Serializer):
 
         remove_image_ids = attrs.get('remove_image_ids') or []
         new_images = attrs.get('new_images') or []
+        cover_index = attrs.get('cover_index', None)
+        cover_image_id = attrs.get('cover_image_id', None)
 
-        if self.instance:
-            existing_count = self.instance.images.count()
-            unique_remove_ids = set(remove_image_ids)
+        unique_remove_ids = set(remove_image_ids)
 
-            matching_remove_ids = set(
-                self.instance.images
-                .filter(id__in=unique_remove_ids)
-                .values_list('id', flat=True)
-            )
+        if cover_index is not None and cover_image_id is not None:
+            raise serializers.ValidationError({
+                'cover_index': [
+                    'Choose either a newly uploaded cover image by index or an existing cover image by ID, not both.'
+                ],
+                'cover_image_id': [
+                    'Choose either a newly uploaded cover image by index or an existing cover image by ID, not both.'
+                ],
+            })
 
-            invalid_remove_ids = unique_remove_ids - matching_remove_ids
-
-            if invalid_remove_ids:
+        if cover_index is not None:
+            if not new_images:
                 raise serializers.ValidationError({
-                    'remove_image_ids': [
-                        'One or more images do not belong to this boat listing.'
+                    'cover_index': [
+                        'Cover index can only be used when uploading new images.'
                     ]
                 })
 
-            resulting_count = existing_count - len(matching_remove_ids) + len(new_images)
+            if cover_index >= len(new_images):
+                raise serializers.ValidationError({
+                    'cover_index': [
+                        'Cover index is outside the uploaded image list.'
+                    ]
+                })
 
-            if resulting_count > MAX_BOAT_IMAGE_COUNT:
+        if not self.instance:
+            if cover_image_id is not None:
+                raise serializers.ValidationError({
+                    'cover_image_id': [
+                        'Cover image ID can only be used when updating an existing boat listing.'
+                    ]
+                })
+
+            if unique_remove_ids:
+                raise serializers.ValidationError({
+                    'remove_image_ids': [
+                        'Images can only be removed when updating an existing boat listing.'
+                    ]
+                })
+
+            if len(new_images) > MAX_BOAT_IMAGE_COUNT:
                 raise serializers.ValidationError({
                     'new_images': [
                         f'A boat listing can have at most {MAX_BOAT_IMAGE_COUNT} images in total.'
                     ]
                 })
+
+            return attrs
+
+        existing_image_ids = set(
+            self.instance.images.values_list('id', flat=True)
+        )
+
+        invalid_remove_ids = unique_remove_ids - existing_image_ids
+
+        if invalid_remove_ids:
+            raise serializers.ValidationError({
+                'remove_image_ids': [
+                    'One or more images do not belong to this boat listing.'
+                ]
+            })
+
+        if cover_image_id is not None:
+            if cover_image_id not in existing_image_ids:
+                raise serializers.ValidationError({
+                    'cover_image_id': [
+                        'Cover image does not belong to this boat listing.'
+                    ]
+                })
+
+            if cover_image_id in unique_remove_ids:
+                raise serializers.ValidationError({
+                    'cover_image_id': [
+                        'Cover image cannot be one of the images being removed.'
+                    ]
+                })
+
+        resulting_count = (
+            len(existing_image_ids)
+            - len(unique_remove_ids)
+            + len(new_images)
+        )
+
+        if resulting_count > MAX_BOAT_IMAGE_COUNT:
+            raise serializers.ValidationError({
+                'new_images': [
+                    f'A boat listing can have at most {MAX_BOAT_IMAGE_COUNT} images in total.'
+                ]
+            })
 
         return attrs
 

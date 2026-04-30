@@ -15,7 +15,12 @@ def get_or_create_profile_for_user(user):
 
 
 def get_user_by_id(user_id):
-    return User.objects.select_related('profile').filter(pk=user_id).first()
+    return (
+        User.objects
+        .select_related('profile')
+        .filter(pk=user_id, is_active=True)
+        .first()
+    )
 
 
 def get_profile_stats_for_user(user):

@@ -105,7 +105,7 @@ export function getBoatLocationSubtitle(entity) {
   if (!entity) return ''
 
   if (canShowExactLocation(entity)) {
-    return entity.pickup_instructions || entity.location_disclosure_message || ''
+    return entity.pickup_instructions || ''
   }
 
   return entity.location_disclosure_message || 'Exact pickup location is shared after booking confirmation.'
