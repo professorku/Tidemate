@@ -14,11 +14,16 @@ export default function NotificationsPage() {
   const navigate = useNavigate()
   const { markAsRead, markAllAsRead, fetchNotificationPage } = useNotifications()
   const { showToast } = useToast()
+
   const [notifications, setNotifications] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [markingAll, setMarkingAll] = useState(false)
-  const [pagination, setPagination] = useState({ count: 0, page: 1, totalPages: 1 })
+  const [pagination, setPagination] = useState({
+    count: 0,
+    page: 1,
+    totalPages: 1,
+  })
 
   const loadNotifications = async (page = 1) => {
     setLoading(true)
@@ -26,10 +31,16 @@ export default function NotificationsPage() {
 
     try {
       const pageData = await fetchNotificationPage({ page, pageSize: 12 })
-      setNotifications(pageData.results)
-      setPagination({ count: pageData.count, page: pageData.page, totalPages: pageData.totalPages })
+
+      setNotifications(Array.isArray(pageData.results) ? pageData.results : [])
+      setPagination({
+        count: pageData.count ?? 0,
+        page: pageData.page ?? page,
+        totalPages: pageData.totalPages ?? 1,
+      })
     } catch (err) {
       console.error('Failed to load notifications:', err)
+
       const message = getErrorMessage(err, 'Could not load notifications.')
       setError(message)
       showToast({ tone: 'error', message })
@@ -53,13 +64,22 @@ export default function NotificationsPage() {
     try {
       if (!notification.is_read) {
         await markAsRead(notification.id)
-        setNotifications((prev) => prev.map((item) => (item.id === notification.id ? { ...item, is_read: true } : item)))
+
+        setNotifications((prev) =>
+          prev.map((item) =>
+            item.id === notification.id ? { ...item, is_read: true } : item
+          )
+        )
       }
 
       navigate(notification.target_url || '/notifications')
     } catch (err) {
       console.error('Failed to open notification:', err)
-      showToast({ tone: 'error', message: getErrorMessage(err, 'Could not open notification.') })
+
+      showToast({
+        tone: 'error',
+        message: getErrorMessage(err, 'Could not open notification.'),
+      })
     }
   }
 
@@ -69,11 +89,22 @@ export default function NotificationsPage() {
     try {
       setMarkingAll(true)
       await markAllAsRead()
-      setNotifications((prev) => prev.map((item) => ({ ...item, is_read: true })))
-      showToast({ tone: 'success', message: 'All notifications marked as read.' })
+
+      setNotifications((prev) =>
+        prev.map((item) => ({ ...item, is_read: true }))
+      )
+
+      showToast({
+        tone: 'success',
+        message: 'All notifications marked as read.',
+      })
     } catch (err) {
       console.error('Failed to mark all notifications as read:', err)
-      showToast({ tone: 'error', message: getErrorMessage(err, 'Could not update notifications.') })
+
+      showToast({
+        tone: 'error',
+        message: getErrorMessage(err, 'Could not update notifications.'),
+      })
     } finally {
       setMarkingAll(false)
     }
@@ -105,23 +136,20 @@ export default function NotificationsPage() {
       </div>
 
       {loading ? (
-        <StatePanel
+        <LoadingState
           icon={<BellAlertIcon className="h-8 w-8" />}
           title="Loading notifications"
           text="We are fetching your latest booking updates and messages."
-          tone="subtle"
           compact
         />
       ) : null}
 
       {!loading && error ? (
-        <StatePanel
-          icon={<ExclamationTriangleIcon className="h-8 w-8" />}
+        <ErrorState
           title="Could not load notifications"
-          text={error}
+          message={error}
           actionLabel="Try again"
-          onAction={() => loadNotifications(pagination.page || 1)}
-          tone="error"
+          onRetry={() => loadNotifications(pagination.page || 1)}
           compact
         />
       ) : null}
@@ -141,7 +169,9 @@ export default function NotificationsPage() {
         <>
           <div className="mb-4 text-sm text-slate-500">
             {unreadCount > 0
-              ? `${unreadCount} unread ${unreadCount === 1 ? 'notification' : 'notifications'}`
+              ? `${unreadCount} unread ${
+                  unreadCount === 1 ? 'notification' : 'notifications'
+                }`
               : 'Everything is up to date'}
           </div>
 
@@ -159,6 +189,7 @@ export default function NotificationsPage() {
               >
                 <div className="flex items-start justify-between gap-4">
                   <p className="text-slate-800">{notification.message}</p>
+
                   {!notification.is_read ? (
                     <span className="rounded-full bg-slate-900 px-2.5 py-1 text-xs font-semibold text-white">
                       New
@@ -167,7 +198,9 @@ export default function NotificationsPage() {
                 </div>
 
                 <p className="mt-2 text-sm text-slate-500">
-                  {notification.created_at ? new Date(notification.created_at).toLocaleString() : 'Just now'}
+                  {notification.created_at
+                    ? new Date(notification.created_at).toLocaleString()
+                    : 'Just now'}
                 </p>
               </button>
             ))}
