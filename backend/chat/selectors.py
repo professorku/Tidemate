@@ -1,6 +1,9 @@
 from django.db.models import Count, F, OuterRef, Q, Subquery, TextField, Value
 from django.db.models.functions import Coalesce
 
+from bookings.models import Booking
+from listings.models import BoatListing
+
 from .models import Conversation, Message
 
 
@@ -140,8 +143,36 @@ def get_target_user_by_id(user_id):
 
     try:
         return User.objects.get(pk=user_id)
-    except User.DoesNotExist:
+    except (User.DoesNotExist, TypeError, ValueError):
         return None
+
+
+def get_boat_listing_by_id(boat_id):
+    if not boat_id:
+        return None
+
+    try:
+        return (
+            BoatListing.objects
+            .select_related('host', 'host__profile')
+            .filter(pk=boat_id)
+            .first()
+        )
+    except (TypeError, ValueError):
+        return None
+
+
+def users_have_booking_relationship(user_a, user_b):
+ 
+    if not user_a or not user_b:
+        return False
+
+    return Booking.objects.filter(
+        (
+            Q(renter=user_a, boat__host=user_b)
+            | Q(renter=user_b, boat__host=user_a)
+        )
+    ).exists()
 
 
 def get_message_with_conversation(message_id):

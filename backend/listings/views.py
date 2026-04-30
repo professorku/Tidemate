@@ -16,7 +16,11 @@ from config.throttling import (
 from .models import BoatListing
 from .permissions import IsListingOwner
 from .serializer_helpers import build_serializer_context
-from .serializers import BoatListingSerializer
+from .serializers import (
+    BoatListingOwnerSerializer,
+    BoatListingPublicSerializer,
+    BoatListingWriteSerializer,
+)
 from .selectors import (
     get_public_listings_queryset,
     get_boat_detail_queryset,
@@ -30,10 +34,15 @@ logger = logging.getLogger(__name__)
 
 
 class BoatListCreateView(generics.ListCreateAPIView):
-    serializer_class = BoatListingSerializer
     pagination_class = ListingsPagination
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     throttle_classes = [ListingWriteRateThrottle, PublicListingsAnonRateThrottle]
+
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return BoatListingWriteSerializer
+
+        return BoatListingPublicSerializer
 
     def list(self, request, *args, **kwargs):
         if "limit" in request.query_params:
@@ -41,11 +50,30 @@ class BoatListCreateView(generics.ListCreateAPIView):
                 {"detail": "Use page and page_size for listing pagination. The limit parameter is not supported."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
         return super().list(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        write_serializer = self.get_serializer(data=request.data)
+        write_serializer.is_valid(raise_exception=True)
+        boat = write_serializer.save()
+
+        response_serializer = BoatListingOwnerSerializer(
+            boat,
+            context=self.get_serializer_context(),
+        )
+
+        headers = self.get_success_headers(response_serializer.data)
+        return Response(
+            response_serializer.data,
+            status=status.HTTP_201_CREATED,
+            headers=headers,
+        )
 
     def get_permissions(self):
         if self.request.method == "POST":
             return [permissions.IsAuthenticated()]
+
         return [permissions.AllowAny()]
 
     def get_queryset(self):
@@ -62,7 +90,7 @@ class BoatListCreateView(generics.ListCreateAPIView):
 
 
 class BoatDetailView(generics.RetrieveAPIView):
-    serializer_class = BoatListingSerializer
+    serializer_class = BoatListingPublicSerializer
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
@@ -136,7 +164,7 @@ class BoatConditionsView(APIView):
 
 
 class MyBoatsView(generics.ListAPIView):
-    serializer_class = BoatListingSerializer
+    serializer_class = BoatListingOwnerSerializer
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = ListingsPagination
 
@@ -146,6 +174,7 @@ class MyBoatsView(generics.ListAPIView):
                 {"detail": "Use page and page_size for listing pagination. The limit parameter is not supported."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
         return super().list(request, *args, **kwargs)
 
     def get_queryset(self):
@@ -156,13 +185,38 @@ class MyBoatsView(generics.ListAPIView):
 
 
 class MyBoatUpdateView(generics.RetrieveUpdateDestroyAPIView):
-    serializer_class = BoatListingSerializer
     permission_classes = [permissions.IsAuthenticated, IsListingOwner]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     throttle_classes = [ListingWriteRateThrottle]
 
+    def get_serializer_class(self):
+        if self.request.method in ("GET", "HEAD", "OPTIONS"):
+            return BoatListingOwnerSerializer
+
+        return BoatListingWriteSerializer
+
     def get_queryset(self):
         return get_my_boats_queryset(self.request.user)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+
+        write_serializer = BoatListingWriteSerializer(
+            instance,
+            data=request.data,
+            partial=partial,
+            context=self.get_serializer_context(),
+        )
+        write_serializer.is_valid(raise_exception=True)
+        boat = write_serializer.save()
+
+        response_serializer = BoatListingOwnerSerializer(
+            boat,
+            context=self.get_serializer_context(),
+        )
+
+        return Response(response_serializer.data)
 
     def get_serializer_context(self):
         return build_serializer_context(self, super().get_serializer_context())

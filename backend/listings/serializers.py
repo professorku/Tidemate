@@ -50,95 +50,7 @@ class BoatImageSerializer(serializers.ModelSerializer):
         return obj.image.url
 
 
-class BoatListingSerializer(serializers.ModelSerializer):
-    host_name = serializers.CharField(source='host.username', read_only=True)
-    host_id = serializers.IntegerField(source='host.id', read_only=True)
-    image = serializers.SerializerMethodField()
-    blocked_ranges = serializers.SerializerMethodField()
-    rental_policy = serializers.SerializerMethodField()
-    cancellation_policy = serializers.SerializerMethodField()
-    images = BoatImageSerializer(many=True, read_only=True)
-    distance_km = serializers.SerializerMethodField()
-    is_favorited = serializers.SerializerMethodField()
-    favorite_id = serializers.SerializerMethodField()
-
-    approximate_latitude = serializers.SerializerMethodField()
-    approximate_longitude = serializers.SerializerMethodField()
-    exact_location_available = serializers.SerializerMethodField()
-    location_precision = serializers.SerializerMethodField()
-    location_radius_km = serializers.SerializerMethodField()
-    location_disclosure_message = serializers.SerializerMethodField()
-
-    new_images = serializers.ListField(
-        child=serializers.ImageField(),
-        write_only=True,
-        required=False,
-    )
-    cover_index = serializers.IntegerField(write_only=True, required=False)
-    cover_image_id = serializers.IntegerField(write_only=True, required=False)
-    remove_image_ids = serializers.ListField(
-        child=serializers.IntegerField(),
-        write_only=True,
-        required=False,
-    )
-
-    class Meta:
-        model = BoatListing
-        fields = [
-            'id',
-            'title',
-            'description',
-            'boat_type',
-            'location_name',
-            'pickup_address',
-            'pickup_instructions',
-            'latitude',
-            'longitude',
-            'approximate_latitude',
-            'approximate_longitude',
-            'exact_location_available',
-            'location_precision',
-            'location_radius_km',
-            'location_disclosure_message',
-            'guests',
-            'price_per_day',
-            'image',
-            'images',
-            'host_id',
-            'host_name',
-            'blocked_ranges',
-            'rental_policy',
-            'cancellation_policy',
-            'distance_km',
-            'is_favorited',
-            'favorite_id',
-            'created_at',
-            'new_images',
-            'cover_index',
-            'cover_image_id',
-            'remove_image_ids',
-        ]
-        read_only_fields = [
-            'id',
-            'host_id',
-            'host_name',
-            'image',
-            'images',
-            'blocked_ranges',
-            'rental_policy',
-            'cancellation_policy',
-            'distance_km',
-            'is_favorited',
-            'favorite_id',
-            'approximate_latitude',
-            'approximate_longitude',
-            'exact_location_available',
-            'location_precision',
-            'location_radius_km',
-            'location_disclosure_message',
-            'created_at',
-        ]
-
+class BoatListingReadMethodsMixin:
     def _get_request_user(self):
         request = self.context.get('request')
         user = getattr(request, 'user', None)
@@ -155,13 +67,17 @@ class BoatListingSerializer(serializers.ModelSerializer):
         setattr(obj, cache_key, payload)
         return payload
 
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        data.update(self._get_location_payload(instance))
+    def get_latitude(self, obj):
+        return self._get_location_payload(obj)['latitude']
 
-        return data
+    def get_longitude(self, obj):
+        return self._get_location_payload(obj)['longitude']
 
-        return data
+    def get_pickup_address(self, obj):
+        return self._get_location_payload(obj)['pickup_address']
+
+    def get_pickup_instructions(self, obj):
+        return self._get_location_payload(obj)['pickup_instructions']
 
     def get_approximate_latitude(self, obj):
         return self._get_location_payload(obj)['approximate_latitude']
@@ -205,6 +121,123 @@ class BoatListingSerializer(serializers.ModelSerializer):
 
     def get_blocked_ranges(self, obj):
         return get_blocked_ranges(obj)
+
+
+class BoatListingReadMixin(BoatListingReadMethodsMixin, serializers.Serializer):
+    host_name = serializers.CharField(source='host.username', read_only=True)
+    host_id = serializers.IntegerField(source='host.id', read_only=True)
+
+    image = serializers.SerializerMethodField()
+    images = BoatImageSerializer(many=True, read_only=True)
+
+    blocked_ranges = serializers.SerializerMethodField()
+    rental_policy = serializers.SerializerMethodField()
+    cancellation_policy = serializers.SerializerMethodField()
+
+    distance_km = serializers.SerializerMethodField()
+    is_favorited = serializers.SerializerMethodField()
+    favorite_id = serializers.SerializerMethodField()
+
+    latitude = serializers.SerializerMethodField()
+    longitude = serializers.SerializerMethodField()
+    pickup_address = serializers.SerializerMethodField()
+    pickup_instructions = serializers.SerializerMethodField()
+
+    approximate_latitude = serializers.SerializerMethodField()
+    approximate_longitude = serializers.SerializerMethodField()
+    exact_location_available = serializers.SerializerMethodField()
+    location_precision = serializers.SerializerMethodField()
+    location_radius_km = serializers.SerializerMethodField()
+    location_disclosure_message = serializers.SerializerMethodField()
+
+
+class BoatListingPublicSerializer(BoatListingReadMixin, serializers.ModelSerializer):
+
+    class Meta:
+        model = BoatListing
+        fields = [
+            'id',
+            'title',
+            'description',
+            'boat_type',
+            'location_name',
+            'pickup_address',
+            'pickup_instructions',
+            'latitude',
+            'longitude',
+            'approximate_latitude',
+            'approximate_longitude',
+            'exact_location_available',
+            'location_precision',
+            'location_radius_km',
+            'location_disclosure_message',
+            'guests',
+            'price_per_day',
+            'image',
+            'images',
+            'host_id',
+            'host_name',
+            'blocked_ranges',
+            'rental_policy',
+            'cancellation_policy',
+            'distance_km',
+            'is_favorited',
+            'favorite_id',
+            'created_at',
+        ]
+        read_only_fields = fields
+
+
+class BoatListingOwnerSerializer(BoatListingReadMixin, serializers.ModelSerializer):
+ 
+    class Meta:
+        model = BoatListing
+        fields = [
+            'id',
+            'title',
+            'description',
+            'boat_type',
+            'location_name',
+            'pickup_address',
+            'pickup_instructions',
+            'latitude',
+            'longitude',
+            'approximate_latitude',
+            'approximate_longitude',
+            'exact_location_available',
+            'location_precision',
+            'location_radius_km',
+            'location_disclosure_message',
+            'guests',
+            'price_per_day',
+            'image',
+            'images',
+            'host_id',
+            'host_name',
+            'blocked_ranges',
+            'rental_policy',
+            'cancellation_policy',
+            'distance_km',
+            'is_favorited',
+            'favorite_id',
+            'created_at',
+        ]
+        read_only_fields = fields
+
+
+class BoatListingWriteMixin(serializers.Serializer):
+    new_images = serializers.ListField(
+        child=serializers.ImageField(),
+        write_only=True,
+        required=False,
+    )
+    cover_index = serializers.IntegerField(write_only=True, required=False)
+    cover_image_id = serializers.IntegerField(write_only=True, required=False)
+    remove_image_ids = serializers.ListField(
+        child=serializers.IntegerField(),
+        write_only=True,
+        required=False,
+    )
 
     def validate_title(self, value):
         title = (value or '').strip()
@@ -314,6 +347,7 @@ class BoatListingSerializer(serializers.ModelSerializer):
     def validate_cover_index(self, value):
         if value < 0:
             raise serializers.ValidationError('Cover index must be 0 or higher.')
+
         return value
 
     def validate_new_images(self, value):
@@ -440,3 +474,136 @@ class BoatListingSerializer(serializers.ModelSerializer):
             })
 
         return instance
+
+
+class BoatListingWriteSerializer(BoatListingWriteMixin, serializers.ModelSerializer):
+  
+    class Meta:
+        model = BoatListing
+        fields = [
+            'title',
+            'description',
+            'boat_type',
+            'location_name',
+            'pickup_address',
+            'pickup_instructions',
+            'latitude',
+            'longitude',
+            'guests',
+            'price_per_day',
+            'new_images',
+            'cover_index',
+            'cover_image_id',
+            'remove_image_ids',
+        ]
+
+
+class BoatListingOwnerWriteSerializer(
+    BoatListingReadMethodsMixin,
+    BoatListingWriteMixin,
+    serializers.ModelSerializer,
+):
+
+    host_name = serializers.CharField(source='host.username', read_only=True)
+    host_id = serializers.IntegerField(source='host.id', read_only=True)
+
+    image = serializers.SerializerMethodField()
+    images = BoatImageSerializer(many=True, read_only=True)
+
+    blocked_ranges = serializers.SerializerMethodField()
+    rental_policy = serializers.SerializerMethodField()
+    cancellation_policy = serializers.SerializerMethodField()
+
+    distance_km = serializers.SerializerMethodField()
+    is_favorited = serializers.SerializerMethodField()
+    favorite_id = serializers.SerializerMethodField()
+
+    approximate_latitude = serializers.SerializerMethodField()
+    approximate_longitude = serializers.SerializerMethodField()
+    exact_location_available = serializers.SerializerMethodField()
+    location_precision = serializers.SerializerMethodField()
+    location_radius_km = serializers.SerializerMethodField()
+    location_disclosure_message = serializers.SerializerMethodField()
+
+    class Meta:
+        model = BoatListing
+        fields = [
+            'id',
+            'title',
+            'description',
+            'boat_type',
+            'location_name',
+            'pickup_address',
+            'pickup_instructions',
+            'latitude',
+            'longitude',
+            'approximate_latitude',
+            'approximate_longitude',
+            'exact_location_available',
+            'location_precision',
+            'location_radius_km',
+            'location_disclosure_message',
+            'guests',
+            'price_per_day',
+            'image',
+            'images',
+            'host_id',
+            'host_name',
+            'blocked_ranges',
+            'rental_policy',
+            'cancellation_policy',
+            'distance_km',
+            'is_favorited',
+            'favorite_id',
+            'created_at',
+            'new_images',
+            'cover_index',
+            'cover_image_id',
+            'remove_image_ids',
+        ]
+        read_only_fields = [
+            'id',
+            'image',
+            'images',
+            'host_id',
+            'host_name',
+            'blocked_ranges',
+            'rental_policy',
+            'cancellation_policy',
+            'distance_km',
+            'is_favorited',
+            'favorite_id',
+            'created_at',
+            'approximate_latitude',
+            'approximate_longitude',
+            'exact_location_available',
+            'location_precision',
+            'location_radius_km',
+            'location_disclosure_message',
+        ]
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        location_payload = self._get_location_payload(instance)
+
+        data['latitude'] = location_payload['latitude']
+        data['longitude'] = location_payload['longitude']
+        data['pickup_address'] = location_payload['pickup_address']
+        data['pickup_instructions'] = location_payload['pickup_instructions']
+        data['approximate_latitude'] = location_payload['approximate_latitude']
+        data['approximate_longitude'] = location_payload['approximate_longitude']
+        data['exact_location_available'] = location_payload['exact_location_available']
+        data['location_precision'] = location_payload['location_precision']
+        data['location_radius_km'] = location_payload['location_radius_km']
+        data['location_disclosure_message'] = location_payload['location_disclosure_message']
+
+        return data
+
+
+class BoatListingSerializer(BoatListingOwnerWriteSerializer):
+    """
+    Old serializer name kept for backwards compatibility with existing tests and
+    older imports.
+    """
+
+    pass

@@ -7,6 +7,7 @@ from config.pagination import ConversationsPagination, MessagesCursorPagination
 from config.throttling import ChatRateThrottle
 
 from .selectors import (
+    get_boat_listing_by_id,
     get_conversation_messages,
     get_direct_conversation_between_users,
     get_message_with_conversation,
@@ -41,6 +42,20 @@ def get_target_user_or_response(target_user_id):
         )
 
     return target_user, None
+
+
+def get_boat_or_response(boat_id):
+    if not boat_id:
+        return None, None
+
+    boat = get_boat_listing_by_id(boat_id)
+    if not boat:
+        return None, Response(
+            {"detail": "Boat not found."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    return boat, None
 
 
 def get_conversation_or_response(user, conversation_id):
@@ -140,6 +155,13 @@ class StartDirectConversationView(APIView):
         if error_response:
             return error_response
 
+        boat, error_response = get_boat_or_response(
+            request.data.get("boat_id")
+        )
+
+        if error_response:
+            return error_response
+
         existing_conversation = get_direct_conversation_between_users(
             request.user,
             target_user,
@@ -149,6 +171,7 @@ class StartDirectConversationView(APIView):
             conversation, created = start_direct_conversation(
                 actor=request.user,
                 target_user=target_user,
+                boat=boat,
                 existing_conversation=existing_conversation,
             )
         except ValueError as exc:

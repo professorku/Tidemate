@@ -1,5 +1,3 @@
-# backend/listings/models.py
-
 import logging
 from decimal import Decimal
 
@@ -53,9 +51,28 @@ class BoatListing(models.Model):
     pickup_address = models.CharField(max_length=MAX_PICKUP_ADDRESS_LENGTH, blank=True)
     pickup_instructions = models.TextField(blank=True)
 
-    # Exact coordinates are stored privately. Serializers decide whether to expose exact or approximate values.
+    # Exact coordinates are private. Serializers decide whether to expose exact or approximate values.
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+
+    # Public privacy-safe coordinates used for public map/radius search.
+    # These are generated from exact coordinates with a deterministic offset.
+    public_latitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        db_index=True,
+        editable=False,
+    )
+    public_longitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        db_index=True,
+        editable=False,
+    )
 
     guests = models.PositiveIntegerField()
     price_per_day = models.DecimalField(max_digits=10, decimal_places=2)
@@ -63,6 +80,12 @@ class BoatListing(models.Model):
 
     class Meta:
         ordering = ['-created_at', '-id']
+        indexes = [
+            models.Index(
+                fields=['public_latitude', 'public_longitude'],
+                name='boat_public_geo_idx',
+            ),
+        ]
         constraints = [
             models.CheckConstraint(
                 condition=Q(guests__gte=MIN_BOAT_GUESTS) & Q(guests__lte=MAX_BOAT_GUESTS),
@@ -90,6 +113,49 @@ class BoatListing(models.Model):
 
     def __str__(self):
         return self.title
+
+    def _set_public_coordinates(self):
+        from .services.public_coordinates import get_public_coordinate_decimals
+
+        public_latitude, public_longitude = get_public_coordinate_decimals(
+            listing_id=self.pk,
+            latitude=self.latitude,
+            longitude=self.longitude,
+        )
+
+        self.public_latitude = public_latitude
+        self.public_longitude = public_longitude
+
+    def save(self, *args, **kwargs):
+        creating = self.pk is None
+        update_fields = kwargs.get('update_fields')
+
+        if creating:
+            super().save(*args, **kwargs)
+
+            self._set_public_coordinates()
+
+            BoatListing.objects.filter(pk=self.pk).update(
+                public_latitude=self.public_latitude,
+                public_longitude=self.public_longitude,
+            )
+            return
+
+        coordinates_may_have_changed = (
+            update_fields is None or
+            'latitude' in update_fields or
+            'longitude' in update_fields
+        )
+
+        if coordinates_may_have_changed:
+            self._set_public_coordinates()
+
+            if update_fields is not None:
+                update_fields = set(update_fields)
+                update_fields.update({'public_latitude', 'public_longitude'})
+                kwargs['update_fields'] = update_fields
+
+        super().save(*args, **kwargs)
 
     def get_cover_image_obj(self):
         prefetched = getattr(self, '_prefetched_objects_cache', {}).get('images')
@@ -127,7 +193,6 @@ class BoatImage(models.Model):
 
 
 def _delete_boat_image_file_after_commit(file_field):
-
     if not file_field:
         return
 
@@ -155,13 +220,11 @@ def _delete_boat_image_file_after_commit(file_field):
 
 @receiver(post_delete, sender=BoatImage)
 def delete_boat_image_file_on_row_delete(sender, instance, **kwargs):
- 
     _delete_boat_image_file_after_commit(instance.image)
 
 
 @receiver(pre_save, sender=BoatImage)
 def delete_old_boat_image_file_on_replacement(sender, instance, **kwargs):
-
     if not instance.pk:
         return
 

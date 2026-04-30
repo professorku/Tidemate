@@ -6,6 +6,7 @@ from notifications.services import create_and_push_notification
 from users.models import Profile
 
 from .models import Conversation
+from .selectors import get_direct_conversation_between_users, users_have_booking_relationship
 
 
 def get_or_create_profile(user):
@@ -58,10 +59,7 @@ def unarchive_conversation_for_user(*, conversation, user):
     return True
 
 
-def ensure_users_can_start_direct_conversation(*, actor, target_user):
-    if target_user == actor:
-        raise ValueError('You cannot start a conversation with yourself.')
-
+def ensure_users_are_not_blocked(*, actor, target_user):
     my_profile = get_or_create_profile(actor)
     target_profile = get_or_create_profile(target_user)
 
@@ -70,6 +68,39 @@ def ensure_users_can_start_direct_conversation(*, actor, target_user):
 
     if target_profile.blocked_users.filter(id=actor.id).exists():
         raise PermissionError('You cannot message this user.')
+
+
+def ensure_users_can_start_direct_conversation(
+    *,
+    actor,
+    target_user,
+    boat=None,
+    existing_conversation=None,
+):
+
+    if target_user == actor:
+        raise ValueError('You cannot start a conversation with yourself.')
+
+    ensure_users_are_not_blocked(actor=actor, target_user=target_user)
+
+    if existing_conversation:
+        return
+
+    if boat is not None:
+        if boat.host_id != target_user.id:
+            raise PermissionError('You can only start a listing inquiry with the host of that boat.')
+
+        if boat.host_id == actor.id:
+            raise ValueError('You cannot start a conversation about your own listing.')
+
+        return
+
+    if users_have_booking_relationship(actor, target_user):
+        return
+
+    raise PermissionError(
+        'Direct conversations can only be started from a boat listing or an existing booking relationship.'
+    )
 
 
 def ensure_user_can_access_conversation(*, conversation, user):
@@ -96,8 +127,25 @@ def ensure_user_can_access_conversation(*, conversation, user):
 
 
 @transaction.atomic
-def start_direct_conversation(*, actor, target_user, existing_conversation=None):
-    ensure_users_can_start_direct_conversation(actor=actor, target_user=target_user)
+def start_direct_conversation(
+    *,
+    actor,
+    target_user,
+    boat=None,
+    existing_conversation=None,
+):
+    if existing_conversation is None:
+        existing_conversation = get_direct_conversation_between_users(
+            actor,
+            target_user,
+        )
+
+    ensure_users_can_start_direct_conversation(
+        actor=actor,
+        target_user=target_user,
+        boat=boat,
+        existing_conversation=existing_conversation,
+    )
 
     if existing_conversation:
         unarchive_conversation_for_user(

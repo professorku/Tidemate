@@ -30,6 +30,8 @@ class BoatLocationPrivacyTests(APITestCase):
             description='A boat with protected pickup coordinates.',
             boat_type='motorboat',
             location_name='Mo i Rana',
+            pickup_address='Secret Dock 12, Mo i Rana',
+            pickup_instructions='Use the private gate code near the red boathouse.',
             guests=5,
             price_per_day=Decimal('1200.00'),
             latitude=Decimal('66.312800'),
@@ -52,10 +54,35 @@ class BoatLocationPrivacyTests(APITestCase):
         self.assertFalse(payload['exact_location_available'])
         self.assertEqual(payload['location_precision'], 'approximate')
         self.assertEqual(payload['location_radius_km'], 5)
+
         self.assertNotEqual(payload['latitude'], 66.3128)
         self.assertNotEqual(payload['longitude'], 14.1428)
+
         self.assertEqual(payload['latitude'], payload['approximate_latitude'])
         self.assertEqual(payload['longitude'], payload['approximate_longitude'])
+
+        self.assertIsNone(payload['pickup_address'])
+        self.assertIsNone(payload['pickup_instructions'])
+
+    def test_public_list_response_does_not_leak_exact_pickup_fields(self):
+        response = self.client.get(reverse('boat-list-create'))
+
+        self.assertEqual(response.status_code, 200)
+
+        result = next(
+            item for item in response.json()['results']
+            if item['id'] == self.boat.id
+        )
+
+        self.assertFalse(result['exact_location_available'])
+        self.assertEqual(result['location_precision'], 'approximate')
+        self.assertEqual(result['location_radius_km'], 5)
+
+        self.assertNotEqual(result['latitude'], 66.3128)
+        self.assertNotEqual(result['longitude'], 14.1428)
+
+        self.assertIsNone(result['pickup_address'])
+        self.assertIsNone(result['pickup_instructions'])
 
     def test_logged_in_user_without_confirmed_booking_only_sees_approximate_coordinates(self):
         payload = self._detail_payload(self.other_user)
@@ -63,6 +90,8 @@ class BoatLocationPrivacyTests(APITestCase):
         self.assertFalse(payload['exact_location_available'])
         self.assertEqual(payload['location_precision'], 'approximate')
         self.assertEqual(payload['location_radius_km'], 5)
+        self.assertIsNone(payload['pickup_address'])
+        self.assertIsNone(payload['pickup_instructions'])
 
     def test_host_sees_exact_coordinates(self):
         payload = self._detail_payload(self.host)
@@ -72,6 +101,33 @@ class BoatLocationPrivacyTests(APITestCase):
         self.assertEqual(payload['location_radius_km'], 0)
         self.assertEqual(payload['latitude'], 66.3128)
         self.assertEqual(payload['longitude'], 14.1428)
+        self.assertEqual(payload['pickup_address'], 'Secret Dock 12, Mo i Rana')
+        self.assertEqual(
+            payload['pickup_instructions'],
+            'Use the private gate code near the red boathouse.',
+        )
+
+    def test_owner_mine_response_includes_exact_pickup_fields(self):
+        self.client.force_authenticate(user=self.host)
+
+        response = self.client.get(reverse('my-boats'))
+
+        self.assertEqual(response.status_code, 200)
+
+        result = next(
+            item for item in response.json()['results']
+            if item['id'] == self.boat.id
+        )
+
+        self.assertTrue(result['exact_location_available'])
+        self.assertEqual(result['location_precision'], 'exact')
+        self.assertEqual(result['latitude'], 66.3128)
+        self.assertEqual(result['longitude'], 14.1428)
+        self.assertEqual(result['pickup_address'], 'Secret Dock 12, Mo i Rana')
+        self.assertEqual(
+            result['pickup_instructions'],
+            'Use the private gate code near the red boathouse.',
+        )
 
     def test_renter_with_pending_booking_still_only_sees_approximate_coordinates(self):
         Booking.objects.create(
@@ -89,6 +145,8 @@ class BoatLocationPrivacyTests(APITestCase):
         self.assertEqual(payload['location_precision'], 'approximate')
         self.assertNotEqual(payload['latitude'], 66.3128)
         self.assertNotEqual(payload['longitude'], 14.1428)
+        self.assertIsNone(payload['pickup_address'])
+        self.assertIsNone(payload['pickup_instructions'])
 
     def test_renter_with_confirmed_booking_sees_exact_coordinates(self):
         Booking.objects.create(
@@ -106,6 +164,11 @@ class BoatLocationPrivacyTests(APITestCase):
         self.assertEqual(payload['location_precision'], 'exact')
         self.assertEqual(payload['latitude'], 66.3128)
         self.assertEqual(payload['longitude'], 14.1428)
+        self.assertEqual(payload['pickup_address'], 'Secret Dock 12, Mo i Rana')
+        self.assertEqual(
+            payload['pickup_instructions'],
+            'Use the private gate code near the red boathouse.',
+        )
 
     def test_renter_with_cancelled_booking_does_not_see_exact_coordinates(self):
         Booking.objects.create(
@@ -121,6 +184,8 @@ class BoatLocationPrivacyTests(APITestCase):
 
         self.assertFalse(payload['exact_location_available'])
         self.assertEqual(payload['location_precision'], 'approximate')
+        self.assertIsNone(payload['pickup_address'])
+        self.assertIsNone(payload['pickup_instructions'])
 
     def test_booking_detail_uses_same_location_privacy_rule(self):
         booking = Booking.objects.create(
@@ -139,6 +204,8 @@ class BoatLocationPrivacyTests(APITestCase):
         payload = response.json()
         self.assertFalse(payload['exact_location_available'])
         self.assertEqual(payload['location_precision'], 'approximate')
+        self.assertIsNone(payload['pickup_address'])
+        self.assertIsNone(payload['pickup_instructions'])
 
         booking.status = 'confirmed'
         booking.save(update_fields=['status'])
@@ -151,3 +218,8 @@ class BoatLocationPrivacyTests(APITestCase):
         self.assertEqual(payload['location_precision'], 'exact')
         self.assertEqual(payload['latitude'], 66.3128)
         self.assertEqual(payload['longitude'], 14.1428)
+        self.assertEqual(payload['pickup_address'], 'Secret Dock 12, Mo i Rana')
+        self.assertEqual(
+            payload['pickup_instructions'],
+            'Use the private gate code near the red boathouse.',
+        )

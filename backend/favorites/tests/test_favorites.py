@@ -2,6 +2,8 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.middleware.csrf import get_token
+from django.test import RequestFactory
 from rest_framework.test import APIClient, APITestCase
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -92,9 +94,15 @@ class FavoriteCsrfProtectionTests(APITestCase):
     def _cookie_authenticated_client(self, *, with_csrf=False):
         client = APIClient(enforce_csrf_checks=True)
         client.cookies[settings.JWT_ACCESS_COOKIE_NAME] = str(RefreshToken.for_user(self.user).access_token)
+
         if with_csrf:
-            client.cookies['csrftoken'] = 'favorite-csrf-token'
-            client.credentials(HTTP_X_CSRFTOKEN='favorite-csrf-token')
+            request = RequestFactory().get('/')
+            csrf_token = get_token(request)
+            csrf_cookie = request.META['CSRF_COOKIE']
+
+            client.cookies[settings.CSRF_COOKIE_NAME] = csrf_cookie
+            client.credentials(HTTP_X_CSRFTOKEN=csrf_token)
+
         return client
 
     def test_create_favorite_requires_csrf_when_authenticated_by_cookie(self):

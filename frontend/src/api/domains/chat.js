@@ -26,8 +26,14 @@ export function deleteMessage(messageId) {
   return apiDelete(`/chat/messages/${messageId}/delete/`)
 }
 
-export function startDirectConversation(userId) {
-  return apiPost('/chat/direct/start/', {
+export function startDirectConversation(userId, options = {}) {
+  const payload = {
     user_id: Number(userId),
-  })
+  }
+
+  if (options.boatId) {
+    payload.boat_id = Number(options.boatId)
+  }
+
+  return apiPost('/chat/direct/start/', payload)
 }

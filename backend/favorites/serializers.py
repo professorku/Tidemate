@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from listings.models import BoatListing
 from listings.serializers import BoatListingSerializer
+
 from .models import Favorite
 
 

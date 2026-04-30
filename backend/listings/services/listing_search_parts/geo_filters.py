@@ -2,10 +2,10 @@ import logging
 
 from django.conf import settings
 
-from listings.services.location_privacy import get_approximate_boat_coordinates
+from listings.services.public_coordinates import get_approximate_boat_coordinates
 
 from .filters import apply_bounding_box_filter
-from .geometry import haversine_km
+from .geometry import get_bounding_box, haversine_km
 from .parsing import parse_positive_page_size, parse_radius_params
 from .postgis import apply_postgis_radius_filter, postgis_is_available
 
@@ -13,14 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 def _get_fallback_candidate_cap(page_size=None):
-    """
-    Limit the Python radius fallback so a public radius search cannot scan an
-    unbounded number of rows.
-
-    This project already had this cap for the non-PostGIS fallback. We reuse it
-    for privacy-safe public search too, because public search now intentionally
-    avoids exact-coordinate database filtering.
-    """
+ 
     fallback_cap = max(
         parse_positive_page_size(page_size) or settings.LISTING_SEARCH_MAX_LIMIT,
         int(
@@ -39,15 +32,7 @@ def _get_fallback_candidate_cap(page_size=None):
 
 
 def _user_can_search_exact_coordinates(user):
-    """
-    Only staff/admin users may perform list radius search against exact pickup
-    coordinates for every listing.
-
-    Normal users, hosts, confirmed renters, and anonymous users all use public
-    approximate coordinates on the public list endpoint. Detail/booking endpoints
-    can still reveal exact coordinates when build_location_privacy_payload allows
-    it. Keeping list search approximate prevents radius-search triangulation.
-    """
+  
     if not user or not getattr(user, "is_authenticated", False):
         return False
 
@@ -62,6 +47,8 @@ def _exact_boat_coordinates(boat):
 
 
 def _public_boat_search_coordinates(boat):
+    if boat.public_latitude is not None and boat.public_longitude is not None:
+        return float(boat.public_latitude), float(boat.public_longitude)
 
     return get_approximate_boat_coordinates(boat)
 
@@ -74,14 +61,13 @@ def _sort_radius_results(boats_with_distance):
 
 
 def apply_python_radius_filter(queryset, center_lat, center_lng, radius_km, page_size=None):
- 
     queryset = apply_bounding_box_filter(queryset, center_lat, center_lng, radius_km)
     fallback_cap = _get_fallback_candidate_cap(page_size)
     candidate_queryset = queryset.order_by("-created_at", "-id")[:fallback_cap]
 
     boats_with_distance = []
 
-    for boat in candidate_queryset.iterator():
+    for boat in candidate_queryset.iterator(chunk_size=500):
         boat_lat, boat_lng = _exact_boat_coordinates(boat)
         if boat_lat is None or boat_lng is None:
             continue
@@ -95,24 +81,30 @@ def apply_python_radius_filter(queryset, center_lat, center_lng, radius_km, page
     queryset_count = queryset.count()
     if queryset_count > fallback_cap:
         logger.warning(
-           
-            queryset_count,
+            "Exact-coordinate radius search fallback scanned only %s of %s candidate listings.",
             fallback_cap,
+            queryset_count,
         )
 
     return _sort_radius_results(boats_with_distance)
 
 
 def apply_privacy_safe_radius_filter(queryset, center_lat, center_lng, radius_km, page_size=None):
-  
-    fallback_cap = _get_fallback_candidate_cap(page_size)
 
-    queryset = queryset.filter(latitude__isnull=False, longitude__isnull=False)
-    candidate_queryset = queryset.order_by("-created_at", "-id")[:fallback_cap]
+    bounds = get_bounding_box(center_lat, center_lng, radius_km)
+
+    queryset = queryset.filter(
+        public_latitude__isnull=False,
+        public_longitude__isnull=False,
+        public_latitude__gte=bounds["min_lat"],
+        public_latitude__lte=bounds["max_lat"],
+        public_longitude__gte=bounds["min_lng"],
+        public_longitude__lte=bounds["max_lng"],
+    )
 
     boats_with_distance = []
 
-    for boat in candidate_queryset.iterator():
+    for boat in queryset.iterator(chunk_size=500):
         public_lat, public_lng = _public_boat_search_coordinates(boat)
         if public_lat is None or public_lng is None:
             continue
@@ -122,14 +114,6 @@ def apply_privacy_safe_radius_filter(queryset, center_lat, center_lng, radius_km
         if distance <= radius_km:
             boat.distance_km = round(distance, 1)
             boats_with_distance.append(boat)
-
-    queryset_count = queryset.count()
-    if queryset_count > fallback_cap:
-        logger.warning(
-       
-            queryset_count,
-            fallback_cap,
-        )
 
     return _sort_radius_results(boats_with_distance)
 

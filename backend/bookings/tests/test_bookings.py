@@ -176,6 +176,70 @@ class BookingConfirmationRaceConditionTests(APITestCase):
         )
 
 
+class BookingConfirmationApiRaceConditionTests(APITestCase):
+    def setUp(self):
+        self.host = User.objects.create_user(
+            username='host-confirm-api',
+            password='strong-pass-123',
+        )
+        self.renter_one = User.objects.create_user(
+            username='confirm-api-renter-one',
+            password='strong-pass-123',
+        )
+        self.renter_two = User.objects.create_user(
+            username='confirm-api-renter-two',
+            password='strong-pass-123',
+        )
+        self.boat = BoatListing.objects.create(
+            host=self.host,
+            title='API Confirmation Safe Boat',
+            description='Ready for API confirmation locking tests.',
+            boat_type='motorboat',
+            location_name='Tromsø',
+            guests=5,
+            price_per_day=Decimal('1100.00'),
+        )
+
+    def test_confirm_endpoint_rejects_pending_booking_if_overlap_was_confirmed_first(self):
+        today = timezone.localdate()
+
+        confirmed_booking = Booking.objects.create(
+            renter=self.renter_one,
+            boat=self.boat,
+            start_date=today + timedelta(days=3),
+            end_date=today + timedelta(days=5),
+            total_price=Decimal('3300.00'),
+            status='confirmed',
+        )
+
+        pending_booking = Booking.objects.create(
+            renter=self.renter_two,
+            boat=self.boat,
+            start_date=today + timedelta(days=4),
+            end_date=today + timedelta(days=6),
+            total_price=Decimal('3300.00'),
+            status='pending',
+        )
+
+        self.client.force_authenticate(user=self.host)
+
+        response = self.client.post(
+            reverse('booking-confirm', args=[pending_booking.id]),
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.json()['detail'],
+            'These dates are no longer available because another overlapping booking was already confirmed.',
+        )
+
+        confirmed_booking.refresh_from_db()
+        pending_booking.refresh_from_db()
+
+        self.assertEqual(confirmed_booking.status, 'confirmed')
+        self.assertEqual(pending_booking.status, 'pending')
+
+
 class BookingMutationErrorHandlingTests(APITestCase):
     def setUp(self):
         self.host = User.objects.create_user(username='host-mutation', password='strong-pass-123')
