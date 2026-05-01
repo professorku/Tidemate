@@ -4,7 +4,6 @@ import PaginationControls from '../../../components/ui/PaginationControls'
 import HostBookingsFilters from '../../hostBookings/components/HostBookingsFilters'
 import HostBookingsHero from '../../hostBookings/components/HostBookingsHero'
 import HostBookingsResults from '../../hostBookings/components/HostBookingsResults'
-import HostBookingsStats from '../../hostBookings/components/HostBookingsStats'
 import useHostBookingsPageData from '../../hostBookings/hooks/useHostBookingsPageData'
 import useConfirmAction from '../../../hooks/useConfirmAction'
 import { useToast } from '../../../context/useToast'
@@ -115,8 +114,6 @@ export default function HostBookingsPage() {
           contentClassName="space-y-6"
         >
           <HostBookingsHero stats={safeStats} />
-
-          <HostBookingsStats stats={safeStats} loading={loading} />
 
           <section className="rounded-[32px] border border-slate-200 bg-white/90 p-4 shadow-sm md:p-6">
             <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">

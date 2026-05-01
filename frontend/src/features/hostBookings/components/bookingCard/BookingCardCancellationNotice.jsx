@@ -7,9 +7,9 @@ export default function BookingCardCancellationNotice({ booking }) {
   }
 
   return (
-    <div className="rounded-[24px] border border-red-200 bg-red-50 p-4">
+    <div className="rounded-[22px] border border-red-200 bg-red-50 px-4 py-3">
       <div className="flex items-start gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-red-600 ring-1 ring-red-100">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white text-red-600 ring-1 ring-red-100">
           <ExclamationTriangleIcon className="h-5 w-5" />
         </div>
 
@@ -19,12 +19,12 @@ export default function BookingCardCancellationNotice({ booking }) {
           </p>
 
           {booking.cancelled_at ? (
-            <p className="mt-1 text-xs font-medium text-red-700">
+            <p className="mt-0.5 text-xs font-medium text-red-700">
               {formatDateTime(booking.cancelled_at)}
             </p>
           ) : null}
 
-          <p className="mt-2 text-sm leading-6 text-red-800">
+          <p className="mt-1.5 text-sm leading-6 text-red-800">
             {booking.cancellation_reason ||
               'No cancellation reason was provided.'}
           </p>

@@ -45,11 +45,11 @@ export default function BookingCardHeader({ booking }) {
         ) : null}
       </div>
 
-      <h3 className="mt-3 text-2xl font-extrabold tracking-tight text-slate-900">
+      <h3 className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900">
         {booking.boat_title || 'Boat'}
       </h3>
 
-      <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-600">
+      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-slate-600">
         <span className="inline-flex items-center gap-1.5">
           <MapPinIcon className="h-4 w-4 text-slate-400" />
           {locationLabel}
@@ -69,7 +69,7 @@ export default function BookingCardHeader({ booking }) {
       </div>
 
       {hasExactLocation && publicLocationLabel && publicLocationLabel !== locationLabel ? (
-        <p className="mt-2 text-xs text-slate-500">
+        <p className="mt-1.5 text-xs text-slate-500">
           Public area: {publicLocationLabel}
         </p>
       ) : null}
