@@ -111,8 +111,37 @@ class PublicProfileAnonRateThrottle(ReadOnlyAnonRateThrottle):
     scope = "public_profile_anon"
 
 
+class ReadOnlyUserRateThrottle(UserRateThrottle):
+    read_methods = {"GET", "HEAD", "OPTIONS"}
+
+    def allow_request(self, request, view):
+        if request.method not in self.read_methods:
+            return True
+        return super().allow_request(request, view)
+
+
 class ConditionsAnonRateThrottle(ReadOnlyAnonRateThrottle):
     scope = "boat_conditions_anon"
+
+
+class ConditionsUserRateThrottle(ReadOnlyUserRateThrottle):
+    scope = "boat_conditions_user"
+
+
+class ConditionsGlobalRateThrottle(SimpleRateThrottle):
+    scope = "boat_conditions_global"
+    read_methods = {"GET", "HEAD", "OPTIONS"}
+
+    def allow_request(self, request, view):
+        if request.method not in self.read_methods:
+            return True
+        return super().allow_request(request, view)
+
+    def get_cache_key(self, request, view):
+        return self.cache_format % {
+            "scope": self.scope,
+            "ident": "global",
+        }
 
 
 class GeocodingRateThrottle(UserRateThrottle):

@@ -71,11 +71,13 @@ INSTALLED_APPS = [
     "reviews",
     "favorites",
     "geocoding",
+    "audit",
 ]
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "audit.middleware.RequestMonitoringMiddleware",
     "config.security_headers.ContentSecurityPolicyMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -202,7 +204,9 @@ REST_FRAMEWORK = {
         "profile_write": "20/hour",
         "public_listings_anon": "120/hour",
         "public_profile_anon": "120/hour",
-        "boat_conditions_anon": "60/hour",
+        "boat_conditions_anon": os.getenv("BOAT_CONDITIONS_ANON_RATE", "30/hour"),
+        "boat_conditions_user": os.getenv("BOAT_CONDITIONS_USER_RATE", "120/hour"),
+        "boat_conditions_global": os.getenv("BOAT_CONDITIONS_GLOBAL_RATE", "300/hour"),
         "login_anon_identity": "50/15minutes",
         "login_user_identity": "100/15minutes",
         "login_ip": "20/10minutes",
@@ -219,7 +223,7 @@ REST_FRAMEWORK = {
         "reset_password": "20/hour",
         "change_password": "10/hour",
         "relationship_write": "60/hour",
-        "geocoding": "120/hour",
+        "geocoding": os.getenv("GEOCODING_RATE", "60/hour"),
     },
 }
 
@@ -333,11 +337,91 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@tidemate.local")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
 EMAIL_VERIFICATION_MAX_AGE_SECONDS = int(os.getenv("EMAIL_VERIFICATION_MAX_AGE_SECONDS", str(60 * 60 * 24)))
 
-MARINE_CONDITIONS_CACHE_TTL_SECONDS = int(
-    os.getenv("MARINE_CONDITIONS_CACHE_TTL_SECONDS", str(30 * 60))
+MARINE_CONDITIONS_CACHE_TTL_SECONDS = env_int(
+    "MARINE_CONDITIONS_CACHE_TTL_SECONDS",
+    30 * 60,
+)
+
+MARINE_CONDITIONS_REQUEST_TIMEOUT_SECONDS = env_float(
+    "MARINE_CONDITIONS_REQUEST_TIMEOUT_SECONDS",
+    6.0,
 )
 
 MET_NORWAY_USER_AGENT = os.getenv(
     "MET_NORWAY_USER_AGENT",
     "TideMate/1.0 local-development",
 )
+
+
+# Monitoring / audit logging
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+SECURITY_LOG_LEVEL = os.getenv("SECURITY_LOG_LEVEL", "INFO")
+
+REQUEST_MONITORING_LOG_ENABLED = env_bool("REQUEST_MONITORING_LOG_ENABLED", True)
+AUDIT_LOGGING_ENABLED = env_bool("AUDIT_LOGGING_ENABLED", True)
+AUDIT_AUTOMATIC_API_EVENTS_ENABLED = env_bool("AUDIT_AUTOMATIC_API_EVENTS_ENABLED", True)
+
+# Number of trusted reverse proxies in front of Django.
+# Keep 0 for local development.
+# Set to 1 if Django is behind one trusted reverse proxy like Nginx.
+AUDIT_TRUSTED_PROXY_COUNT = env_int("AUDIT_TRUSTED_PROXY_COUNT", 0)
+
+AUDIT_SKIP_PATH_PREFIXES = env_list(
+    "AUDIT_SKIP_PATH_PREFIXES",
+    "/api/users/health/,/api/users/csrf/,/api/users/refresh/",
+)
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "json": {
+            "()": "config.logging.JsonFormatter",
+        },
+        "console": {
+            "format": "[{levelname}] {name}: {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console_json": {
+            "class": "logging.StreamHandler",
+            "formatter": "json",
+        },
+        "console_plain": {
+            "class": "logging.StreamHandler",
+            "formatter": "console",
+        },
+    },
+    "root": {
+        "handlers": ["console_json"],
+        "level": LOG_LEVEL,
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console_json"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+        "django.request": {
+            "handlers": ["console_json"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "monitoring.requests": {
+            "handlers": ["console_json"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+        "security": {
+            "handlers": ["console_json"],
+            "level": SECURITY_LOG_LEVEL,
+            "propagate": False,
+        },
+        "audit": {
+            "handlers": ["console_json"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+    },
+}

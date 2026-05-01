@@ -1,4 +1,3 @@
-# backend/listings/views.py
 import logging
 
 from rest_framework import generics, permissions, status
@@ -9,6 +8,8 @@ from rest_framework.views import APIView
 from config.pagination import ListingsPagination
 from config.throttling import (
     ConditionsAnonRateThrottle,
+    ConditionsGlobalRateThrottle,
+    ConditionsUserRateThrottle,
     ListingWriteRateThrottle,
     PublicListingsAnonRateThrottle,
 )
@@ -102,7 +103,11 @@ class BoatDetailView(generics.RetrieveAPIView):
 
 class BoatConditionsView(APIView):
     permission_classes = [permissions.AllowAny]
-    throttle_classes = [ConditionsAnonRateThrottle]
+    throttle_classes = [
+        ConditionsAnonRateThrottle,
+        ConditionsUserRateThrottle,
+        ConditionsGlobalRateThrottle,
+    ]
 
     def get(self, request, pk):
         try:

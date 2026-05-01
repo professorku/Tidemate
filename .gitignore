@@ -1,33 +1,49 @@
+# Local env files
+.env
+.env.*
+!.env.example
+
+# Virtual environments
+.venv/
+backend/.venv/
+frontend/.venv/
+venv/
+backend/venv/
+frontend/venv/
+
 # Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-.venv/
-env/
-venv/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 
-# Django
-db.sqlite3
-*.sqlite3
-media/
+# Django local files
+backend/db.sqlite3
 backend/media/
 backend/staticfiles/
 
-# Environment
-.env
-.env.local
-backend/.env
-frontend/.env
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
 
-# Node
-node_modules/
-dist/
-build/
-
-# Mac
-.DS_Store
+# Build/package junk
+*.zip
 __MACOSX/
+.DS_Store
 
-# Logs
-*.log
+# Security scan output
+detect-secrets-report.json
+
+# IDE/editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS junk
+Thumbs.db

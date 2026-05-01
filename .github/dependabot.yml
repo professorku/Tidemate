@@ -1,0 +1,62 @@
+version: 2
+
+updates:
+  - package-ecosystem: pip
+    directory: /backend
+    schedule:
+      interval: weekly
+      day: monday
+      time: "08:00"
+      timezone: Europe/Oslo
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - backend
+    groups:
+      django-stack:
+        patterns:
+          - "Django"
+          - "djangorestframework*"
+          - "django-*"
+      python-security:
+        patterns:
+          - "*"
+
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+      day: monday
+      time: "08:30"
+      timezone: Europe/Oslo
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - frontend
+    groups:
+      react-stack:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "react-router-dom"
+          - "@tanstack/*"
+      vite-tooling:
+        patterns:
+          - "vite"
+          - "@vitejs/*"
+          - "vitest"
+      frontend-security:
+        patterns:
+          - "*"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: Europe/Oslo
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - github-actions

@@ -1,0 +1,12 @@
+frontend/node_modules/
+frontend/dist/
+frontend/package-lock.json
+
+backend/staticfiles/
+backend/media/
+backend/db.sqlite3
+backend/*/migrations/
+
+*.zip
+__MACOSX/
+.DS_Store

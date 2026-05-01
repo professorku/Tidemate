@@ -80,12 +80,22 @@ def safe_cache_set(cache_key, value, timeout):
         logger.warning("Marine conditions cache write failed for %s: %s", cache_key, exc)
 
 
+def get_request_timeout_seconds():
+    return float(
+        getattr(
+            settings,
+            "MARINE_CONDITIONS_REQUEST_TIMEOUT_SECONDS",
+            6.0,
+        )
+    )
+
+
 def fetch_json(url, params, headers=None):
     query = urlencode(params, doseq=True)
     request = Request(f"{url}?{query}", headers=headers or {})
 
     try:
-        with urlopen(request, timeout=10) as response:
+        with urlopen(request, timeout=get_request_timeout_seconds()) as response:
             return json.loads(response.read().decode("utf-8"))
     except (HTTPError, URLError, TimeoutError, json.JSONDecodeError, UnicodeDecodeError) as exc:
         logger.warning("Failed to fetch forecast JSON from %s: %s", url, exc)
