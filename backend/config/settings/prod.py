@@ -17,7 +17,11 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 SECURE_REFERRER_POLICY = "same-origin"
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
-SECURE_REDIRECT_EXEMPT = [r"^health/?$"] if os.getenv("ENABLE_PLAIN_HTTP_HEALTHCHECK", "").strip().lower() in {"1", "true", "yes", "on"} else []
+SECURE_REDIRECT_EXEMPT = (
+    [r"^api/users/health/?$"]
+    if os.getenv("ENABLE_PLAIN_HTTP_HEALTHCHECK", "").strip().lower() in {"1", "true", "yes", "on"}
+    else []
+)
 
 if os.getenv("SECRET_KEY", "").strip() in {"", DEFAULT_DEV_SECRET_KEY}:
     raise ImproperlyConfigured("SECRET_KEY must be configured in production.")
