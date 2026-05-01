@@ -14,7 +14,8 @@ export default function BookingCardMenu({
       canDelete={canDelete}
       revealed={revealed}
       isDeleting={isProcessing}
-      showLabel="Show actions"
+      deleteLabel="Delete"
+      showLabel="Show booking actions"
       onDelete={() => handleDelete(booking)}
       onToggle={toggle}
       onHide={hide}

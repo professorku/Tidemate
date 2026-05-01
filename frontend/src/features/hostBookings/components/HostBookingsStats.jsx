@@ -1,34 +1,44 @@
+import {
+  CalendarDaysIcon,
+  CheckBadgeIcon,
+  ClockIcon,
+  InboxStackIcon,
+  XCircleIcon,
+} from '@heroicons/react/24/outline'
 import StatCard from '../../../components/ui/StatCard'
 
-export default function HostBookingsStats({ stats = {} }) {
-  const items = [
-    {
-      label: 'Pending requests',
-      value: stats.pending ?? 0,
-      text: 'Awaiting your response',
-    },
-    {
-      label: 'Confirmed trips',
-      value: stats.confirmed ?? 0,
-      text: 'Accepted bookings',
-    },
-    {
-      label: 'Cancelled',
-      value: stats.cancelled ?? 0,
-      text: 'Cancelled reservations',
-    },
-    {
-      label: 'Total bookings',
-      value: stats.all ?? 0,
-      text: 'All requests received',
-    },
-  ]
+export default function HostBookingsStats({ stats = {}, loading = false }) {
+  const value = (number) => (loading ? '—' : number ?? 0)
 
   return (
-    <section className="mt-4 grid grid-cols-2 gap-3 xl:grid-cols-4">
-      {items.map((item) => (
-        <StatCard key={item.label} label={item.label} value={item.value} text={item.text} />
-      ))}
+    <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <StatCard
+        label="All host bookings"
+        value={value(stats.all)}
+        text="Every request received"
+        icon={<InboxStackIcon className="h-5 w-5" />}
+      />
+
+      <StatCard
+        label="Pending requests"
+        value={value(stats.pending)}
+        text="Waiting for your response"
+        icon={<ClockIcon className="h-5 w-5" />}
+      />
+
+      <StatCard
+        label="Confirmed trips"
+        value={value(stats.confirmed)}
+        text="Accepted rentals"
+        icon={<CheckBadgeIcon className="h-5 w-5" />}
+      />
+
+      <StatCard
+        label="Cancelled"
+        value={value(stats.cancelled)}
+        text="Cancelled reservations"
+        icon={<XCircleIcon className="h-5 w-5" />}
+      />
     </section>
   )
 }

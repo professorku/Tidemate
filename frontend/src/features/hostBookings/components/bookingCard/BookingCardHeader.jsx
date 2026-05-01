@@ -1,58 +1,78 @@
-import BookingCardImageThumb from '../../../../components/bookings/BookingCardImageThumb'
-import { statusBadgeClass, formatBoatType } from '../../utils/bookingFormatters'
+import {
+  LifebuoyIcon,
+  MapPinIcon,
+  ShieldCheckIcon,
+  UserGroupIcon,
+} from '@heroicons/react/24/outline'
+import {
+  formatBoatType,
+  formatStatusLabel,
+  statusBadgeClass,
+} from '../../utils/bookingFormatters'
 import {
   canShowExactLocation,
   getBoatLocationLabel,
   getBoatPublicLocationLabel,
 } from '../../../../utils/locationPrivacy'
 
-export default function BookingCardHeader({ booking, isCancelled }) {
+export default function BookingCardHeader({ booking }) {
   const hasExactLocation = canShowExactLocation(booking)
   const locationLabel = getBoatLocationLabel(booking, 'Location unavailable')
   const publicLocationLabel = getBoatPublicLocationLabel(booking, '')
 
   return (
-    <div className="flex items-start justify-between gap-4 pr-14">
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <span
-            className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusBadgeClass(
-              booking.status
-            )}`}
-          >
-            {booking.status}
+    <div className="pr-12">
+      <div className="flex flex-wrap items-center gap-2">
+        <span
+          className={`inline-flex rounded-full px-3 py-1 text-xs font-bold capitalize ${statusBadgeClass(
+            booking.status
+          )}`}
+        >
+          {formatStatusLabel(booking.status)}
+        </span>
+
+        {booking.status === 'pending' ? (
+          <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800 ring-1 ring-amber-100">
+            Needs response
           </span>
+        ) : null}
 
-          {hasExactLocation ? (
-            <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-              Exact pickup visible
-            </span>
-          ) : null}
-        </div>
-
-        <h2 className="mt-2 text-lg font-bold text-slate-900 md:text-xl">
-          {booking.boat_title}
-        </h2>
-
-        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-slate-600">
-          <span>{locationLabel}</span>
-          <span>{formatBoatType(booking.boat_type)}</span>
-          <span>{booking.boat_guests} guests</span>
-        </div>
-
-        {hasExactLocation && publicLocationLabel && publicLocationLabel !== locationLabel ? (
-          <p className="mt-1 text-xs text-slate-500">
-            Public area: {publicLocationLabel}
-          </p>
+        {hasExactLocation ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 ring-1 ring-emerald-100">
+            <ShieldCheckIcon className="h-3.5 w-3.5" />
+            Exact pickup visible
+          </span>
         ) : null}
       </div>
 
-      <BookingCardImageThumb
-        image={booking.boat_image}
-        alt={booking.boat_title}
-        className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-slate-100 sm:h-24 sm:w-24"
-        overlay={isCancelled ? <div className="absolute inset-0 bg-white/70" /> : null}
-      />
+      <h3 className="mt-3 text-2xl font-extrabold tracking-tight text-slate-900">
+        {booking.boat_title || 'Boat'}
+      </h3>
+
+      <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-600">
+        <span className="inline-flex items-center gap-1.5">
+          <MapPinIcon className="h-4 w-4 text-slate-400" />
+          {locationLabel}
+        </span>
+
+        <span className="inline-flex items-center gap-1.5">
+          <LifebuoyIcon className="h-4 w-4 text-slate-400" />
+          {formatBoatType(booking.boat_type)}
+        </span>
+
+        {booking.boat_guests ? (
+          <span className="inline-flex items-center gap-1.5">
+            <UserGroupIcon className="h-4 w-4 text-slate-400" />
+            Up to {booking.boat_guests} guests
+          </span>
+        ) : null}
+      </div>
+
+      {hasExactLocation && publicLocationLabel && publicLocationLabel !== locationLabel ? (
+        <p className="mt-2 text-xs text-slate-500">
+          Public area: {publicLocationLabel}
+        </p>
+      ) : null}
     </div>
   )
 }

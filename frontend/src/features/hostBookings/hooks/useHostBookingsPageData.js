@@ -9,16 +9,10 @@ import {
 } from '../../../api/domains/bookings'
 import { getErrorMessage } from '../../../utils/errors'
 import { queryKeys } from '../../../query/keys'
+import { isPastTrip } from '../utils/bookingFormatters'
 
 const EMPTY_PAGINATION = { count: 0, page: 1, totalPages: 1 }
 const EMPTY_STATS = { all: 0, pending: 0, confirmed: 0, cancelled: 0 }
-
-function isPastTrip(booking) {
-  if (!booking?.end_date) return false
-  const end = new Date(booking.end_date)
-  const now = new Date()
-  return end.getTime() < now.getTime()
-}
 
 export default function useHostBookingsPageData() {
   const queryClient = useQueryClient()
@@ -55,7 +49,10 @@ export default function useHostBookingsPageData() {
 
   const cancelMutation = useMutation({
     mutationFn: ({ bookingId, reason = '' }) => cancelBooking(bookingId, reason),
-    onSuccess: invalidateBookings,
+    onSuccess: async () => {
+      await invalidateBookings()
+      setCancelReason({})
+    },
   })
 
   const deleteMutation = useMutation({
@@ -64,10 +61,24 @@ export default function useHostBookingsPageData() {
   })
 
   const pagination = bookingsQuery.data
-    ? { count: bookingsQuery.data.count, page: bookingsQuery.data.page, totalPages: bookingsQuery.data.totalPages }
+    ? {
+        count: bookingsQuery.data.count,
+        page: bookingsQuery.data.page,
+        totalPages: bookingsQuery.data.totalPages,
+      }
     : EMPTY_PAGINATION
 
-  const canDeleteBooking = (booking) => booking?.status === 'cancelled' || isPastTrip(booking)
+  const canDeleteBooking = (booking) =>
+    booking?.status === 'cancelled' || isPastTrip(booking)
+
+  const loadBookings = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.bookings.hostPage(activeTab, page),
+      }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.bookings.hostCounts }),
+    ])
+  }
 
   return {
     activeTab,
@@ -78,7 +89,9 @@ export default function useHostBookingsPageData() {
       null,
     bookings: bookingsQuery.data?.results || [],
     cancelReason,
-    error: bookingsQuery.error ? getErrorMessage(bookingsQuery.error, 'Could not load host bookings.') : '',
+    error: bookingsQuery.error
+      ? getErrorMessage(bookingsQuery.error, 'Could not load host bookings.')
+      : '',
     filteredBookings: bookingsQuery.data?.results || [],
     cancelBooking: (bookingId) =>
       cancelMutation.mutateAsync({
@@ -87,15 +100,21 @@ export default function useHostBookingsPageData() {
       }),
     confirmBooking: (bookingId) => confirmMutation.mutateAsync(bookingId),
     deleteBooking: async (booking) => {
-      const nextPage = (bookingsQuery.data?.results?.length ?? 0) <= 1 && page > 1 ? page - 1 : page
+      const nextPage =
+        (bookingsQuery.data?.results?.length ?? 0) <= 1 && page > 1
+          ? page - 1
+          : page
+
       if (nextPage !== page) {
         setPageState(nextPage)
       }
+
       return deleteMutation.mutateAsync(booking.id)
     },
     canDeleteBooking,
-    loadBookings: () => queryClient.invalidateQueries({ queryKey: queryKeys.bookings.hostPage(activeTab, page) }),
+    loadBookings,
     loading: bookingsQuery.isLoading || statsQuery.isLoading,
+    pageLoading: bookingsQuery.isFetching,
     pagination,
     setActiveTab,
     setCancelReason,

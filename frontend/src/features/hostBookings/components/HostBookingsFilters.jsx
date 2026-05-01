@@ -1,24 +1,21 @@
-import SectionHeader from '../../../components/ui/SectionHeader'
 import FilterTabs from '../../../components/ui/FilterTabs'
+import { hostBookingTabs } from '../utils/bookingFormatters'
 
 export default function HostBookingsFilters({ activeTab, stats, onChange }) {
-  const tabs = [
-    { key: 'all', label: 'All', count: stats.all ?? 0 },
-    { key: 'pending', label: 'Pending', count: stats.pending ?? 0 },
-    { key: 'confirmed', label: 'Confirmed', count: stats.confirmed ?? 0 },
-    { key: 'cancelled', label: 'Cancelled', count: stats.cancelled ?? 0 },
-  ]
+  const tabs = hostBookingTabs.map((tab) => ({
+    ...tab,
+    count: stats[tab.key] ?? 0,
+  }))
 
   return (
-    <section className="mt-6">
-      <div className="flex flex-col gap-4">
-        <SectionHeader
-          title="Filter bookings"
-          description="Switch between all, pending, confirmed, and cancelled bookings."
-        />
-
-        <FilterTabs tabs={tabs} activeKey={activeTab} onChange={onChange} showCount />
-      </div>
-    </section>
+    <div className="max-w-full overflow-x-auto">
+      <FilterTabs
+        tabs={tabs}
+        activeKey={activeTab}
+        onChange={onChange}
+        showCount
+        className="min-w-max lg:min-w-0 lg:justify-end"
+      />
+    </div>
   )
 }

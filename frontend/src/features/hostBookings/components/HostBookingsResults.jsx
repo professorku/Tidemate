@@ -3,6 +3,7 @@ import EmptyState from '../../../components/ui/EmptyState'
 import ErrorState from '../../../components/ui/ErrorState'
 import LoadingState from '../../../components/ui/LoadingState'
 import BookingCard from './HostBookingCard'
+import { getEmptyStateForTab } from '../utils/bookingFormatters'
 
 export default function HostBookingsResults({
   loading,
@@ -16,13 +17,14 @@ export default function HostBookingsResults({
   onDelete,
   canDeleteBooking,
   onRetry,
+  activeTab,
 }) {
   if (loading) {
     return (
       <LoadingState
         icon={<ClipboardDocumentListIcon className="h-8 w-8" />}
         title="Loading host bookings"
-        text="We are gathering your incoming requests and confirmed trips."
+        text="We are gathering incoming requests, confirmed trips, and cancellations."
       />
     )
   }
@@ -38,14 +40,16 @@ export default function HostBookingsResults({
   }
 
   if (!filteredBookings.length) {
+    const emptyState = getEmptyStateForTab(activeTab)
+
     return (
       <EmptyState
         icon={<ClipboardDocumentListIcon className="h-8 w-8" />}
-        title="No host bookings here"
-        text="Bookings for this filter will appear here when guests start requesting your boats."
+        title={emptyState.title}
+        text={emptyState.text}
         actionLabel="Go to my boats"
         actionTo="/my-boats"
-        compact
+        compact={false}
       />
     )
   }
@@ -67,4 +71,4 @@ export default function HostBookingsResults({
       ))}
     </div>
   )
-}
+} 
