@@ -1,9 +1,11 @@
 import hashlib
 import hmac
+from datetime import timedelta
 
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models import Q
 from django.utils import timezone
 
 
@@ -106,3 +108,19 @@ def revoke_all_device_sessions_for_user(user):
         user=user,
         revoked_at__isnull=True,
     ).update(revoked_at=timezone.now())
+
+
+def get_old_device_sessions_queryset(*, retention_days=90):
+    cutoff = timezone.now() - timedelta(days=retention_days)
+
+    return DeviceSession.objects.filter(
+        Q(revoked_at__isnull=False, revoked_at__lt=cutoff)
+        | Q(expires_at__lt=cutoff)
+    )
+
+
+def cleanup_old_device_sessions(*, retention_days=90):
+    queryset = get_old_device_sessions_queryset(retention_days=retention_days)
+    deleted_count, deleted_by_model = queryset.delete()
+
+    return deleted_count, deleted_by_model

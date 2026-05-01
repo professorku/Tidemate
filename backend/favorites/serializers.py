@@ -29,9 +29,14 @@ class FavoriteSerializer(serializers.ModelSerializer):
         request = self.context['request']
         boat = attrs['boat']
 
+        if boat.host_id == request.user.id:
+            raise serializers.ValidationError({
+                'boat_id': ['You cannot favorite your own boat.']
+            })
+
         if Favorite.objects.filter(user=request.user, boat=boat).exists():
             raise serializers.ValidationError({
-                'boat_id': 'This boat is already in your favorites.'
+                'boat_id': ['This boat is already in your favorites.']
             })
 
         return attrs
