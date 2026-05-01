@@ -7,10 +7,10 @@ import {
 
 export default function ConversationCardActions({ conversation }) {
   return (
-    <div className="mt-5 flex flex-wrap gap-2">
+    <div className="mt-5 flex flex-wrap gap-2 border-t border-white/15 pt-5">
       <Link
         to={`/messages/${conversation.id}`}
-        className="inline-flex items-center justify-center gap-2 rounded-full bg-navy px-4 py-2.5 text-sm font-extrabold text-white transition hover:bg-ocean"
+        className="inline-flex items-center justify-center gap-2 rounded-full bg-gold px-4 py-2.5 text-sm font-extrabold text-navy shadow-sm ring-1 ring-gold/40 transition hover:-translate-y-0.5 hover:bg-[#d8b45d]"
       >
         Open conversation
         <ArrowRightIcon className="h-4 w-4" />
@@ -19,7 +19,7 @@ export default function ConversationCardActions({ conversation }) {
       {conversation.boat ? (
         <Link
           to={`/boats/${conversation.boat}`}
-          className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+          className="inline-flex items-center justify-center gap-2 rounded-full border border-white/25 bg-navy px-4 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-ocean"
         >
           <EyeIcon className="h-4 w-4" />
           View boat
@@ -29,7 +29,7 @@ export default function ConversationCardActions({ conversation }) {
       {conversation.booking_id ? (
         <Link
           to={`/bookings/${conversation.booking_id}`}
-          className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+          className="inline-flex items-center justify-center gap-2 rounded-full border border-white/25 bg-navy px-4 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-ocean"
         >
           <CalendarDaysIcon className="h-4 w-4" />
           View booking

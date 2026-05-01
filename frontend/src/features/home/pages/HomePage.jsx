@@ -23,53 +23,55 @@ export default function HomePage() {
   } = useHomePageData()
 
   return (
-    <PageContainer size="wide">
-      <HomeHero />
+    <main className="min-h-screen bg-[#071d32]">
+      <PageContainer size="wide" as="div" className="py-8 md:py-10">
+        <HomeHero />
 
-      <div className="mb-6">
-        <FiltersBar
-          filters={filters}
-          setFilters={setFilters}
-          onApply={handleApply}
-          onClear={handleClear}
-        />
-      </div>
-
-      {loading ? (
-        <LoadingState
-          title="Loading boats"
-          text="We are fetching the latest boats for your search."
-        />
-      ) : error ? (
-        <ErrorState
-          title="Could not load boats"
-          message={error}
-          actionLabel="Try again"
-          onRetry={handleApply}
-          compact={false}
-        />
-      ) : boats.length === 0 ? (
-        <EmptyState
-          icon={<MagnifyingGlassIcon className="h-8 w-8" />}
-          title="No boats found"
-          text="Try another search or clear the filters."
-          tone="subtle"
-          compact={false}
-        />
-      ) : (
-        <>
-          <HomeResults boats={boats} />
-          <PaginationControls
-            page={pagination.page}
-            totalPages={pagination.totalPages}
-            count={pagination.count}
-            itemLabel="boats"
-            onPrevious={() => setPage(pagination.page - 1)}
-            onNext={() => setPage(pagination.page + 1)}
-            disabled={loading}
+        <div className="mb-6">
+          <FiltersBar
+            filters={filters}
+            setFilters={setFilters}
+            onApply={handleApply}
+            onClear={handleClear}
           />
-        </>
-      )}
-    </PageContainer>
+        </div>
+
+        {loading ? (
+          <LoadingState
+            title="Loading boats"
+            text="We are fetching the latest boats for your search."
+          />
+        ) : error ? (
+          <ErrorState
+            title="Could not load boats"
+            message={error}
+            actionLabel="Try again"
+            onRetry={handleApply}
+            compact={false}
+          />
+        ) : boats.length === 0 ? (
+          <EmptyState
+            icon={<MagnifyingGlassIcon className="h-8 w-8" />}
+            title="No boats found"
+            text="Try another search or clear the filters."
+            tone="subtle"
+            compact={false}
+          />
+        ) : (
+          <>
+            <HomeResults boats={boats} />
+            <PaginationControls
+              page={pagination.page}
+              totalPages={pagination.totalPages}
+              count={pagination.count}
+              itemLabel="boats"
+              onPrevious={() => setPage(pagination.page - 1)}
+              onNext={() => setPage(pagination.page + 1)}
+              disabled={loading}
+            />
+          </>
+        )}
+      </PageContainer>
+    </main>
   )
 }

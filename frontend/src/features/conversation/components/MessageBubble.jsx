@@ -22,7 +22,7 @@ export default function MessageBubble({
   const isDeleting = deletingMessageId === message.id
 
   return (
-    <div className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
+    <div className={`group flex ${mine ? 'justify-end' : 'justify-start'}`}>
       <div
         {...bind}
         className={`flex max-w-[92%] items-end gap-3 md:max-w-[78%] ${
@@ -43,7 +43,7 @@ export default function MessageBubble({
 
         <div className={mine ? 'text-right' : 'text-left'}>
           {!mine && showAvatar ? (
-            <p className="mb-1 px-1 text-xs font-bold text-slate-500">
+            <p className="mb-1 px-1 text-xs font-bold text-gold">
               {sender?.username || 'User'}
             </p>
           ) : null}
@@ -64,7 +64,7 @@ export default function MessageBubble({
                 <button
                   type="button"
                   onClick={hide}
-                  className="rounded-full bg-white p-2 text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50"
+                  className="rounded-full bg-gold p-2 text-navy shadow-sm ring-1 ring-gold/40 transition hover:bg-[#d8b45d]"
                   aria-label="Hide message actions"
                 >
                   <XMarkIcon className="h-4 w-4" />
@@ -74,7 +74,7 @@ export default function MessageBubble({
               <button
                 type="button"
                 onClick={toggle}
-                className={`rounded-full bg-white p-2 text-slate-700 opacity-0 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50 group-hover:opacity-100 ${
+                className={`rounded-full bg-gold p-2 text-navy opacity-0 shadow-sm ring-1 ring-gold/40 transition hover:bg-[#d8b45d] group-hover:opacity-100 ${
                   mine ? 'order-1' : 'order-2'
                 }`}
                 aria-label="Show message actions"
@@ -87,8 +87,8 @@ export default function MessageBubble({
               className={[
                 'max-w-full rounded-[26px] px-5 py-3.5 shadow-sm',
                 mine
-                  ? 'rounded-br-md bg-navy text-white ring-1 ring-navy/10'
-                  : 'rounded-bl-md border border-slate-200 bg-white text-slate-900',
+                  ? 'rounded-br-md bg-gold text-navy ring-1 ring-gold/40'
+                  : 'rounded-bl-md border border-white/15 bg-white/10 text-white',
                 isDeleted ? 'italic opacity-70' : '',
               ].join(' ')}
             >
@@ -98,7 +98,11 @@ export default function MessageBubble({
             </div>
           </div>
 
-          <p className={`mt-1 px-1 text-xs text-slate-500 ${mine ? 'text-right' : 'text-left'}`}>
+          <p
+            className={`mt-1 px-1 text-xs text-white/45 ${
+              mine ? 'text-right' : 'text-left'
+            }`}
+          >
             {isDeleting
               ? 'Deleting...'
               : `${formatTimeOnly(message.created_at)}${

@@ -8,9 +8,10 @@ import {
 
 export default function BookingsHero({ counts = {} }) {
   const totalBookings = counts.all ?? 0
+  const activeTrips = counts.active ?? 0
 
   return (
-    <section className="relative overflow-hidden rounded-[38px] border border-navy bg-navy px-5 py-7 text-white shadow-soft md:px-8 md:py-9">
+    <section className="relative overflow-hidden rounded-[38px] border border-white/15 bg-navy px-5 py-7 text-white shadow-soft md:px-8 md:py-9">
       <div className="relative grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
         <div>
           <h1 className="text-4xl font-black tracking-tight text-white md:text-6xl">
@@ -71,8 +72,11 @@ export default function BookingsHero({ counts = {} }) {
 
               <div>
                 <p className="text-sm font-black text-white">
-                  Ready for your next trip?
+                  {activeTrips > 0
+                    ? `${activeTrips} active trip${activeTrips === 1 ? '' : 's'}`
+                    : 'Ready for your next trip?'}
                 </p>
+
                 <p className="mt-0.5 text-xs font-medium text-white/65">
                   Find a boat, book it, and keep everything here.
                 </p>

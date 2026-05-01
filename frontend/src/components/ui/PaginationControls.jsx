@@ -12,10 +12,10 @@ export default function PaginationControls({
   }
 
   return (
-    <div className="mt-6 flex flex-col gap-3 rounded-[24px] border border-slate-200 bg-white px-4 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-sm text-slate-600">
-        Page <span className="font-semibold text-slate-900">{page}</span> of{' '}
-        <span className="font-semibold text-slate-900">{totalPages}</span>
+    <div className="mt-6 flex flex-col gap-3 rounded-[24px] border border-white/15 bg-[#071d32] px-4 py-4 text-white shadow-sm sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-sm text-white/65">
+        Page <span className="font-semibold text-white">{page}</span> of{' '}
+        <span className="font-semibold text-white">{totalPages}</span>
         {' '}· {count} {itemLabel}
       </p>
 
@@ -24,7 +24,7 @@ export default function PaginationControls({
           type="button"
           onClick={onPrevious}
           disabled={disabled || page <= 1}
-          className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-full border border-white/25 bg-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-ocean disabled:cursor-not-allowed disabled:opacity-50"
         >
           Previous
         </button>
@@ -33,7 +33,7 @@ export default function PaginationControls({
           type="button"
           onClick={onNext}
           disabled={disabled || page >= totalPages}
-          className="rounded-full bg-navy px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-full bg-gold px-4 py-2 text-sm font-extrabold text-navy shadow-sm ring-1 ring-gold/40 transition hover:bg-[#d8b45d] disabled:cursor-not-allowed disabled:opacity-50"
         >
           Next
         </button>

@@ -50,8 +50,8 @@ export default function ConversationCardSummary({
           ) : null}
 
           {unreadCount > 0 ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-navy px-3 py-1 text-xs font-bold text-white">
-              <span className="h-1.5 w-1.5 rounded-full bg-gold" />
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-gold px-3 py-1 text-xs font-bold text-navy">
+              <span className="h-1.5 w-1.5 rounded-full bg-navy" />
               New messages
             </span>
           ) : null}
@@ -67,29 +67,29 @@ export default function ConversationCardSummary({
           )}
 
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gold">
               Chatting with
             </p>
 
             {otherUser.id ? (
               <Link
                 to={`/users/${otherUser.id}`}
-                className="truncate text-base font-extrabold text-slate-900 transition hover:text-navy"
+                className="truncate text-base font-extrabold text-white transition hover:text-gold"
               >
                 {otherUser.username || 'User'}
               </Link>
             ) : (
-              <p className="truncate text-base font-extrabold text-slate-900">
+              <p className="truncate text-base font-extrabold text-white">
                 {otherUser.username || 'User'}
               </p>
             )}
           </div>
         </div>
 
-        <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
+        <div className="mt-4 rounded-2xl border border-white/15 bg-white/10 px-4 py-3">
           <p
             className={`line-clamp-2 text-sm leading-6 ${
-              unreadCount > 0 ? 'font-semibold text-slate-900' : 'text-slate-600'
+              unreadCount > 0 ? 'font-semibold text-white' : 'text-white/70'
             }`}
           >
             {lastMessage}
@@ -97,20 +97,22 @@ export default function ConversationCardSummary({
         </div>
 
         {!canDelete ? (
-          <p className="mt-3 text-xs font-medium text-slate-500">
+          <p className="mt-3 text-xs font-medium text-white/45">
             Delete becomes available when the linked booking is cancelled or completed.
           </p>
         ) : null}
       </div>
 
-      <div className="rounded-2xl border border-slate-100 bg-white p-4 md:min-w-[180px]">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+      <div className="rounded-2xl border border-white/15 bg-white/10 p-4 md:min-w-[180px]">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-gold">
           Last activity
         </p>
-        <p className="mt-1 text-sm font-extrabold text-slate-900">
+
+        <p className="mt-1 text-sm font-extrabold text-white">
           {formatRelative(lastActivity)}
         </p>
-        <p className="mt-1 text-xs text-slate-500">
+
+        <p className="mt-1 text-xs text-white/55">
           {formatDateTime(lastActivity)}
         </p>
       </div>

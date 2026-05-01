@@ -4,7 +4,7 @@ import {
   formatBookingDateTime,
   formatBookingWindow as buildBookingWindow,
 } from '../../../utils/format/booking'
-import { formatCurrency, formatRatingStars } from '../../../utils/format/number'
+import { formatCurrency } from '../../../utils/format/number'
 
 export function formatDate(value) {
   return formatBookingDate(value, {
@@ -46,7 +46,7 @@ export function formatMoney(value) {
 
 export { formatBoatType }
 
-export function getTimelineStatus(booking) {
+export function getHostTimelineStatus(booking) {
   if (booking?.lifecycle_stage) {
     return booking.lifecycle_stage
   }
@@ -81,7 +81,7 @@ export function formatStatusLabel(status) {
   return labels[status] || status
 }
 
-export function statusClasses(status) {
+export function hostStatusClasses(status) {
   switch (status) {
     case 'confirmed':
       return 'bg-gold text-navy ring-1 ring-gold/40'
@@ -94,7 +94,7 @@ export function statusClasses(status) {
   }
 }
 
-export function timelineBadgeClasses(tab) {
+export function hostTimelineBadgeClasses(tab) {
   switch (tab) {
     case 'active':
       return 'bg-gold text-navy ring-1 ring-gold/40'
@@ -111,7 +111,7 @@ export function timelineBadgeClasses(tab) {
   }
 }
 
-export function getTimelineLabel(tab) {
+export function getHostTimelineLabel(tab) {
   switch (tab) {
     case 'active':
       return 'On trip'
@@ -120,7 +120,7 @@ export function getTimelineLabel(tab) {
     case 'completed':
       return 'Completed'
     case 'pending':
-      return 'Awaiting approval'
+      return 'Awaiting host approval'
     case 'cancelled':
       return 'Cancelled'
     default:
@@ -128,7 +128,7 @@ export function getTimelineLabel(tab) {
   }
 }
 
-export function getDateHint(booking, timelineStatus) {
+export function getHostDateHint(booking, timelineStatus) {
   if (timelineStatus === 'cancelled') {
     return booking.cancelled_at
       ? `Cancelled on ${formatDate(booking.cancelled_at)}`
@@ -136,11 +136,11 @@ export function getDateHint(booking, timelineStatus) {
   }
 
   if (timelineStatus === 'pending') {
-    return 'Waiting for host confirmation.'
+    return 'Waiting for your response.'
   }
 
   if (timelineStatus === 'active') {
-    return 'Your trip is currently active.'
+    return 'This trip is currently active.'
   }
 
   if (timelineStatus === 'completed') {
@@ -152,15 +152,9 @@ export function getDateHint(booking, timelineStatus) {
   return `Pickup ${bookingWindow.pickup}`
 }
 
-export function formatRatingLabel(value) {
-  return formatRatingStars(value)
-}
-
-export const bookingTabs = [
+export const hostBookingTabs = [
   { key: 'all', label: 'All' },
-  { key: 'upcoming', label: 'Upcoming' },
-  { key: 'active', label: 'On trip' },
   { key: 'pending', label: 'Pending' },
-  { key: 'completed', label: 'Completed' },
+  { key: 'confirmed', label: 'Confirmed' },
   { key: 'cancelled', label: 'Cancelled' },
 ]

@@ -1,13 +1,6 @@
-import {
-  CalendarDaysIcon,
-  ChatBubbleLeftRightIcon,
-  ClockIcon,
-  EnvelopeIcon,
-} from '@heroicons/react/24/outline'
 import PageContainer from '../../../components/layout/PageContainer'
 import ConfirmModal from '../../../components/ui/ConfirmModal'
 import PaginationControls from '../../../components/ui/PaginationControls'
-import StatCard from '../../../components/ui/StatCard'
 import { useToast } from '../../../context/useToast'
 import useConfirmAction from '../../../hooks/useConfirmAction'
 import { getErrorMessage } from '../../../utils/errors'
@@ -73,58 +66,27 @@ export default function MessagesPage() {
 
   return (
     <>
-      <main className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100">
+      <main className="min-h-screen bg-[#071d32]">
         <PageContainer
           size="wide"
           as="div"
           className="py-8 md:py-10"
-          contentClassName="space-y-6"
+          contentClassName="space-y-7"
         >
-          <MessagesHero
-            totalCount={counts.all}
-            unreadCount={counts.unread}
-          />
+          <MessagesHero totalCount={counts.all} unreadCount={counts.unread} />
 
-          <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <StatCard
-              label="All conversations"
-              value={counts.all}
-              text="Every message thread"
-              icon={<ChatBubbleLeftRightIcon className="h-5 w-5" />}
-            />
-
-            <StatCard
-              label="Booking chats"
-              value={counts.booking}
-              text="Linked to boat bookings"
-              icon={<CalendarDaysIcon className="h-5 w-5" />}
-            />
-
-            <StatCard
-              label="Direct inquiries"
-              value={counts.direct}
-              text="General host/renter questions"
-              icon={<EnvelopeIcon className="h-5 w-5" />}
-            />
-
-            <StatCard
-              label="Unread threads"
-              value={counts.unread}
-              text={counts.unread > 0 ? 'Needs your attention' : 'All caught up'}
-              icon={<ClockIcon className="h-5 w-5" />}
-            />
-          </section>
-
-          <section className="rounded-[32px] border border-slate-200 bg-white/85 p-4 shadow-sm md:p-6">
-            <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <section className="rounded-[34px] border border-white/15 bg-navy p-4 text-white shadow-soft md:p-6">
+            <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-navy">
+                <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-gold">
                   Inbox
                 </p>
-                <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900">
+
+                <h2 className="mt-2 text-2xl font-black tracking-tight text-white md:text-3xl">
                   Your conversations
                 </h2>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-white/65">
                   Keep booking questions, pickup details, and direct inquiries in one
                   place.
                 </p>

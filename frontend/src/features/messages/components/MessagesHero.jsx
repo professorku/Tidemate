@@ -6,42 +6,13 @@ import {
   MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline'
 
-function getStatValue(stats, keys, fallback = 0) {
-  for (const key of keys) {
-    if (stats?.[key] !== undefined && stats?.[key] !== null) {
-      return stats[key]
-    }
-  }
-
-  return fallback
-}
-
-export default function MessagesHero({
-  stats = {},
-  totalThreads,
-  unreadCount,
-  unreadThreads,
-  conversations = [],
-  threads = [],
-}) {
-  const threadTotal =
-    totalThreads ??
-    getStatValue(stats, ['totalThreads', 'total_threads', 'threads', 'count'], null) ??
-    conversations.length ??
-    threads.length ??
-    0
-
-  const unreadTotal =
-    unreadCount ??
-    unreadThreads ??
-    getStatValue(stats, ['unreadCount', 'unread_count', 'unreadThreads', 'unread_threads', 'unread'], 0)
-
+export default function MessagesHero({ totalCount = 0, unreadCount = 0 }) {
   return (
-    <section className="relative overflow-hidden rounded-[38px] border border-navy bg-navy px-5 py-7 text-white shadow-soft md:px-8 md:py-9">
+    <section className="relative overflow-hidden rounded-[38px] border border-white/15 bg-navy px-5 py-7 text-white shadow-soft md:px-8 md:py-9">
       <div className="relative grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
         <div>
           <h1 className="text-4xl font-black tracking-tight text-white md:text-6xl">
-            Chat with renters and hosts
+            Messages
           </h1>
 
           <p className="mt-4 max-w-2xl text-base leading-7 text-white/75 md:text-lg">
@@ -76,11 +47,11 @@ export default function MessagesHero({
               </p>
 
               <p className="mt-4 text-5xl font-black tracking-tight text-white">
-                {threadTotal}
+                {totalCount}
               </p>
 
               <p className="mt-2 text-sm font-semibold text-white/75">
-                Total thread{threadTotal === 1 ? '' : 's'} in your inbox
+                Total thread{totalCount === 1 ? '' : 's'} in your inbox
               </p>
             </div>
 
@@ -97,13 +68,13 @@ export default function MessagesHero({
 
               <div>
                 <p className="text-sm font-black text-white">
-                  {unreadTotal > 0
-                    ? `${unreadTotal} unread message${unreadTotal === 1 ? '' : 's'}`
+                  {unreadCount > 0
+                    ? `${unreadCount} unread thread${unreadCount === 1 ? '' : 's'}`
                     : 'All caught up'}
                 </p>
 
                 <p className="mt-0.5 text-xs font-medium text-white/65">
-                  {unreadTotal > 0
+                  {unreadCount > 0
                     ? 'Open your inbox and reply when you are ready.'
                     : 'No unread conversations right now.'}
                 </p>

@@ -1,7 +1,10 @@
-import { CalendarDaysIcon } from '@heroicons/react/24/outline'
-import EmptyState from '../../../components/ui/EmptyState'
-import ErrorState from '../../../components/ui/ErrorState'
-import LoadingState from '../../../components/ui/LoadingState'
+import { Link } from 'react-router-dom'
+import {
+  ArrowPathIcon,
+  CalendarDaysIcon,
+  ExclamationTriangleIcon,
+  MagnifyingGlassIcon,
+} from '@heroicons/react/24/outline'
 import BookingCard from './MyBookingCard'
 
 const EMPTY_STATE_CONTENT = {
@@ -31,6 +34,26 @@ const EMPTY_STATE_CONTENT = {
   },
 }
 
+function PanelState({ icon, title, text, children }) {
+  return (
+    <div className="rounded-[30px] border border-white/15 bg-[#071d32] px-6 py-10 text-center text-white shadow-sm">
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gold text-navy shadow-sm ring-1 ring-gold/40">
+        {icon}
+      </div>
+
+      <h3 className="mt-5 text-2xl font-black tracking-tight text-white">
+        {title}
+      </h3>
+
+      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-white/65">
+        {text}
+      </p>
+
+      {children ? <div className="mt-6">{children}</div> : null}
+    </div>
+  )
+}
+
 export default function BookingsResults({
   loading,
   error,
@@ -45,8 +68,8 @@ export default function BookingsResults({
 }) {
   if (loading) {
     return (
-      <LoadingState
-        icon={<CalendarDaysIcon className="h-8 w-8" />}
+      <PanelState
+        icon={<ArrowPathIcon className="h-8 w-8 animate-spin" />}
         title="Loading your bookings"
         text="We are sorting your trips, pending requests, and past bookings."
       />
@@ -55,11 +78,19 @@ export default function BookingsResults({
 
   if (error) {
     return (
-      <ErrorState
+      <PanelState
+        icon={<ExclamationTriangleIcon className="h-8 w-8" />}
         title="Could not load your bookings"
-        message={error}
-        onRetry={onRetry}
-      />
+        text={error}
+      >
+        <button
+          type="button"
+          onClick={onRetry}
+          className="inline-flex items-center justify-center rounded-full bg-gold px-5 py-3 text-sm font-extrabold text-navy shadow-sm ring-1 ring-gold/40 transition hover:-translate-y-0.5 hover:bg-[#d8b45d]"
+        >
+          Try again
+        </button>
+      </PanelState>
     )
   }
 
@@ -67,14 +98,19 @@ export default function BookingsResults({
     const state = EMPTY_STATE_CONTENT[activeTab] || EMPTY_STATE_CONTENT.all
 
     return (
-      <EmptyState
+      <PanelState
         icon={<CalendarDaysIcon className="h-8 w-8" />}
         title={state.title}
         text={state.text}
-        actionLabel="Browse boats"
-        actionTo="/"
-        compact={false}
-      />
+      >
+        <Link
+          to="/"
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-gold px-5 py-3 text-sm font-extrabold text-navy shadow-sm ring-1 ring-gold/40 transition hover:-translate-y-0.5 hover:bg-[#d8b45d]"
+        >
+          <MagnifyingGlassIcon className="h-5 w-5" />
+          Browse boats
+        </Link>
+      </PanelState>
     )
   }
 

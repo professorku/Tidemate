@@ -1,9 +1,12 @@
 export default function FiltersBar({ filters, setFilters, onApply, onClear }) {
-  const inputClassName = 'rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-ocean focus:ring-2 focus:ring-ocean/10'
-  const labelClassName = 'mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500'
+  const inputClassName =
+    'w-full rounded-xl border border-white/15 bg-[#071d32] px-3.5 py-2.5 text-sm font-semibold text-white outline-none transition placeholder:text-white/35 focus:border-gold/60 focus:ring-2 focus:ring-gold/20'
+
+  const labelClassName =
+    'mb-1.5 block text-xs font-extrabold uppercase tracking-wide text-gold'
 
   return (
-    <div className="rounded-[20px] bg-white p-3.5 shadow-soft md:p-4">
+    <div className="rounded-[24px] border border-white/15 bg-navy p-3.5 shadow-soft md:p-4">
       <div className="grid grid-cols-1 gap-2.5 md:grid-cols-6">
         <div>
           <label className={labelClassName} htmlFor="filters-search">
@@ -90,14 +93,17 @@ export default function FiltersBar({ filters, setFilters, onApply, onClear }) {
 
         <div className="flex items-end gap-2">
           <button
+            type="button"
             onClick={onApply}
-            className="flex-1 rounded-xl bg-navy px-3.5 py-2.5 text-sm font-semibold text-white transition hover:brightness-110"
+            className="flex-1 rounded-xl bg-gold px-3.5 py-2.5 text-sm font-extrabold text-navy shadow-sm ring-1 ring-gold/40 transition hover:bg-[#d8b45d]"
           >
             Apply
           </button>
+
           <button
+            type="button"
             onClick={onClear}
-            className="flex-1 rounded-xl bg-mist px-3.5 py-2.5 text-sm font-semibold text-ink transition hover:bg-slate-200"
+            className="flex-1 rounded-xl border border-white/20 bg-navy px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-ocean"
           >
             Clear
           </button>

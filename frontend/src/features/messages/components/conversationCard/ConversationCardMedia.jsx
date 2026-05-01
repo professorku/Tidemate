@@ -17,7 +17,7 @@ export default function ConversationCardMedia({
   hide,
 }) {
   return (
-    <div className="relative h-56 w-full shrink-0 overflow-hidden bg-slate-100 lg:h-auto lg:w-72">
+    <div className="relative h-56 w-full shrink-0 overflow-hidden bg-navy lg:h-auto lg:w-72">
       {conversation.boat_image ? (
         <img
           src={conversation.boat_image}
@@ -25,30 +25,31 @@ export default function ConversationCardMedia({
           className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
         />
       ) : (
-        <div className="flex h-full min-h-[200px] items-center justify-center text-slate-400">
+        <div className="flex h-full min-h-[200px] items-center justify-center text-gold">
           <BookmarkIcon className="h-10 w-10" />
         </div>
       )}
 
-      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/20 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/35 to-transparent" />
 
       <div className="absolute left-3 top-3 flex flex-wrap gap-2">
-        <span className="rounded-full bg-white/95 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wide text-slate-800 shadow-sm backdrop-blur">
+        <span className="rounded-full bg-gold px-3 py-1 text-[11px] font-extrabold uppercase tracking-wide text-navy shadow-sm ring-1 ring-gold/40">
           {getConversationTypeLabel(conversation)}
         </span>
 
         {unreadCount > 0 ? (
-          <span className="rounded-full bg-gold px-3 py-1 text-[11px] font-extrabold uppercase tracking-wide text-navy shadow-sm">
+          <span className="rounded-full bg-white px-3 py-1 text-[11px] font-extrabold uppercase tracking-wide text-navy shadow-sm">
             {unreadCount} unread
           </span>
         ) : null}
       </div>
 
       <div className="absolute inset-x-0 bottom-0 px-4 pb-4 pt-12 text-white">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/70">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-gold">
           Conversation
         </p>
-        <h2 className="mt-1 truncate text-xl font-extrabold tracking-tight">
+
+        <h2 className="mt-1 truncate text-xl font-extrabold tracking-tight text-white">
           {conversation.boat_title || 'Direct conversation'}
         </h2>
       </div>
@@ -70,7 +71,7 @@ export default function ConversationCardMedia({
               <button
                 type="button"
                 onClick={hide}
-                className="rounded-full bg-white/95 p-2 text-slate-700 shadow-sm transition hover:bg-white"
+                className="rounded-full bg-gold p-2 text-navy shadow-sm transition hover:bg-[#d8b45d]"
                 aria-label="Hide actions"
               >
                 <XMarkIcon className="h-4 w-4" />
@@ -80,7 +81,7 @@ export default function ConversationCardMedia({
             <button
               type="button"
               onClick={toggle}
-              className="rounded-full bg-white/95 p-2 text-slate-700 shadow-sm transition hover:bg-white"
+              className="rounded-full bg-gold p-2 text-navy shadow-sm transition hover:bg-[#d8b45d]"
               aria-label="Show actions"
             >
               <EllipsisHorizontalIcon className="h-5 w-5" />
@@ -90,4 +91,4 @@ export default function ConversationCardMedia({
       </div>
     </div>
   )
-} 
+}

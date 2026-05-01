@@ -88,22 +88,22 @@ export function getConversationTypeLabel(conversation) {
 
 export function getConversationTypeClass(conversation) {
   if (conversation?.booking_id || conversation?.conversation_type === 'booking') {
-    return 'bg-indigo-100 text-indigo-700 ring-1 ring-indigo-200'
+    return 'bg-gold text-navy ring-1 ring-gold/40'
   }
 
-  return 'bg-slate-100 text-slate-700 ring-1 ring-slate-200'
+  return 'bg-white/10 text-white ring-1 ring-white/15'
 }
 
 export function getBookingStatusClass(status) {
   switch (status) {
     case 'confirmed':
-      return 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200'
+      return 'bg-gold text-navy ring-1 ring-gold/40'
     case 'pending':
-      return 'bg-amber-100 text-amber-800 ring-1 ring-amber-200'
+      return 'bg-gold/15 text-gold ring-1 ring-gold/40'
     case 'cancelled':
-      return 'bg-red-100 text-red-700 ring-1 ring-red-200'
+      return 'bg-red-500/15 text-red-100 ring-1 ring-red-400/40'
     default:
-      return 'bg-slate-100 text-slate-700 ring-1 ring-slate-200'
+      return 'bg-white/10 text-white ring-1 ring-white/15'
   }
 }
 
@@ -149,17 +149,17 @@ export function getTripStateClass(conversation) {
 
   switch (state) {
     case 'pending':
-      return 'bg-amber-100 text-amber-800 ring-1 ring-amber-200'
+      return 'bg-gold/15 text-gold ring-1 ring-gold/40'
     case 'cancelled':
-      return 'bg-red-100 text-red-700 ring-1 ring-red-200'
+      return 'bg-red-500/15 text-red-100 ring-1 ring-red-400/40'
     case 'active':
-      return 'bg-sky-100 text-sky-700 ring-1 ring-sky-200'
+      return 'bg-gold text-navy ring-1 ring-gold/40'
     case 'completed':
-      return 'bg-slate-100 text-slate-700 ring-1 ring-slate-200'
+      return 'bg-white/10 text-white ring-1 ring-white/15'
     case 'upcoming':
-      return 'bg-indigo-100 text-indigo-700 ring-1 ring-indigo-200'
+      return 'bg-white text-navy ring-1 ring-white/30'
     default:
-      return 'bg-slate-100 text-slate-700 ring-1 ring-slate-200'
+      return 'bg-white/10 text-white ring-1 ring-white/15'
   }
 }
 

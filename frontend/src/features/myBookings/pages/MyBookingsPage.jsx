@@ -62,7 +62,7 @@ export default function MyBookingsPage() {
 
   return (
     <>
-      <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(31,76,107,0.18),_transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(201,161,74,0.16),_transparent_32%),linear-gradient(180deg,#f5f7fa_0%,#e8eef3_45%,#f5f7fa_100%)]">
+      <main className="min-h-screen bg-[#071d32]">
         <PageContainer
           size="wide"
           as="div"
@@ -71,18 +71,18 @@ export default function MyBookingsPage() {
         >
           <BookingsHero counts={safeCounts} />
 
-          <section className="overflow-hidden rounded-[34px] border border-navy/10 bg-white/90 p-4 shadow-soft backdrop-blur md:p-6">
+          <section className="rounded-[34px] border border-white/15 bg-navy p-4 text-white shadow-soft md:p-6">
             <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-gold">
                   Trip overview
                 </p>
 
-                <h2 className="mt-2 text-2xl font-black tracking-tight text-ink md:text-3xl">
+                <h2 className="mt-2 text-2xl font-black tracking-tight text-white md:text-3xl">
                   Your booking timeline
                 </h2>
 
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-ocean">
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-white/65">
                   View your booking requests, active trips, completed rentals and
                   cancellations in one clean place.
                 </p>

@@ -24,10 +24,10 @@ export default function ConversationCard({
   return (
     <article
       {...bind}
-      className={`group overflow-hidden rounded-[28px] border bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-soft ${
+      className={`group overflow-hidden rounded-[30px] border bg-[#071d32] text-white shadow-soft transition hover:-translate-y-0.5 ${
         unreadCount > 0
-          ? 'border-gold/50 ring-1 ring-gold/20'
-          : 'border-slate-200'
+          ? 'border-gold/60 ring-1 ring-gold/30'
+          : 'border-white/15'
       }`}
     >
       <div className="flex flex-col lg:flex-row">

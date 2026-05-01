@@ -23,8 +23,8 @@ export default function FilterTabs({
             className={cn(
               'rounded-full px-4 py-2 text-sm font-semibold transition',
               isActive
-                ? 'bg-navy text-white shadow-sm ring-1 ring-navy'
-                : 'bg-white/90 text-ocean ring-1 ring-navy/15 hover:bg-mist hover:text-navy',
+                ? 'bg-gold text-navy shadow-sm ring-1 ring-gold/40'
+                : 'border border-white/20 bg-navy text-white shadow-sm hover:bg-ocean',
               buttonClassName,
             )}
           >

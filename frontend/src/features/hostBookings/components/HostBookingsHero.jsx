@@ -11,7 +11,7 @@ export default function HostBookingsHero({ stats = {} }) {
   const pendingCount = stats.pending ?? 0
 
   return (
-    <section className="relative overflow-hidden rounded-[38px] border border-navy bg-navy px-5 py-7 text-white shadow-soft md:px-8 md:py-9">
+    <section className="relative overflow-hidden rounded-[38px] border border-white/15 bg-navy px-5 py-7 text-white shadow-soft md:px-8 md:py-9">
       <div className="relative grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
         <div>
           <h1 className="text-4xl font-black tracking-tight text-white md:text-6xl">

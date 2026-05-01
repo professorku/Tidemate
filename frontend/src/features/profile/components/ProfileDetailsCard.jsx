@@ -19,19 +19,21 @@ export default function ProfileDetailsCard({
   reviewsData,
   boats,
   profileCompletion,
-  missingProfileItems,
+  missingProfileItems = [],
 }) {
   const hasPendingEmail = Boolean(profile.email_change_pending || profile.pending_email)
 
   return (
-    <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
-      <p className="text-xs font-bold uppercase tracking-[0.18em] text-navy">
+    <section className="rounded-[28px] border border-white/15 bg-navy p-6 text-white shadow-soft">
+      <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-gold">
         Account
       </p>
-      <h2 className="mt-2 text-2xl font-extrabold text-slate-900">
+
+      <h2 className="mt-2 text-2xl font-black tracking-tight text-white">
         Profile details
       </h2>
-      <p className="mt-2 text-sm leading-6 text-slate-600">
+
+      <p className="mt-2 text-sm leading-6 text-white/65">
         Your private account basics and public profile information.
       </p>
 
@@ -82,21 +84,22 @@ export default function ProfileDetailsCard({
       </div>
 
       {hasPendingEmail ? (
-        <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-          <p className="font-bold">Email change pending</p>
-          <p className="mt-1 leading-6">
+        <div className="mt-5 rounded-2xl border border-gold/40 bg-gold/15 p-4 text-sm text-white">
+          <p className="font-bold text-white">Email change pending</p>
+          <p className="mt-1 leading-6 text-white/70">
             Verify the new email address before TideMate switches your account over.
           </p>
+
           {profile.pending_email ? (
-            <p className="mt-2 font-semibold">{profile.pending_email}</p>
+            <p className="mt-2 font-semibold text-gold">{profile.pending_email}</p>
           ) : null}
         </div>
       ) : null}
 
       {missingProfileItems.length > 0 ? (
-        <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-          <p className="text-sm font-bold text-slate-900">Missing info</p>
-          <p className="mt-1 text-sm leading-6 text-slate-600">
+        <div className="mt-5 rounded-2xl border border-white/15 bg-white/10 p-4">
+          <p className="text-sm font-bold text-white">Missing info</p>
+          <p className="mt-1 text-sm leading-6 text-white/65">
             Add {missingProfileItems.join(', ')} to complete your profile.
           </p>
         </div>
@@ -105,7 +108,7 @@ export default function ProfileDetailsCard({
       <div className="mt-5 grid gap-2">
         <Link
           to="/profile/edit"
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-navy px-4 py-2.5 text-sm font-extrabold text-white transition hover:bg-ocean"
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-gold px-4 py-2.5 text-sm font-extrabold text-navy shadow-sm ring-1 ring-gold/40 transition hover:-translate-y-0.5 hover:bg-[#d8b45d]"
         >
           <PencilSquareIcon className="h-4 w-4" />
           Edit profile
@@ -113,13 +116,13 @@ export default function ProfileDetailsCard({
 
         <Link
           to="/change-password"
-          className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+          className="inline-flex items-center justify-center gap-2 rounded-full border border-white/25 bg-navy px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-ocean"
         >
           <KeyIcon className="h-4 w-4" />
           Change password
         </Link>
       </div>
-    </div>
+    </section>
   )
 }
 

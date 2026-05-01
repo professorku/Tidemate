@@ -22,8 +22,8 @@ export default function ConversationSidebar({ conversation, messages, tripState 
 
   return (
     <aside className="space-y-4 xl:sticky xl:top-24 xl:self-start">
-      <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm">
-        <div className="relative h-52 overflow-hidden bg-slate-100">
+      <div className="overflow-hidden rounded-[28px] border border-white/15 bg-navy text-white shadow-soft">
+        <div className="relative h-52 overflow-hidden bg-[#071d32]">
           {conversation.boat_image ? (
             <img
               src={conversation.boat_image}
@@ -31,12 +31,12 @@ export default function ConversationSidebar({ conversation, messages, tripState 
               className="h-full w-full object-cover"
             />
           ) : (
-            <div className="flex h-full items-center justify-center text-slate-400">
+            <div className="flex h-full items-center justify-center text-gold">
               <BookmarkIcon className="h-10 w-10" />
             </div>
           )}
 
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-transparent" />
 
           <div className="absolute left-4 top-4">
             <span
@@ -49,9 +49,10 @@ export default function ConversationSidebar({ conversation, messages, tripState 
           </div>
 
           <div className="absolute inset-x-0 bottom-0 p-4 text-white">
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/70">
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-gold">
               Trip context
             </p>
+
             <h2 className="mt-1 truncate text-xl font-extrabold">
               {conversation.boat_title || 'Direct conversation'}
             </h2>
@@ -59,7 +60,7 @@ export default function ConversationSidebar({ conversation, messages, tripState 
         </div>
 
         <div className="p-5">
-          <p className="text-sm leading-6 text-slate-600">
+          <p className="text-sm leading-6 text-white/65">
             {conversation.conversation_type === 'direct'
               ? 'This is a direct inquiry conversation.'
               : `Booking conversation linked to reservation #${conversation.booking_id ?? '—'}.`}
@@ -69,7 +70,7 @@ export default function ConversationSidebar({ conversation, messages, tripState 
             {conversation.boat ? (
               <Link
                 to={`/boats/${conversation.boat}`}
-                className="rounded-full bg-navy px-4 py-2.5 text-sm font-bold text-white transition hover:bg-ocean"
+                className="rounded-full bg-gold px-4 py-2.5 text-sm font-extrabold text-navy shadow-sm ring-1 ring-gold/40 transition hover:-translate-y-0.5 hover:bg-[#d8b45d]"
               >
                 Open boat
               </Link>
@@ -78,7 +79,7 @@ export default function ConversationSidebar({ conversation, messages, tripState 
             {conversation.booking_id ? (
               <Link
                 to={`/bookings/${conversation.booking_id}`}
-                className="rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                className="rounded-full border border-white/25 bg-navy px-4 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-ocean"
               >
                 Booking details
               </Link>
