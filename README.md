@@ -1,101 +1,199 @@
-# TideMate
+# 🌊 TideMate
 
-TideMate is a full-stack Boatbnb-style marketplace where users can list boats, book rentals, save favorites, write reviews, chat in real time, and receive notifications.
+**TideMate** is a full-stack Boatbnb-style marketplace where users can list boats, book rentals, save favorites, write reviews, chat in real time, and receive notifications.
 
-> **Project status:** TideMate is under active development and was built as a student/portfolio project. The app is functional and includes several security-focused design choices, but it should still be considered a prototype until the production checklist in this README has been completed.
+The project is built as a **student / portfolio project** with a strong focus on practical full-stack architecture, secure authentication, object-level authorization, image upload validation, real-time communication, and clean user flows.
+
+> **Status:** TideMate is functional and under active development. It is suitable as a portfolio/demo project, but should still be treated as a prototype until the production checklist is completed.
+
+---
 
 ## Table of Contents
 
+- [Overview](#overview)
 - [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
 - [Core Features](#core-features)
-- [Security Features](#security-features)
+- [Security Highlights](#security-highlights)
+- [Project Structure](#project-structure)
 - [Screenshots](#screenshots)
-- [Clean Local Setup](#clean-local-setup)
-- [Backend Setup](#backend-setup)
-- [Frontend Setup](#frontend-setup)
-- [WebSocket Setup](#websocket-setup)
+- [Local Development Setup](#local-development-setup)
+  - [Backend Setup](#backend-setup)
+  - [Frontend Setup](#frontend-setup)
+  - [WebSocket Setup](#websocket-setup)
 - [Running Tests](#running-tests)
-- [Important Backend Apps](#important-backend-apps)
 - [Environment Files](#environment-files)
-- [Production Notes](#production-notes)
-- [Known Limitations and Future Hardening](#known-limitations-and-future-hardening)
-- [Current Status](#current-status)
+- [Important Backend Apps](#important-backend-apps)
+- [Local Development Notes](#local-development-notes)
+- [Production Checklist](#production-checklist)
+- [Known Limitations](#known-limitations)
+- [What This Project Demonstrates](#what-this-project-demonstrates)
+
+---
+
+## Overview
+
+TideMate lets users browse, list, and rent boats through a modern full-stack web application.
+
+The app includes:
+
+- a Django REST API backend
+- a React/Vite frontend
+- secure cookie-based JWT authentication
+- CSRF-aware API communication
+- boat listings with image upload
+- booking flows for renters and hosts
+- favorites, reviews, chat, and notifications
+- map/location functionality
+- WebSocket-based real-time updates
+
+The main goal of TideMate is to demonstrate how a marketplace-style application can be designed with practical security and clean user experience in mind.
+
+---
 
 ## Tech Stack
 
 ### Frontend
 
-- React
-- Vite
-- React Router
-- Tailwind CSS
-- Axios
-- Leaflet
-- WebSockets
+- **React**
+- **Vite**
+- **React Router**
+- **Tailwind CSS**
+- **Axios**
+- **Leaflet**
+- **WebSockets**
 
 ### Backend
 
-- Django
-- Django REST Framework
-- SimpleJWT
-- Django Channels
-- WebSockets
-- SQLite for local development
-- PostgreSQL recommended for production
-- Redis recommended for production Channels/throttling/cache support
+- **Django**
+- **Django REST Framework**
+- **SimpleJWT**
+- **Django Channels**
+- **SQLite** for local development
+- **PostgreSQL** recommended for production
+- **Redis** recommended for production WebSockets, throttling, and caching
+
+---
+
+## Core Features
+
+### User and Account Features
+
+- User registration
+- Login and logout
+- Email verification
+- Profile pages
+- Public host profiles
+- Safer email-change flow
+- Device/session handling
+
+### Boat Listing Features
+
+- Host dashboard
+- Create, edit, and delete boat listings
+- Upload boat images
+- Search and filter boat listings
+- Map/location support
+- Public listing pages
+
+### Booking Features
+
+- Renters can request bookings
+- Hosts can manage booking requests
+- Booking confirmation and cancellation flow
+- Booking status tracking
+- Protection against invalid booking actions
+
+### Marketplace Features
+
+- Save favorite boats
+- Review boats and users
+- Chat between users
+- Real-time notifications
+- Responsive frontend design
+
+---
+
+## Security Highlights
+
+TideMate includes several security-focused design choices beyond a basic CRUD application.
+
+### Authentication and Sessions
+
+- Uses **HttpOnly JWT cookies** instead of storing access tokens in `localStorage`
+- Uses **CSRF protection** for unsafe cookie-authenticated requests
+- Uses short-lived access tokens
+- Supports refresh token rotation and blacklisting
+- Uses generic login errors to avoid leaking account state
+- Requires email verification before login
+- Tracks user sessions/devices
+
+### Authorization
+
+- Object-level permission checks for:
+  - boat listings
+  - bookings
+  - conversations
+  - chat messages
+  - favorites
+  - reviews
+  - notifications
+- Hosts can only manage their own listings
+- Renters and hosts can only access bookings they are part of
+- Chat conversations are restricted to participants
+- Private user data is not exposed through public profile endpoints
+
+### Upload and Input Validation
+
+- Uploaded images are validated server-side
+- Image checks include:
+  - file extension
+  - MIME/content type
+  - file size
+  - image format
+  - dimensions
+  - Pillow verification
+- Uploaded images are sanitized/re-encoded
+- Important listing values are validated server-side
+- User-generated fields have maximum lengths
+- Search and text inputs are constrained
+
+### WebSocket Security
+
+- WebSockets require authentication
+- WebSocket origins are validated
+- Chat and notification sockets check user access
+- Expired sessions are handled
+- Chat actions are rate-limited
+
+### Production Security Settings
+
+The production settings include support for:
+
+- secure cookies
+- HSTS
+- SSL redirect
+- allowed hosts
+- trusted CSRF origins
+- stricter deployment checks
+- safer production defaults
+
+---
 
 ## Project Structure
 
 ```text
 TideMate/
-├── backend/      # Django REST API, authentication, bookings, chat, notifications
-├── frontend/     # React/Vite frontend
-└── docs/         # Screenshots and documentation assets
+├── backend/       # Django REST API, authentication, bookings, chat, notifications
+├── frontend/      # React/Vite frontend
+├── docs/          # Screenshots and documentation assets
+└── README.md      # Project documentation
 ```
 
-## Core Features
-
-- User registration, login, logout, and email verification
-- Secure JWT authentication using httpOnly cookies
-- Host dashboard for creating and managing boat listings
-- Boat image upload with server-side validation and sanitization
-- Public boat browsing with search and filtering
-- Public user profiles with host-specific listings
-- Booking flow for renters
-- Booking management for hosts
-- Favorites system
-- Reviews for boats and users
-- Real-time chat using Django Channels and WebSockets
-- Real-time notifications
-- Location picker and map-based listing information
-- Responsive React frontend
-
-## Security Features
-
-TideMate includes several security-focused improvements beyond a basic CRUD application:
-
-- httpOnly JWT cookies instead of storing tokens in `localStorage`
-- CSRF protection for unsafe cookie-authenticated requests
-- Short-lived access tokens with refresh token rotation and blacklisting
-- Email verification before login
-- Safer email-change flow with password confirmation and verification of the new email address
-- Generic login errors to avoid leaking whether inactive accounts exist
-- Case-insensitive email uniqueness enforced at the database level
-- Object-level permissions for bookings, conversations, favorites, reviews, listings, and notifications
-- Server-side validation for uploaded images, including MIME type, extension, size, format, dimensions, and Pillow verification
-- Image sanitization/re-encoding to reduce the risk of malicious or malformed uploads
-- Listing value validation for price, guest capacity, coordinates, title length, and location length
-- Database check constraints for important listing values
-- Maximum lengths for user-generated text fields such as reviews, bios, cancellation reasons, and search queries
-- WebSocket authentication and session-expiry handling
-- WebSocket origin validation
-- Chat and notification access checks based on the authenticated user
-- Booking creation and confirmation wrapped in database transactions to reduce double-booking risk
-- Throttling configuration for authentication and sensitive API endpoints
-- Production settings for secure cookies, HSTS, SSL redirect, trusted origins, and related deployment controls
+---
 
 ## Screenshots
+
+> The paths below assume the screenshots exist in `docs/screenshots/`.
 
 ### Homepage
 
@@ -109,11 +207,25 @@ TideMate includes several security-focused improvements beyond a basic CRUD appl
 
 <img src="docs/screenshots/host-bookings.png" alt="TideMate host bookings page" width="900">
 
-## Clean Local Setup
+---
 
-This project is configured for local development with a Vite dev proxy. The browser calls `/api/...` on the frontend origin, and Vite forwards those requests to Django at `http://localhost:8000`.
+## Local Development Setup
 
-This avoids common local CSRF problems caused by mixing `localhost` and `127.0.0.1`.
+TideMate is configured for local development with a Vite dev proxy.
+
+The frontend can call:
+
+```text
+/api/...
+```
+
+and Vite forwards those requests to Django at:
+
+```text
+http://localhost:8000
+```
+
+This avoids common local CSRF/cookie issues caused by mixing `localhost` and `127.0.0.1`.
 
 Recommended local URLs:
 
@@ -122,7 +234,9 @@ Backend:  http://localhost:8000
 Frontend: http://localhost:5173
 ```
 
-Avoid mixing these with `127.0.0.1` unless you update the CORS, CSRF, cookie, and frontend environment settings consistently.
+Avoid mixing these with `127.0.0.1` unless the backend CORS, CSRF, cookie, and frontend environment settings are updated consistently.
+
+---
 
 ## Backend Setup
 
@@ -144,6 +258,8 @@ The backend should now be running at:
 http://localhost:8000
 ```
 
+---
+
 ## Frontend Setup
 
 Open a new terminal from the project root:
@@ -161,44 +277,37 @@ Open the app in the browser from the Vite URL, usually:
 http://localhost:5173
 ```
 
+---
+
 ## WebSocket Setup
 
 TideMate uses WebSockets for chat and real-time notifications.
 
-In local development, the frontend should connect to the Django ASGI server for `/ws/...` routes. If the frontend runs on Vite at `localhost:5173` and the backend runs at `localhost:8000`, the Vite config should proxy WebSocket traffic as well as API traffic.
+In local development, the frontend should connect to the Django ASGI server for `/ws/...` routes.
+
+If the frontend runs on Vite at `localhost:5173` and the backend runs at `localhost:8000`, the Vite config should proxy WebSocket traffic as well as API traffic.
 
 Example Vite proxy entry:
 
 ```js
-'/ws': {
-  target: 'ws://localhost:8000',
+"/ws": {
+  target: "ws://localhost:8000",
   ws: true,
   changeOrigin: true,
-},
+}
 ```
 
-For production, route WebSocket traffic to the Django ASGI server, for example:
+For production, WebSocket traffic should be routed to the Django ASGI server:
 
 ```text
-/api/* -> Django backend
-/ws/*  -> Django ASGI server
+/api/*   -> Django backend
+/ws/*    -> Django ASGI server
 /media/* -> production media storage or media-serving layer
 ```
 
-If the frontend and backend are deployed on different domains, configure the frontend WebSocket base URL explicitly and make sure CORS, CSRF, allowed hosts, and trusted origins match the deployed domains.
+If the frontend and backend are deployed on different domains, the frontend WebSocket base URL must be configured explicitly. CORS, CSRF trusted origins, allowed hosts, and WebSocket origins must match the deployed domains.
 
-## Local Development Notes
-
-- Keep Django on `http://localhost:8000`, not `http://127.0.0.1:8000`.
-- The frontend defaults to `/api`, which uses the Vite proxy in development.
-- You normally do not need to set `VITE_API_BASE_URL` locally.
-- If you override `VITE_API_BASE_URL`, use:
-
-```text
-http://localhost:8000/api
-```
-
-This keeps CSRF cookies and requests on compatible hosts.
+---
 
 ## Running Tests
 
@@ -214,7 +323,7 @@ To test the main app areas:
 python manage.py test bookings reviews users listings chat notifications favorites
 ```
 
-Recommended checks before submission or deployment:
+Recommended backend checks before submission:
 
 ```bash
 python manage.py check
@@ -231,24 +340,14 @@ npm run lint
 npm run build
 ```
 
-Security/dependency checks can also be useful:
+Optional dependency/security checks:
 
 ```bash
 pip-audit
 npm audit
 ```
 
-## Important Backend Apps
-
-```text
-bookings/       Booking creation, confirmation, cancellation, and booking rules
-chat/           Conversations, messages, and WebSocket consumers
-favorites/      Favorite boat listings
-listings/       Boat listings, images, search, filters, and listing conditions
-notifications/  Notification creation and delivery
-reviews/        Boat and user reviews
-users/          Authentication, email verification, profiles, and device sessions
-```
+---
 
 ## Environment Files
 
@@ -266,65 +365,153 @@ cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
 ```
 
-Do not commit real secrets.
+Real secrets should never be committed.
 
-Before sharing or submitting the project, check that private files are not included:
+Before sharing or submitting the project, check that private/local files are not included:
 
 ```bash
-find . -name ".env" -o -name "*.pem" -o -name "*.key" -o -name "db.sqlite3" -o -name ".DS_Store" -o -name "__MACOSX"
+find . -name ".env" \
+  -o -name "*.pem" \
+  -o -name "*.key" \
+  -o -name "db.sqlite3" \
+  -o -name ".DS_Store" \
+  -o -name "__MACOSX"
 ```
 
-## Production Notes
+Recommended local cleanup before committing:
 
-Before deploying TideMate publicly, configure the production environment carefully:
+```bash
+find . -type d -name "__pycache__" -prune -exec rm -rf {} +
+find . -type d -name ".pytest_cache" -prune -exec rm -rf {} +
+find . -name ".DS_Store" -delete
+```
 
-- Use PostgreSQL instead of SQLite.
-- Set `DEBUG=False`.
-- Use a strong production `SECRET_KEY`.
-- Configure `ALLOWED_HOSTS`.
-- Configure CORS and CSRF trusted origins.
-- Use HTTPS only.
-- Enable secure cookies.
-- Enable HSTS only after HTTPS is confirmed to work correctly.
-- Use Redis for Django Channels.
-- Use Redis or another shared cache backend for throttling.
-- Configure a real email backend for verification, password reset, and account-security emails.
-- Store secrets in environment variables, not in source code.
-- Serve uploaded media files through a safe production media storage setup such as S3, Cloudflare R2, Azure Blob Storage, Google Cloud Storage, or another dedicated media layer.
-- Ensure uploaded files cannot be executed as code by the web server.
-- Add a strict Content Security Policy at the frontend host or reverse proxy.
-- Monitor failed login attempts, password reset activity, email changes, booking actions, and suspicious upload failures.
-- Restrict and monitor Django admin access.
+---
 
-## Known Limitations and Future Hardening
+## Important Backend Apps
 
-TideMate is functional, but the following areas should be improved before treating it as a real production marketplace:
+```text
+bookings/       Booking creation, confirmation, cancellation, and booking rules
+chat/           Conversations, messages, and WebSocket consumers
+favorites/      Favorite boat listings
+listings/       Boat listings, images, search, filters, and listing conditions
+notifications/  Notification creation and delivery
+reviews/        Boat and user reviews
+users/          Authentication, email verification, profiles, and device sessions
+```
 
-- Add a production-grade media storage solution for uploaded boat and profile images.
-- Move third-party geocoding/location lookups behind the backend to improve privacy, caching, throttling, and provider control.
-- Tighten the production Content Security Policy and avoid `unsafe-inline` where possible.
-- Add a dedicated audit log for sensitive actions such as login attempts, password resets, email changes, booking creation, booking confirmation, listing updates, and admin actions.
-- Add stronger moderation tools for reports, blocked users, suspicious listings, abusive reviews, and chat abuse.
-- Add payment handling, cancellation/refund logic, payout logic, and fraud controls before real rentals are accepted.
-- Add host/renter verification if the app is used outside a demo environment.
-- Add more automated tests for object-level permissions, CSRF failures, image upload rejection, booking overlap, and WebSocket access control.
-- Verify that all frontend pages compile cleanly with `npm run build` before submission.
+---
 
-## Current Status
+## Local Development Notes
 
-TideMate is a functional full-stack marketplace prototype with a strong focus on practical backend architecture, authentication, validation, authorization, and user-facing marketplace features.
+- Keep Django on `http://localhost:8000`.
+- Keep Vite on `http://localhost:5173`.
+- Avoid mixing `localhost` and `127.0.0.1`.
+- The frontend usually does not need `VITE_API_BASE_URL` locally.
+- The frontend can call `/api/...` and rely on the Vite proxy.
+- If `VITE_API_BASE_URL` is overridden locally, use:
 
-The project is suitable as a student/portfolio project and demonstrates work with:
+```text
+http://localhost:8000/api
+```
+
+This keeps cookies, CSRF, and local requests predictable.
+
+---
+
+## Production Checklist
+
+TideMate is not yet production-ready. Before deploying publicly, the following should be completed.
+
+### Required Production Configuration
+
+- Use PostgreSQL instead of SQLite
+- Set `DEBUG=False`
+- Use a strong production `SECRET_KEY`
+- Configure `ALLOWED_HOSTS`
+- Configure CORS allowed origins
+- Configure CSRF trusted origins
+- Use HTTPS only
+- Enable secure cookies
+- Enable HSTS only after HTTPS is confirmed working
+- Use Redis for Django Channels
+- Use Redis or another shared cache for throttling
+- Configure a real email backend
+- Store secrets in environment variables
+- Restrict and monitor Django admin access
+
+### Media and Upload Hardening
+
+- Store uploaded files outside the source tree
+- Use safe production media storage, such as:
+  - S3
+  - Cloudflare R2
+  - Azure Blob Storage
+  - Google Cloud Storage
+- Ensure uploaded files cannot execute as code
+- Apply upload limits at the reverse proxy level
+- Serve media through a dedicated media layer or CDN
+
+### Frontend and Deployment Security
+
+- Add a strict Content Security Policy
+- Avoid `unsafe-inline` where possible
+- Configure correct frontend environment variables
+- Ensure WebSocket URLs use `wss://` in production
+- Confirm CORS, CSRF, cookies, and WebSocket origins all match the deployed domains
+
+### Monitoring and Abuse Prevention
+
+- Monitor failed login attempts
+- Monitor password resets
+- Monitor email changes
+- Monitor suspicious uploads
+- Monitor booking creation and cancellation activity
+- Add moderation tools for listings, reviews, and chat
+- Add audit logging for sensitive actions
+
+---
+
+## Known Limitations
+
+The project is functional, but the following areas should be improved before it is treated as a real marketplace:
+
+- Payment handling is not implemented
+- Deposit and refund logic is not implemented
+- Host/renter verification is not implemented
+- Insurance/legal workflows are not implemented
+- Production-grade media storage is not yet configured
+- Some frontend areas need stronger automated test coverage
+- Moderation and abuse-reporting tools should be expanded
+- Third-party geocoding/location lookups should eventually be routed through the backend
+- Production monitoring and alerting are not yet configured
+
+---
+
+## What This Project Demonstrates
+
+TideMate demonstrates practical experience with:
 
 - Full-stack web development
 - REST API design
+- Django backend architecture
+- React frontend architecture
 - Authentication and authorization
 - Secure cookie-based JWT sessions
 - CSRF-aware frontend/backend communication
-- Email verification and safer account-management flows
+- Email verification and account-management flows
 - File upload validation and image sanitization
 - Relational data modeling
-- Real-time features with WebSockets
-- Frontend state and API integration
+- Object-level permissions
+- Real-time communication with WebSockets
+- Frontend routing and API integration
 - Marketplace-style booking workflows
 - Security-conscious design for a private/full-stack web application
+
+---
+
+## Current Status
+
+TideMate is a functional full-stack marketplace prototype with a strong focus on backend architecture, authentication, authorization, validation, image upload safety, and user-facing marketplace features.
+
+It is suitable as a student/portfolio project and can be improved further with more frontend tests, stronger production deployment hardening, and real marketplace infrastructure such as payments, verification, and moderation.
