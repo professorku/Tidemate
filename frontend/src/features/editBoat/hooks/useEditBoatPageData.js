@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getMyListingDetail, updateMyListing } from '../../../api/domains/listings'
@@ -26,6 +26,7 @@ export default function useEditBoatPageData() {
   const { id } = useParams()
   const formMethods = useForm({ defaultValues: createInitialForm(), mode: 'onBlur' })
 
+  const [boat, setBoat] = useState(null)
   const [existingImages, setExistingImages] = useState([])
   const [removedImageIds, setRemovedImageIds] = useState([])
   const [newImages, setNewImages] = useState([])
@@ -50,27 +51,31 @@ export default function useEditBoatPageData() {
     }
   }, [newPreviews])
 
-  useEffect(() => {
-    const loadBoat = async () => {
-      try {
-        setLoading(true)
-        const boat = await getMyListingDetail(id)
+  const loadBoat = useCallback(async () => {
+    try {
+      setLoading(true)
+      const nextBoat = await getMyListingDetail(id)
 
-        formMethods.reset(mapBoatToForm(boat))
+      setBoat(nextBoat)
+      formMethods.reset(mapBoatToForm(nextBoat))
 
-        const images = Array.isArray(boat.images) ? boat.images : []
-        setExistingImages(images)
-        setCoverSelection(getInitialCoverSelection(images))
-        setError('')
-      } catch (err) {
-        setError(getErrorMessage(err, 'Could not load this boat for editing.'))
-      } finally {
-        setLoading(false)
-      }
+      const images = Array.isArray(nextBoat.images) ? nextBoat.images : []
+      setExistingImages(images)
+      setRemovedImageIds([])
+      setNewImages([])
+      setCoverSelection(getInitialCoverSelection(images))
+      setError('')
+    } catch (err) {
+      setBoat(null)
+      setError(getErrorMessage(err, 'Could not load this boat for editing.'))
+    } finally {
+      setLoading(false)
     }
-
-    loadBoat()
   }, [formMethods, id])
+
+  useEffect(() => {
+    void loadBoat()
+  }, [loadBoat])
 
   const handleLocationChange = ({
     latitude,
@@ -250,6 +255,10 @@ export default function useEditBoatPageData() {
       return
     }
 
+    if (!values.pickup_address?.trim()) {
+      setError('Please choose the exact private pickup location on the map.')
+      return
+    }
 
     if (existingImages.length === 0 && newImages.length === 0) {
       setError('Please keep or upload at least one photo.')
@@ -309,6 +318,7 @@ export default function useEditBoatPageData() {
   })
 
   return {
+    boat,
     formMethods,
     form,
     existingImages,
@@ -326,5 +336,6 @@ export default function useEditBoatPageData() {
     setExistingImageAsCover,
     setNewImageAsCover,
     handleSubmit,
+    reload: loadBoat,
   }
 }

@@ -1,37 +1,65 @@
 import { StarIcon, TrashIcon } from '@heroicons/react/24/outline'
 
-export default function ExistingImageCard({ image, isCover, onSetCover, onRemove }) {
+export default function ExistingImageCard({
+  image,
+  isCover,
+  onSetCover,
+  onRemove,
+  disabled = false,
+}) {
   return (
-    <div
-      className={`overflow-hidden rounded-[24px] border ${
+    <article
+      className={`overflow-hidden rounded-[26px] border bg-white shadow-sm ${
         isCover ? 'border-gold ring-2 ring-gold/30' : 'border-slate-200'
       }`}
     >
-      <img src={image.image} alt="Boat" className="h-44 w-full object-cover" />
+      <div className="relative h-48 bg-slate-100">
+        <img src={image.image} alt="Boat" className="h-full w-full object-cover" />
 
-      <div className="space-y-3 p-4">
-        <div className="flex gap-2">
+        {isCover ? (
+          <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-gold px-3 py-1 text-xs font-extrabold text-navy shadow-sm">
+            <StarIcon className="h-4 w-4" />
+            Cover
+          </span>
+        ) : null}
+      </div>
+
+      <div className="space-y-4 p-4">
+        <div>
+          <p className="text-sm font-bold text-slate-900">
+            Saved photo
+          </p>
+          <p className="mt-1 text-xs text-slate-500">
+            Image #{image.id}
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
           <button
             type="button"
             onClick={onSetCover}
-            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold ${
-              isCover ? 'bg-gold text-navy' : 'bg-slate-100 text-slate-700'
+            disabled={disabled}
+            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
+              isCover
+                ? 'bg-gold text-navy'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
             <StarIcon className="h-4 w-4" />
-            {isCover ? 'Cover photo' : 'Set as cover'}
+            {isCover ? 'Cover photo' : 'Set cover'}
           </button>
 
           <button
             type="button"
             onClick={onRemove}
-            className="inline-flex items-center gap-2 rounded-full bg-red-50 px-4 py-2 text-sm font-semibold text-red-600"
+            disabled={disabled}
+            className="inline-flex items-center gap-2 rounded-full bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <TrashIcon className="h-4 w-4" />
             Remove
           </button>
         </div>
       </div>
-    </div>
+    </article>
   )
 }
