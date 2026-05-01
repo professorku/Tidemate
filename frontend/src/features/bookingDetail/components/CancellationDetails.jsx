@@ -4,19 +4,19 @@ import { formatDateTime, formatStatusLabel } from '../utils/bookingFormatters'
 
 export default function CancellationDetails({ booking }) {
   return (
-    <div className="rounded-[30px] border border-red-200 bg-red-50 p-5 shadow-sm md:p-6">
+    <div className="rounded-[30px] border border-red-300/25 bg-red-400/10 p-5 shadow-soft md:p-6">
       <div className="flex items-start gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-red-600 ring-1 ring-red-100">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-400/10 text-red-200 ring-1 ring-red-300/25">
           <ExclamationTriangleIcon className="h-6 w-6" />
         </div>
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-red-700">
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-red-200">
             {formatStatusLabel(booking.status)}
           </p>
-          <h2 className="mt-1 text-2xl font-extrabold text-red-900">
+          <h2 className="mt-1 text-2xl font-extrabold text-white">
             Cancellation details
           </h2>
-          <p className="mt-1 text-sm leading-6 text-red-700">
+          <p className="mt-1 text-sm leading-6 text-red-100/80">
             This explains who cancelled the booking and why.
           </p>
         </div>
@@ -27,7 +27,6 @@ export default function CancellationDetails({ booking }) {
           label="Cancelled by"
           value={booking.cancelled_by || 'Unknown'}
           muted
-          className="bg-white/75"
         />
 
         <InfoCard
@@ -38,16 +37,15 @@ export default function CancellationDetails({ booking }) {
               : 'Not available'
           }
           muted
-          className="bg-white/75"
         />
       </div>
 
-      <div className="mt-4 rounded-2xl bg-white/75 p-4 ring-1 ring-red-100">
-        <p className="text-xs font-semibold uppercase tracking-wide text-red-700">
+      <div className="mt-4 rounded-2xl border border-red-300/25 bg-[#071d32]/70 p-4">
+        <p className="text-xs font-semibold uppercase tracking-wide text-red-200">
           Reason
         </p>
 
-        <p className="mt-2 whitespace-pre-line text-sm leading-6 text-red-800">
+        <p className="mt-2 whitespace-pre-line text-sm leading-6 text-red-100/85">
           {booking.cancellation_reason ||
             'No cancellation reason was provided.'}
         </p>

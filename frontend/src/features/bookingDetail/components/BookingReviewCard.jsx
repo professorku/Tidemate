@@ -8,16 +8,16 @@ function ReviewPreviewCard({ title, review }) {
   if (!review) return null
 
   return (
-    <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-      <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
+    <div className="rounded-2xl border border-emerald-300/25 bg-emerald-400/10 p-4">
+      <p className="text-xs font-semibold uppercase tracking-wide text-emerald-100">
         {title}
       </p>
 
-      <p className="mt-2 text-sm font-bold text-slate-900">
+      <p className="mt-2 text-sm font-bold text-white">
         {formatRatingLabel(review.rating)} · {review.rating}/5
       </p>
 
-      <p className="mt-2 text-sm leading-6 text-slate-700">
+      <p className="mt-2 text-sm leading-6 text-white/70">
         {review.comment_preview || 'No written comment.'}
       </p>
     </div>
@@ -56,20 +56,20 @@ export default function BookingReviewCard({ booking, onRefresh }) {
   if (!shouldShow) return null
 
   return (
-    <div className="rounded-[30px] border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+    <div className="rounded-[30px] border border-gold/20 bg-navy p-5 shadow-soft md:p-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="flex items-start gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-violet-50 text-violet-700 ring-1 ring-violet-100">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#071d32]/80 text-gold ring-1 ring-gold/20">
             <StarIcon className="h-6 w-6" />
           </div>
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-gold">
               Completed trip
             </p>
-            <h2 className="mt-1 text-xl font-extrabold text-slate-900">
+            <h2 className="mt-1 text-xl font-extrabold text-white">
               {reviewHeadline}
             </h2>
-            <p className="mt-1 text-sm leading-6 text-slate-600">
+            <p className="mt-1 text-sm leading-6 text-white/60">
               Share feedback after the trip or check the review you already submitted.
             </p>
           </div>
@@ -77,7 +77,7 @@ export default function BookingReviewCard({ booking, onRefresh }) {
 
         <Link
           to={`/boats/${booking.boat}`}
-          className="rounded-full bg-slate-900 px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:opacity-90"
+          className="rounded-full bg-gold px-4 py-2.5 text-center text-sm font-semibold text-navy transition hover:bg-gold/90"
         >
           Book again
         </Link>
@@ -104,7 +104,7 @@ export default function BookingReviewCard({ booking, onRefresh }) {
               onClick={() =>
                 setOpenReviewType((current) => (current === 'boat' ? '' : 'boat'))
               }
-              className="rounded-full border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-100"
+              className="rounded-full border border-gold/20 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
             >
               {openReviewType === 'boat' ? 'Hide boat review' : 'Leave boat review'}
             </button>
@@ -116,7 +116,7 @@ export default function BookingReviewCard({ booking, onRefresh }) {
               onClick={() =>
                 setOpenReviewType((current) => (current === 'user' ? '' : 'user'))
               }
-              className="rounded-full border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-100"
+              className="rounded-full border border-gold/20 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
             >
               {openReviewType === 'user'
                 ? 'Hide user review'

@@ -166,8 +166,8 @@ export default function BoatMap({ boat }) {
             <MapFlyTo center={position} zoom={zoom} />
 
             <TileLayer
-              attribution='&copy; OpenStreetMap contributors &copy; CARTO'
-              url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+              attribution="&copy; OpenStreetMap contributors &copy; CARTO"
+              url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
             />
 
             <Circle

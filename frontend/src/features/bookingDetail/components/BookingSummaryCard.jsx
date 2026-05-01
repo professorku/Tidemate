@@ -41,15 +41,15 @@ export default function BookingSummaryCard({ booking }) {
     booking?.cancellation_policy || fallbackCancellationPolicy
 
   return (
-    <div className="overflow-hidden rounded-[30px] border border-slate-200 bg-white shadow-sm lg:sticky lg:top-24">
-      <div className="bg-gradient-to-br from-navy to-ocean px-5 py-6 text-white">
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/70">
+    <div className="overflow-hidden rounded-[30px] border border-gold/20 bg-navy shadow-soft lg:sticky lg:top-24">
+      <div className="border-b border-gold/10 bg-[#113853] px-5 py-6 text-white">
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-gold">
           Price summary
         </p>
         <p className="mt-3 text-4xl font-extrabold tracking-tight">
           {formatMoney(booking.total_price)}
         </p>
-        <p className="mt-1 text-sm text-white/70">
+        <p className="mt-1 text-sm text-white/65">
           {formatMoney(booking.price_per_day)} per day · {booking.duration_days} day
           {booking.duration_days !== 1 ? 's' : ''}
         </p>
@@ -84,14 +84,14 @@ export default function BookingSummaryCard({ booking }) {
           />
         </div>
 
-        <div className="mt-5 rounded-[24px] border border-slate-200 bg-slate-50 p-4">
+        <div className="mt-5 rounded-[24px] border border-gold/15 bg-[#071d32]/70 p-4">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-navy ring-1 ring-slate-200">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-navy text-gold ring-1 ring-gold/20">
               <ReceiptPercentIcon className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm font-bold text-slate-900">Policies</p>
-              <p className="mt-1 text-sm leading-6 text-slate-600">
+              <p className="text-sm font-bold text-white">Policies</p>
+              <p className="mt-1 text-sm leading-6 text-white/60">
                 Rental and cancellation rules are shown below for quick reference.
               </p>
             </div>

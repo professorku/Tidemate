@@ -8,16 +8,16 @@ export default function BoatCard({ boat, onFavoriteChange }) {
     Array.isArray(boat.images)
       ? boat.images.length
       : boat.image
-      ? 1
-      : 0
+        ? 1
+        : 0
 
   return (
     <BaseBoatCard
-      className="rounded-[22px] shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+      className="!border-[#071d32] !bg-transparent !shadow-none transition hover:-translate-y-1 hover:!shadow-lg"
       media={(
         <Link
           to={`/boats/${boat.id}`}
-          className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
+          className="block rounded-3xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-[#071d32]"
           aria-label={`View ${boat.title}`}
         >
           <BoatCardImage boat={boat} imageCount={imageCount} />

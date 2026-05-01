@@ -6,7 +6,6 @@ import {
   CheckCircleIcon,
   EnvelopeOpenIcon,
   ShieldCheckIcon,
-  SparklesIcon,
   StarIcon,
 } from '@heroicons/react/24/outline'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -34,11 +33,11 @@ const NOTIFICATION_ICONS = {
 }
 
 const NOTIFICATION_ICON_CLASSES = {
-  message: 'bg-sky-50 text-sky-700 ring-sky-100',
-  booking: 'bg-amber-50 text-amber-700 ring-amber-100',
-  review: 'bg-violet-50 text-violet-700 ring-violet-100',
-  account: 'bg-emerald-50 text-emerald-700 ring-emerald-100',
-  update: 'bg-slate-100 text-slate-700 ring-slate-200',
+  message: 'bg-gold/10 text-gold ring-gold/20',
+  booking: 'bg-gold/10 text-gold ring-gold/20',
+  review: 'bg-gold/10 text-gold ring-gold/20',
+  account: 'bg-emerald-400/10 text-emerald-100 ring-emerald-300/20',
+  update: 'bg-white/10 text-white/70 ring-white/10',
 }
 
 function NotificationIcon({ notification }) {
@@ -58,19 +57,19 @@ function NotificationIcon({ notification }) {
 
 function SummaryCard({ icon, label, value, text }) {
   return (
-    <div className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-[24px] border border-gold/20 bg-navy p-5 shadow-soft">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold text-slate-500">{label}</p>
-          <p className="mt-2 text-3xl font-extrabold text-slate-900">{value}</p>
+          <p className="text-sm font-semibold text-white/60">{label}</p>
+          <p className="mt-2 text-3xl font-extrabold text-white">{value}</p>
         </div>
 
-        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-navy">
+        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#071d32]/80 text-gold ring-1 ring-gold/20">
           {icon}
         </div>
       </div>
 
-      {text ? <p className="mt-3 text-sm leading-6 text-slate-500">{text}</p> : null}
+      {text ? <p className="mt-3 text-sm leading-6 text-white/55">{text}</p> : null}
     </div>
   )
 }
@@ -84,8 +83,8 @@ function NotificationCard({ notification, onOpen }) {
       onClick={() => onOpen(notification)}
       className={`group block w-full rounded-[28px] border p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-soft md:p-6 ${
         notification.is_read
-          ? 'border-slate-200 bg-white'
-          : 'border-gold/40 bg-gradient-to-br from-amber-50 via-white to-white ring-1 ring-gold/20'
+          ? 'border-gold/15 bg-[#071d32]/70'
+          : 'border-gold/35 bg-gold/10 ring-1 ring-gold/20'
       }`}
     >
       <div className="flex gap-4">
@@ -93,13 +92,13 @@ function NotificationCard({ notification, onOpen }) {
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
+            <span className="rounded-full border border-gold/20 bg-white/10 px-2.5 py-1 text-xs font-bold uppercase tracking-[0.12em] text-gold">
               {kindLabel}
             </span>
 
             {!notification.is_read ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-navy px-2.5 py-1 text-xs font-bold text-white">
-                <span className="h-1.5 w-1.5 rounded-full bg-gold" />
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-gold px-2.5 py-1 text-xs font-bold text-navy">
+                <span className="h-1.5 w-1.5 rounded-full bg-navy" />
                 New
               </span>
             ) : null}
@@ -107,7 +106,7 @@ function NotificationCard({ notification, onOpen }) {
 
           <p
             className={`mt-3 text-base leading-7 ${
-              notification.is_read ? 'text-slate-700' : 'font-semibold text-slate-950'
+              notification.is_read ? 'text-white/70' : 'font-semibold text-white'
             }`}
           >
             {notification.message}
@@ -115,13 +114,13 @@ function NotificationCard({ notification, onOpen }) {
 
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm">
             <span
-              className="text-slate-500"
+              className="text-white/50"
               title={formatNotificationFullTime(notification.created_at)}
             >
               {formatNotificationTime(notification.created_at)}
             </span>
 
-            <span className="font-semibold text-navy transition group-hover:text-gold">
+            <span className="font-semibold text-gold transition group-hover:text-gold/80">
               Open update
             </span>
           </div>
@@ -137,14 +136,14 @@ function LoadingSkeleton() {
       {[1, 2, 3].map((item) => (
         <div
           key={item}
-          className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm md:p-6"
+          className="rounded-[28px] border border-gold/15 bg-[#071d32]/70 p-5 shadow-sm md:p-6"
         >
           <div className="flex gap-4">
-            <div className="h-12 w-12 animate-pulse rounded-2xl bg-slate-200" />
+            <div className="h-12 w-12 animate-pulse rounded-2xl bg-white/10" />
             <div className="flex-1 space-y-3">
-              <div className="h-4 w-28 animate-pulse rounded-full bg-slate-200" />
-              <div className="h-5 w-full animate-pulse rounded-full bg-slate-100" />
-              <div className="h-5 w-2/3 animate-pulse rounded-full bg-slate-100" />
+              <div className="h-4 w-28 animate-pulse rounded-full bg-white/10" />
+              <div className="h-5 w-full animate-pulse rounded-full bg-white/10" />
+              <div className="h-5 w-2/3 animate-pulse rounded-full bg-white/10" />
             </div>
           </div>
         </div>
@@ -269,30 +268,25 @@ export default function NotificationsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-sky-50 via-white to-slate-100">
+    <main className="min-h-screen bg-[#071d32]">
       <PageContainer
         size="page"
         className="py-8 md:py-10"
         as="div"
         contentClassName="space-y-6"
       >
-        <section className="overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-soft">
-          <div className="relative bg-gradient-to-r from-navy via-ocean to-slate-900 px-6 py-8 text-white md:px-8 md:py-10">
-            <div className="absolute right-8 top-8 hidden rounded-full bg-white/10 p-5 text-white/80 md:block">
+        <section className="overflow-hidden rounded-[32px] border border-gold/20 bg-navy shadow-soft">
+          <div className="relative px-6 py-8 text-white md:px-8 md:py-10">
+            <div className="absolute right-8 top-8 hidden rounded-full bg-[#071d32]/80 p-5 text-gold ring-1 ring-gold/20 md:block">
               <BellAlertIcon className="h-10 w-10" />
             </div>
 
             <div className="max-w-3xl">
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-white/80">
-                <SparklesIcon className="h-4 w-4" />
-                Activity center
-              </span>
-
-              <h1 className="mt-4 text-3xl font-extrabold tracking-tight md:text-4xl">
+              <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">
                 Notifications
               </h1>
 
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-white/75 md:text-base">
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-white/70 md:text-base">
                 Booking requests, confirmations, messages, reviews, and account updates appear here.
               </p>
             </div>
@@ -322,11 +316,11 @@ export default function NotificationsPage() {
           />
         </section>
 
-        <section className="rounded-[32px] border border-slate-200 bg-white/80 p-4 shadow-sm md:p-6">
+        <section className="rounded-[32px] border border-gold/20 bg-navy p-4 shadow-soft md:p-6">
           <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-xl font-extrabold text-slate-900">Recent activity</h2>
-              <p className="mt-1 text-sm text-slate-500">
+              <h2 className="text-xl font-extrabold text-white">Recent activity</h2>
+              <p className="mt-1 text-sm text-white/60">
                 {pageUnreadCount > 0
                   ? `${pageUnreadCount} unread on this page.`
                   : 'This page is up to date.'}
@@ -338,7 +332,7 @@ export default function NotificationsPage() {
                 type="button"
                 onClick={() => loadNotifications(pagination.page || 1)}
                 disabled={loading || markingAll}
-                className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center justify-center rounded-full border border-gold/20 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Refresh
               </button>
@@ -351,7 +345,7 @@ export default function NotificationsPage() {
                   markingAll ||
                   (globalUnreadCount === 0 && pageUnreadCount === 0)
                 }
-                className="inline-flex items-center justify-center rounded-full bg-navy px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-ocean disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center justify-center rounded-full bg-gold px-4 py-2.5 text-sm font-semibold text-navy transition hover:bg-gold/90 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {markingAll ? 'Updating...' : 'Mark all as read'}
               </button>
