@@ -12,6 +12,7 @@ urlpatterns = [
     path('api/chat/', include('chat.urls')),
     path('api/reviews/', include('reviews.urls')),
     path('api/favorites/', include('favorites.urls')),
+    path('api/geocoding/', include('geocoding.urls')),
 ]
 
 if settings.DEBUG:

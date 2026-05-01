@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     "chat",
     "reviews",
     "favorites",
+    "geocoding",
 ]
 
 MIDDLEWARE = [
@@ -157,6 +158,23 @@ LISTING_SEARCH_FALLBACK_MAX_CANDIDATES = env_int(
     250,
 )
 
+GEOCODING_PROVIDER_BASE_URL = os.getenv(
+    "GEOCODING_PROVIDER_BASE_URL",
+    "https://nominatim.openstreetmap.org",
+)
+
+GEOCODING_PROVIDER_USER_AGENT = os.getenv(
+    "GEOCODING_PROVIDER_USER_AGENT",
+    "Tidemate/1.0 (private project)",
+)
+
+GEOCODING_COUNTRY_CODES = env_list("GEOCODING_COUNTRY_CODES", "no")
+GEOCODING_SEARCH_LIMIT = env_int("GEOCODING_SEARCH_LIMIT", 5)
+GEOCODING_QUERY_MAX_LENGTH = env_int("GEOCODING_QUERY_MAX_LENGTH", 120)
+GEOCODING_TIMEOUT_SECONDS = env_float("GEOCODING_TIMEOUT_SECONDS", 4.0)
+GEOCODING_SEARCH_CACHE_SECONDS = env_int("GEOCODING_SEARCH_CACHE_SECONDS", 86400)
+GEOCODING_REVERSE_CACHE_SECONDS = env_int("GEOCODING_REVERSE_CACHE_SECONDS", 604800)
+
 CORS_ALLOWED_ORIGINS = env_list(
     "CORS_ALLOWED_ORIGINS",
     "http://localhost:5173,http://127.0.0.1:5173",
@@ -175,9 +193,6 @@ REST_FRAMEWORK = {
         "config.authentication.CookieJWTAuthentication",
     ],
     "DEFAULT_THROTTLE_RATES": {
-        # Keep the generic auth bucket high enough for normal multi-step flows
-        # (login, refresh, logout, verify, reset) while relying on the
-        # endpoint-specific identity throttles for abuse protection.
         "auth_anon": "20/minute",
         "auth_user": "60/minute",
         "chat": "30/minute",
@@ -204,6 +219,7 @@ REST_FRAMEWORK = {
         "reset_password": "20/hour",
         "change_password": "10/hour",
         "relationship_write": "60/hour",
+        "geocoding": "120/hour",
     },
 }
 
@@ -220,20 +236,49 @@ CSP_CONNECT_SRC_EXTRA = env_list("CSP_CONNECT_SRC_EXTRA", "")
 CSP_IMG_SRC_EXTRA = env_list("CSP_IMG_SRC_EXTRA", "")
 CSP_FRAME_SRC_EXTRA = env_list("CSP_FRAME_SRC_EXTRA", "")
 
+CSP_ENABLED = env_bool("CSP_ENABLED", IS_PRODUCTION_SETTINGS)
+
+# Useful when testing CSP changes in production:
+# True  = browser reports violations but does not block them
+# False = browser blocks violations
+CSP_REPORT_ONLY = env_bool("CSP_REPORT_ONLY", False)
+
+CSP_SCRIPT_SRC_EXTRA = env_list("CSP_SCRIPT_SRC_EXTRA", "")
+CSP_STYLE_SRC_EXTRA = env_list("CSP_STYLE_SRC_EXTRA", "")
+CSP_CONNECT_SRC_EXTRA = env_list("CSP_CONNECT_SRC_EXTRA", "")
+CSP_IMG_SRC_EXTRA = env_list("CSP_IMG_SRC_EXTRA", "")
+CSP_FRAME_SRC_EXTRA = env_list("CSP_FRAME_SRC_EXTRA", "")
+
 CSP_POLICY = {
     "default-src": ["'self'"],
     "base-uri": ["'self'"],
     "object-src": ["'none'"],
-    "script-src": ["'self'", "'unsafe-inline'"],
-    "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+
+    # Important XSS hardening:
+    # No "'unsafe-inline'" here.
+    "script-src": ["'self'", *CSP_SCRIPT_SRC_EXTRA],
+    "script-src-elem": ["'self'", *CSP_SCRIPT_SRC_EXTRA],
+    "script-src-attr": ["'none'"],
+
+    # Inline styles are still allowed because Django admin, Leaflet,
+    # and some browser-generated UI styles may need them.
+    "style-src": [
+        "'self'",
+        "'unsafe-inline'",
+        "https://fonts.googleapis.com",
+        *CSP_STYLE_SRC_EXTRA,
+    ],
+
     "font-src": ["'self'", "data:", "https://fonts.gstatic.com"],
     "img-src": ["'self'", "data:", "blob:", "https:", *CSP_IMG_SRC_EXTRA],
+
     "connect-src": [
         "'self'",
         *CORS_ALLOWED_ORIGINS,
         *WEBSOCKET_ALLOWED_ORIGINS,
         *CSP_CONNECT_SRC_EXTRA,
     ],
+
     "frame-src": ["'self'", "https://www.openstreetmap.org", *CSP_FRAME_SRC_EXTRA],
     "form-action": ["'self'"],
     "frame-ancestors": ["'none'"],

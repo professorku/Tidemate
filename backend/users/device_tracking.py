@@ -1,5 +1,7 @@
-from hashlib import sha256
+import hashlib
+import hmac
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
@@ -24,7 +26,14 @@ class DeviceSession(models.Model):
 
 
 def hash_token(token: str) -> str:
-    return sha256(token.encode("utf-8")).hexdigest()
+    if token is None:
+        return ""
+
+    return hmac.new(
+        settings.SECRET_KEY.encode("utf-8"),
+        str(token).encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()
 
 
 def build_device_label(user_agent: str) -> str:
@@ -35,7 +44,6 @@ def build_device_label(user_agent: str) -> str:
 
 
 def get_request_ip(request):
-
     from rest_framework.settings import api_settings
 
     num_proxies = api_settings.NUM_PROXIES
@@ -52,11 +60,10 @@ def get_request_ip(request):
 
 
 def upsert_device_session(*, user, refresh_token: str, request):
-    from django.conf import settings
-
     expires_at = timezone.now() + settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"]
     token_hash = hash_token(refresh_token)
     user_agent = request.META.get("HTTP_USER_AGENT", "")
+
     defaults = {
         "device_label": build_device_label(user_agent),
         "user_agent": user_agent,
@@ -65,16 +72,19 @@ def upsert_device_session(*, user, refresh_token: str, request):
         "revoked_at": None,
         "last_used_at": timezone.now(),
     }
+
     session, _ = DeviceSession.objects.update_or_create(
         user=user,
         refresh_token_hash=token_hash,
         defaults=defaults,
     )
+
     return session
 
 
 def revoke_device_session_for_token(refresh_token: str):
     token_hash = hash_token(refresh_token)
+
     return DeviceSession.objects.filter(
         refresh_token_hash=token_hash,
         revoked_at__isnull=True,
@@ -83,6 +93,7 @@ def revoke_device_session_for_token(refresh_token: str):
 
 def is_device_session_active(refresh_token: str) -> bool:
     token_hash = hash_token(refresh_token)
+
     return DeviceSession.objects.filter(
         refresh_token_hash=token_hash,
         revoked_at__isnull=True,

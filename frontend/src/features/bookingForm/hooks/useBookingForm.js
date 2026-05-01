@@ -5,7 +5,7 @@ import { isAuthenticated } from '../../../utils/auth'
 import { getErrorMessage } from '../../../utils/errors'
 import {
   parseISODate,
-  daysBetweenInclusive,
+  daysBetween,
   rangeOverlaps,
 } from '../utils/bookingDateUtils'
 
@@ -28,6 +28,7 @@ export function useBookingForm({ boat, onBookingCreated }) {
       .map((range) => {
         const start = parseISODate(range.start_date)
         const end = parseISODate(range.end_date)
+
         if (!start || !end) return null
 
         return {
@@ -49,7 +50,7 @@ export function useBookingForm({ boat, onBookingCreated }) {
 
     if (!start || !end || end <= start) return null
 
-    const days = daysBetweenInclusive(start, end)
+    const days = daysBetween(start, end)
     const pricePerDay = Number(boat?.price_per_day || 0)
 
     return {
@@ -98,6 +99,11 @@ export function useBookingForm({ boat, onBookingCreated }) {
     }
 
     if (isoDate === form.start_date) {
+      setForm((prev) => ({
+        ...prev,
+        end_date: isoDate,
+      }))
+
       setError('Return date must be after the pickup date.')
       return
     }

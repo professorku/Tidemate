@@ -36,6 +36,7 @@ class BookingCreateSerializer(serializers.ModelSerializer):
                 'detail': ['Start date and end date are required.']
             })
 
+        # end_date is the return/check-out date, so it must be after start_date.
         if end_date <= start_date:
             raise serializers.ValidationError({
                 'end_date': ['Return date must be after the pickup date.']

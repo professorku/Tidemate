@@ -10,7 +10,19 @@ from .models import Booking
 
 
 def get_booking_duration_days(*, start_date, end_date):
-    return (end_date - start_date).days + 1
+    """
+    Booking dates are treated as a half-open range:
+
+        [start_date, end_date)
+
+    start_date is the pickup date.
+    end_date is the return/check-out date.
+
+    Example:
+        May 1 -> May 2 = 1 rental day
+        May 1 -> May 3 = 2 rental days
+    """
+    return (end_date - start_date).days
 
 
 def validate_booking_duration(*, start_date, end_date):
@@ -18,6 +30,11 @@ def validate_booking_duration(*, start_date, end_date):
         start_date=start_date,
         end_date=end_date,
     )
+
+    if duration_days <= 0:
+        raise serializers.ValidationError({
+            'end_date': ['Return date must be after the pickup date.']
+        })
 
     if duration_days > MAX_BOOKING_DURATION_DAYS:
         raise serializers.ValidationError({
@@ -30,11 +47,22 @@ def validate_booking_duration(*, start_date, end_date):
 
 
 def _get_overlapping_bookings(*, boat, start_date, end_date, now=None):
+    """
+    Half-open overlap check.
+
+    Two ranges overlap when:
+
+        existing.start_date < new.end_date
+        existing.end_date > new.start_date
+
+    This allows back-to-back bookings where one booking's return date is
+    the next booking's pickup date.
+    """
     return Booking.objects.filter(
         active_booking_filter(now=now),
         boat=boat,
-        start_date__lte=end_date,
-        end_date__gte=start_date,
+        start_date__lt=end_date,
+        end_date__gt=start_date,
     )
 
 

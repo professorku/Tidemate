@@ -1,4 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  reverseGeocodeLocation,
+  searchGeocodingPlaces,
+} from '../../../api/domains/geocoding'
 
 const DEFAULT_CENTER = [59.9139, 10.7522]
 const COORDINATE_DECIMALS = 6
@@ -23,15 +27,22 @@ function formatCoordinate(value) {
   return number.toFixed(COORDINATE_DECIMALS)
 }
 
+function firstNonEmpty(...values) {
+  return values.find((value) => typeof value === 'string' && value.trim())?.trim() || ''
+}
+
 function getCityOrCounty(address = {}, displayName = '') {
-  const publicName =
-    address.city ||
-    address.town ||
-    address.village ||
-    address.municipality ||
-    address.county ||
-    address.state_district ||
-    address.state
+  const publicName = firstNonEmpty(
+    address.city,
+    address.town,
+    address.village,
+    address.municipality,
+    address.county,
+    address.state_district,
+    address.state,
+    address.region,
+    address.country,
+  )
 
   if (publicName) return publicName
 
@@ -83,43 +94,32 @@ function getExactAddress(address = {}, displayName = '', latitude, longitude) {
 }
 
 function normalizeSearchResult(result) {
-  const latitude = roundCoordinate(result.lat)
-  const longitude = roundCoordinate(result.lon)
+  const latitude = roundCoordinate(result.latitude ?? result.lat)
+  const longitude = roundCoordinate(result.longitude ?? result.lon)
 
   if (latitude === null || longitude === null) return null
 
   const address = result.address || {}
-  const displayName = result.display_name || ''
+  const displayName = result.display_name || result.displayName || ''
+  const id = result.id || result.place_id || `${latitude}-${longitude}`
 
   return {
-    id: result.place_id || `${latitude}-${longitude}`,
+    ...result,
+    id,
+    place_id: result.place_id || id,
+    lat: result.lat ?? formatCoordinate(latitude),
+    lon: result.lon ?? formatCoordinate(longitude),
     latitude,
     longitude,
     display_name: displayName,
-    location_name: getCityOrCounty(address, displayName),
-    pickup_address: getExactAddress(address, displayName, latitude, longitude),
+    location_name: result.location_name || getCityOrCounty(address, displayName),
+    pickup_address:
+      result.pickup_address || getExactAddress(address, displayName, latitude, longitude),
   }
 }
 
-async function searchPlaces(query) {
-  const url = new URL('https://nominatim.openstreetmap.org/search')
-  url.searchParams.set('format', 'jsonv2')
-  url.searchParams.set('addressdetails', '1')
-  url.searchParams.set('limit', '5')
-  url.searchParams.set('countrycodes', 'no')
-  url.searchParams.set('q', query)
-
-  const response = await fetch(url.toString(), {
-    headers: {
-      Accept: 'application/json',
-    },
-  })
-
-  if (!response.ok) {
-    throw new Error('Could not search for location.')
-  }
-
-  const data = await response.json()
+async function searchPlaces(query, signal) {
+  const data = await searchGeocodingPlaces(query, { signal })
 
   return data.map(normalizeSearchResult).filter(Boolean)
 }
@@ -128,35 +128,23 @@ async function reverseGeocode(latitude, longitude) {
   const roundedLatitude = roundCoordinate(latitude)
   const roundedLongitude = roundCoordinate(longitude)
 
-  const url = new URL('https://nominatim.openstreetmap.org/reverse')
-  url.searchParams.set('format', 'jsonv2')
-  url.searchParams.set('addressdetails', '1')
-  url.searchParams.set('zoom', '18')
-  url.searchParams.set('lat', String(roundedLatitude))
-  url.searchParams.set('lon', String(roundedLongitude))
-
-  const response = await fetch(url.toString(), {
-    headers: {
-      Accept: 'application/json',
-    },
-  })
-
-  if (!response.ok) {
-    throw new Error('Could not fetch location details.')
+  if (roundedLatitude === null || roundedLongitude === null) {
+    throw new Error('Invalid coordinates.')
   }
 
-  const data = await response.json()
+  const data = await reverseGeocodeLocation({
+    latitude: roundedLatitude,
+    longitude: roundedLongitude,
+  })
+
   const address = data.address || {}
   const displayName = data.display_name || ''
 
   return {
-    location_name: getCityOrCounty(address, displayName),
-    pickup_address: getExactAddress(
-      address,
-      displayName,
-      roundedLatitude,
-      roundedLongitude,
-    ),
+    location_name: data.location_name || getCityOrCounty(address, displayName),
+    pickup_address:
+      data.pickup_address ||
+      getExactAddress(address, displayName, roundedLatitude, roundedLongitude),
   }
 }
 
@@ -231,16 +219,25 @@ export function useLocationPicker({
     }
 
     const controller = new AbortController()
+
     const timeout = setTimeout(async () => {
       setSearching(true)
       setSearchError('')
 
       try {
-        const searchResults = await searchPlaces(trimmed)
+        const searchResults = await searchPlaces(trimmed, controller.signal)
         setResults(searchResults)
       } catch (error) {
         if (controller.signal.aborted) return
-        setSearchError('Could not search for that location.')
+
+        const throttled = error?.status === 429
+
+        setSearchError(
+          throttled
+            ? 'Too many location searches. Please wait a moment and try again.'
+            : 'Could not search for that location.',
+        )
+
         setResults([])
       } finally {
         if (!controller.signal.aborted) {
@@ -300,7 +297,7 @@ export function useLocationPicker({
           location_name: reverseResult.location_name,
           pickup_address: reverseResult.pickup_address,
         })
-      } catch (error) {
+      } catch {
         applyLocation({
           latitude: pickedLatitude,
           longitude: pickedLongitude,
@@ -338,7 +335,7 @@ export function useLocationPicker({
           location_name: reverseResult.location_name || result.location_name,
           pickup_address: reverseResult.pickup_address || result.pickup_address,
         })
-      } catch (error) {
+      } catch {
         applyLocation({
           latitude: selectedLatitude,
           longitude: selectedLongitude,

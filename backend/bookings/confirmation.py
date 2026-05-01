@@ -13,11 +13,18 @@ from .models import Booking
 
 
 def _get_overlapping_bookings(*, boat, start_date, end_date, now=None):
+    """
+    Half-open overlap check:
+
+        [start_date, end_date)
+
+    This allows a new booking to start on the same date another booking ends.
+    """
     return Booking.objects.filter(
         active_booking_filter(now=now),
         boat=boat,
-        start_date__lte=end_date,
-        end_date__gte=start_date,
+        start_date__lt=end_date,
+        end_date__gt=start_date,
     )
 
 
@@ -64,8 +71,8 @@ def confirm_pending_booking(*, booking):
         Booking.objects.filter(
             active_pending_booking_filter(now=current_time),
             boat=locked_boat,
-            start_date__lte=locked_booking.end_date,
-            end_date__gte=locked_booking.start_date,
+            start_date__lt=locked_booking.end_date,
+            end_date__gt=locked_booking.start_date,
         )
         .exclude(pk=locked_booking.pk)
         .select_related(

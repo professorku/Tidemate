@@ -23,14 +23,7 @@ def _parse_extended_rate(rate):
 
 
 class EndpointScopedThrottleMixin:
-    """Scope shared auth throttles to a single endpoint.
-
-    Without this, every auth POST from the same client IP shares the same
-    bucket. A normal flow like login -> signup -> verify-email ->
-    forgot-password can exhaust the generic auth throttle even when each
-    individual endpoint is used reasonably.
-    """
-
+  
     def _get_endpoint_fragment(self, request):
         resolver_match = getattr(request, "resolver_match", None)
         if resolver_match and resolver_match.view_name:
@@ -120,6 +113,10 @@ class PublicProfileAnonRateThrottle(ReadOnlyAnonRateThrottle):
 
 class ConditionsAnonRateThrottle(ReadOnlyAnonRateThrottle):
     scope = "boat_conditions_anon"
+
+
+class GeocodingRateThrottle(UserRateThrottle):
+    scope = "geocoding"
 
 
 class ScopedIdentityRateThrottle(SimpleRateThrottle):

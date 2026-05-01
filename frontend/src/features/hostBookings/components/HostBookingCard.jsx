@@ -93,7 +93,6 @@ export default function HostBookingCard({
 
   const isPending = booking.status === 'pending' || timelineStatus === 'pending'
   const isCancelled = booking.status === 'cancelled' || timelineStatus === 'cancelled'
-  const isConfirmed = booking.status === 'confirmed'
   const isActionLoading = actionLoadingId === booking.id
 
   const canConfirm = Boolean(booking.can_confirm ?? isPending)

@@ -33,14 +33,18 @@ export function formatDateWithTime(value, timeLabel) {
   })} at ${timeLabel}`
 }
 
-export function daysBetweenInclusive(start, end) {
+export function daysBetween(start, end) {
   const diff = normalizeDate(end).getTime() - normalizeDate(start).getTime()
-  return Math.floor(diff / (1000 * 60 * 60 * 24)) + 1
+  return Math.floor(diff / (1000 * 60 * 60 * 24))
+}
+
+export function daysBetweenInclusive(start, end) {
+  return daysBetween(start, end)
 }
 
 export function rangeOverlaps(startA, endA, startB, endB) {
   return (
-    normalizeDate(startA) <= normalizeDate(endB) &&
-    normalizeDate(endA) >= normalizeDate(startB)
+    normalizeDate(startA) < normalizeDate(endB) &&
+    normalizeDate(endA) > normalizeDate(startB)
   )
 }

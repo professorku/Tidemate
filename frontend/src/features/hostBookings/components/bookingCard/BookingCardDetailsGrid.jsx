@@ -5,7 +5,6 @@ import {
 } from '@heroicons/react/24/outline'
 import {
   formatDate,
-  formatDateTime,
   formatMoney,
 } from '../../utils/bookingFormatters'
 

@@ -216,7 +216,7 @@ class BookingRepresentationMixin(BookingReviewMixin):
         return booking_return_datetime(obj)
 
     def get_duration_days(self, obj):
-        return (obj.end_date - obj.start_date).days + 1
+        return (obj.end_date - obj.start_date).days
 
     def get_rental_policy(self, obj):
         return build_booking_policy()

@@ -115,6 +115,6 @@ def get_overlapping_pending_bookings(booking):
     ).filter(
         active_pending_booking_filter(),
         boat=booking.boat,
-        start_date__lte=booking.end_date,
-        end_date__gte=booking.start_date,
+        start_date__lt=booking.end_date,
+        end_date__gt=booking.start_date,
     ).exclude(id=booking.id)

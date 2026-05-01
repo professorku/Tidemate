@@ -32,4 +32,4 @@ export default function BoatCard({ boat, onFavoriteChange }) {
       )}
     />
   )
-}
+} 
