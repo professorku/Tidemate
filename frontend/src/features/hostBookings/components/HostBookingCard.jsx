@@ -129,4 +129,4 @@ export default function BookingCard({
       </div>
     </article>
   )
-}
+} 
