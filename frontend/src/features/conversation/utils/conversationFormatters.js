@@ -1,5 +1,6 @@
 export function formatDate(value) {
   if (!value) return '—'
+
   try {
     return new Date(value).toLocaleDateString('en-GB', {
       day: '2-digit',
@@ -13,6 +14,7 @@ export function formatDate(value) {
 
 export function formatDateTime(value) {
   if (!value) return '—'
+
   try {
     return new Date(value).toLocaleString('en-GB', {
       day: '2-digit',
@@ -28,6 +30,7 @@ export function formatDateTime(value) {
 
 export function formatTimeOnly(value) {
   if (!value) return '—'
+
   try {
     return new Date(value).toLocaleTimeString('en-GB', {
       hour: '2-digit',
@@ -36,6 +39,26 @@ export function formatTimeOnly(value) {
   } catch {
     return value
   }
+}
+
+export function formatRelative(value) {
+  if (!value) return '—'
+
+  const date = new Date(value)
+  const now = new Date()
+  const diffMs = now - date
+  const diffMinutes = Math.floor(diffMs / (1000 * 60))
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+  if (Number.isNaN(date.getTime())) return '—'
+  if (diffMinutes < 1) return 'Just now'
+  if (diffMinutes < 60) return `${diffMinutes} min ago`
+  if (diffHours < 24) return `${diffHours}h ago`
+  if (diffDays === 1) return 'Yesterday'
+  if (diffDays < 7) return `${diffDays} days ago`
+
+  return formatDate(value)
 }
 
 export function formatMoney(value) {
@@ -55,12 +78,28 @@ export function formatMoney(value) {
   }
 }
 
+export function getConversationTypeLabel(conversation) {
+  if (conversation?.booking_id || conversation?.conversation_type === 'booking') {
+    return 'Booking chat'
+  }
+
+  return 'Direct inquiry'
+}
+
+export function getConversationTypeClass(conversation) {
+  if (conversation?.booking_id || conversation?.conversation_type === 'booking') {
+    return 'bg-indigo-100 text-indigo-700 ring-1 ring-indigo-200'
+  }
+
+  return 'bg-slate-100 text-slate-700 ring-1 ring-slate-200'
+}
+
 export function getBookingStatusClass(status) {
   switch (status) {
     case 'confirmed':
-      return 'bg-green-100 text-green-700 ring-1 ring-green-200'
+      return 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200'
     case 'pending':
-      return 'bg-amber-100 text-amber-700 ring-1 ring-amber-200'
+      return 'bg-amber-100 text-amber-800 ring-1 ring-amber-200'
     case 'cancelled':
       return 'bg-red-100 text-red-700 ring-1 ring-red-200'
     default:
@@ -101,7 +140,7 @@ export function getTripStateLabel(conversation) {
     case 'upcoming':
       return 'Upcoming trip'
     default:
-      return 'Direct conversation'
+      return 'General conversation'
   }
 }
 
@@ -110,7 +149,7 @@ export function getTripStateClass(conversation) {
 
   switch (state) {
     case 'pending':
-      return 'bg-amber-100 text-amber-700 ring-1 ring-amber-200'
+      return 'bg-amber-100 text-amber-800 ring-1 ring-amber-200'
     case 'cancelled':
       return 'bg-red-100 text-red-700 ring-1 ring-red-200'
     case 'active':

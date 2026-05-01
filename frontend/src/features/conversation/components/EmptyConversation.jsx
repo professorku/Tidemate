@@ -7,7 +7,9 @@ export default function EmptyConversation({ otherUsername }) {
       <StatePanel
         icon={<ChatBubbleLeftRightIcon className="h-8 w-8" />}
         title="No messages yet"
-        text={`Start the conversation with ${otherUsername || 'the other person'}. You could ask about pickup, safety equipment, fuel policy, or what is included.`}
+        text={`Start the conversation with ${
+          otherUsername || 'the other person'
+        }. You could ask about pickup, safety equipment, fuel policy, or what is included.`}
         tone="subtle"
         compact
       />

@@ -24,7 +24,11 @@ export default function ConversationCard({
   return (
     <article
       {...bind}
-      className="group overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+      className={`group overflow-hidden rounded-[28px] border bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-soft ${
+        unreadCount > 0
+          ? 'border-gold/50 ring-1 ring-gold/20'
+          : 'border-slate-200'
+      }`}
     >
       <div className="flex flex-col lg:flex-row">
         <ConversationCardMedia
@@ -44,8 +48,11 @@ export default function ConversationCard({
             otherUser={otherUser}
             canDelete={canDelete}
             lastMessage={lastMessage}
+            unreadCount={unreadCount}
           />
+
           <ConversationCardMetaGrid conversation={conversation} isHost={isHost} />
+
           <ConversationCardActions conversation={conversation} />
         </div>
       </div>

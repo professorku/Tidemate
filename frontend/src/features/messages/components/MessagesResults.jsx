@@ -1,4 +1,7 @@
-import { ChatBubbleLeftRightIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
+import {
+  ChatBubbleLeftRightIcon,
+  MagnifyingGlassIcon,
+} from '@heroicons/react/24/outline'
 import EmptyState from '../../../components/ui/EmptyState'
 import ErrorState from '../../../components/ui/ErrorState'
 import LoadingState from '../../../components/ui/LoadingState'
@@ -40,8 +43,8 @@ export default function MessagesResults({
     return search || filter !== 'all' ? (
       <EmptyState
         icon={<MagnifyingGlassIcon className="h-8 w-8" />}
-        title="No matches found"
-        text="Try a different search term or change the active filter to see more conversations."
+        title="No conversations match"
+        text="Try a different search term or switch back to all conversations."
         tone="subtle"
       />
     ) : (
@@ -56,7 +59,7 @@ export default function MessagesResults({
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {conversations.map((conversation) => (
         <ConversationCard
           key={conversation.id}

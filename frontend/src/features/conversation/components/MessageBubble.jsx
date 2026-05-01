@@ -25,7 +25,7 @@ export default function MessageBubble({
     <div className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
       <div
         {...bind}
-        className={`flex max-w-[88%] items-end gap-3 md:max-w-[78%] ${
+        className={`flex max-w-[92%] items-end gap-3 md:max-w-[78%] ${
           mine ? 'flex-row-reverse' : 'flex-row'
         }`}
       >
@@ -43,7 +43,7 @@ export default function MessageBubble({
 
         <div className={mine ? 'text-right' : 'text-left'}>
           {!mine && showAvatar ? (
-            <p className="mb-1 px-1 text-xs font-semibold text-slate-500">
+            <p className="mb-1 px-1 text-xs font-bold text-slate-500">
               {sender?.username || 'User'}
             </p>
           ) : null}
@@ -56,6 +56,7 @@ export default function MessageBubble({
                   onClick={() => onDelete(message)}
                   disabled={isDeleting}
                   className="rounded-full bg-red-600 p-2 text-white shadow-sm transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  aria-label="Delete message"
                 >
                   <TrashIcon className="h-4 w-4" />
                 </button>
@@ -64,6 +65,7 @@ export default function MessageBubble({
                   type="button"
                   onClick={hide}
                   className="rounded-full bg-white p-2 text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50"
+                  aria-label="Hide message actions"
                 >
                   <XMarkIcon className="h-4 w-4" />
                 </button>
@@ -72,7 +74,7 @@ export default function MessageBubble({
               <button
                 type="button"
                 onClick={toggle}
-                className={`rounded-full bg-white p-2 text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50 ${
+                className={`rounded-full bg-white p-2 text-slate-700 opacity-0 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50 group-hover:opacity-100 ${
                   mine ? 'order-1' : 'order-2'
                 }`}
                 aria-label="Show message actions"
@@ -85,9 +87,9 @@ export default function MessageBubble({
               className={[
                 'max-w-full rounded-[26px] px-5 py-3.5 shadow-sm',
                 mine
-                  ? 'rounded-br-md bg-slate-900 text-white ring-1 ring-slate-900/5'
+                  ? 'rounded-br-md bg-navy text-white ring-1 ring-navy/10'
                   : 'rounded-bl-md border border-slate-200 bg-white text-slate-900',
-                isDeleted ? 'italic opacity-75' : '',
+                isDeleted ? 'italic opacity-70' : '',
               ].join(' ')}
             >
               <p className="whitespace-pre-wrap break-words text-[15px] leading-6">
@@ -97,7 +99,11 @@ export default function MessageBubble({
           </div>
 
           <p className={`mt-1 px-1 text-xs text-slate-500 ${mine ? 'text-right' : 'text-left'}`}>
-            {isDeleting ? 'Deleting...' : formatTimeOnly(message.created_at)}
+            {isDeleting
+              ? 'Deleting...'
+              : `${formatTimeOnly(message.created_at)}${
+                  mine && !isDeleted ? ` · ${message.is_read ? 'Read' : 'Sent'}` : ''
+                }`}
           </p>
         </div>
       </div>
