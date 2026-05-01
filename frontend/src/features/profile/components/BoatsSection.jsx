@@ -30,18 +30,10 @@ export default function BoatsSection({ boats }) {
         <div className="flex flex-wrap gap-2">
           <Link
             to="/my-boats"
-            className="inline-flex items-center justify-center gap-2 rounded-full border border-white/25 bg-navy px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-ocean"
+            className="inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-full border border-white/25 bg-navy px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-ocean"
           >
             Manage boats
             <ArrowRightIcon className="h-4 w-4" />
-          </Link>
-
-          <Link
-            to="/add-boat"
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-gold px-4 py-2 text-sm font-extrabold text-navy shadow-sm ring-1 ring-gold/40 transition hover:-translate-y-0.5 hover:bg-[#d8b45d]"
-          >
-            <PlusIcon className="h-4 w-4" />
-            Add listing
           </Link>
         </div>
       </div>

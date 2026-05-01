@@ -18,7 +18,6 @@ clean-django:
 clean-node:
 	@echo "Cleaning npm artifacts..."
 	rm -rf frontend/node_modules
-	rm -rf frontend/package-lock.json
 	rm -rf .npm
 	rm -rf dist
 	rm -rf build

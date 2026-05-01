@@ -14,6 +14,8 @@ import {
   getNotificationKindLabel,
 } from '../../notifications/utils/notificationPage'
 
+import { safeInternalPath } from '../../../utils/navigation'
+
 const NOTIFICATION_ICONS = {
   message: ChatBubbleLeftRightIcon,
   booking: CalendarDaysIcon,
@@ -65,7 +67,7 @@ export default function NotificationsDropdown({
     }
 
     close()
-    navigate(notification.target_url || '/notifications')
+    navigate(safeInternalPath(notification.target_url))
   }
 
   const handleMarkAllRead = async () => {

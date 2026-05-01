@@ -1,68 +1,192 @@
-import { HeartIcon } from '@heroicons/react/24/outline'
+import {
+  ArrowPathIcon,
+  ExclamationTriangleIcon,
+  HeartIcon,
+  SparklesIcon,
+} from '@heroicons/react/24/outline'
 import PageContainer from '../../../components/layout/PageContainer'
-import EmptyState from '../../../components/ui/EmptyState'
-import ErrorState from '../../../components/ui/ErrorState'
-import LoadingState from '../../../components/ui/LoadingState'
 import PaginationControls from '../../../components/ui/PaginationControls'
+import FavoritesEmptyState from '../../favorites/components/FavoritesEmptyState'
 import FavoritesGrid from '../../favorites/components/FavoritesGrid'
 import useFavoritesPageData from '../../favorites/hooks/useFavoritesPageData'
 
-export default function FavoritesPage() {
-  const { boats, loading, error, pagination, setPage, handleFavoriteChange, reload } = useFavoritesPageData()
-
+function FavoritesHero({ count }) {
   return (
-    <PageContainer>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900">My Favorites</h1>
-        <p className="mt-2 text-slate-600">
-          Boats you have saved for later.
+    <section className="overflow-hidden rounded-[34px] border border-white/15 bg-navy text-white shadow-soft">
+      <div className="relative px-6 py-8 md:px-8 md:py-10">
+        <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-gold/10 blur-3xl" />
+        <div className="absolute bottom-0 left-1/3 h-32 w-32 rounded-full bg-white/5 blur-3xl" />
+
+        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-gold/25 bg-gold/10 px-4 py-2 text-sm font-extrabold uppercase tracking-[0.18em] text-gold">
+              <HeartIcon className="h-4 w-4" />
+              Saved boats
+            </div>
+
+            <h1 className="mt-5 text-4xl font-black tracking-tight text-white md:text-5xl">
+              My Favorites
+            </h1>
+
+            <p className="mt-3 max-w-2xl text-base leading-7 text-white/65 md:text-lg">
+              Keep track of boats you love and come back when you are ready to
+              book your next trip.
+            </p>
+          </div>
+
+          <div className="rounded-[26px] border border-gold/20 bg-[#071d32]/80 p-5 shadow-sm">
+            <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-gold">
+              Saved
+            </p>
+            <p className="mt-2 text-4xl font-black text-white">{count}</p>
+            <p className="mt-1 text-sm text-white/55">
+              {count === 1 ? 'boat in your list' : 'boats in your list'}
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function FavoritesLoadingState() {
+  return (
+    <section className="rounded-[34px] border border-white/15 bg-navy p-6 text-white shadow-soft md:p-8">
+      <div className="mx-auto flex max-w-lg flex-col items-center text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gold/10 text-gold ring-1 ring-gold/25">
+          <ArrowPathIcon className="h-8 w-8 animate-spin" />
+        </div>
+
+        <h2 className="mt-5 text-2xl font-black tracking-tight text-white">
+          Loading favorites
+        </h2>
+
+        <p className="mt-2 text-sm leading-6 text-white/60">
+          We are fetching the boats you saved for later.
         </p>
       </div>
 
-      {loading ? (
-        <LoadingState
-          icon={<HeartIcon className="h-8 w-8" />}
-          title="Loading favorites"
-          text="We are fetching the boats you saved for later."
-        />
-      ) : null}
+      <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {[1, 2, 3].map((item) => (
+          <div
+            key={item}
+            className="overflow-hidden rounded-[28px] border border-gold/15 bg-[#071d32]/70"
+          >
+            <div className="h-52 animate-pulse bg-white/10" />
+            <div className="space-y-3 p-5">
+              <div className="h-4 w-2/3 animate-pulse rounded-full bg-white/10" />
+              <div className="h-4 w-1/2 animate-pulse rounded-full bg-white/10" />
+              <div className="h-10 w-full animate-pulse rounded-full bg-white/10" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
 
-      {!loading && error ? (
-        <ErrorState
-          title="Could not load favorites"
-          message={error}
-          onRetry={() => reload(pagination.page || 1)}
-        />
-      ) : null}
+function FavoritesErrorState({ message, onRetry }) {
+  return (
+    <section className="rounded-[34px] border border-red-300/25 bg-navy p-8 text-center text-white shadow-soft">
+      <div className="mx-auto flex max-w-lg flex-col items-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10 text-red-200 ring-1 ring-red-300/20">
+          <ExclamationTriangleIcon className="h-8 w-8" />
+        </div>
 
-      {!loading && !error && boats.length === 0 ? (
-        <EmptyState
-          icon={<HeartIcon className="h-8 w-8" />}
-          title="No favorites yet"
-          text="Start exploring boats and save the ones you like."
-          actionLabel="Browse boats"
-          actionTo="/"
-          compact={false}
-        />
-      ) : null}
+        <h2 className="mt-5 text-2xl font-black tracking-tight text-white">
+          Could not load favorites
+        </h2>
 
-      {!loading && !error && boats.length > 0 ? (
-        <>
-          <FavoritesGrid
-            boats={boats}
-            onFavoriteChange={handleFavoriteChange}
+        <p className="mt-2 text-sm leading-6 text-white/60">{message}</p>
+
+        <button
+          type="button"
+          onClick={onRetry}
+          className="mt-6 rounded-full bg-gold px-6 py-3 text-sm font-extrabold text-navy shadow-sm ring-1 ring-gold/40 transition hover:bg-[#d8b45d]"
+        >
+          Try again
+        </button>
+      </div>
+    </section>
+  )
+}
+
+export default function FavoritesPage() {
+  const {
+    boats,
+    loading,
+    error,
+    pagination,
+    setPage,
+    handleFavoriteChange,
+    reload,
+  } = useFavoritesPageData()
+
+  const favoriteCount = pagination.count || boats.length
+
+  return (
+    <main className="min-h-screen bg-[#071d32] text-white">
+      <PageContainer
+        size="wide"
+        as="div"
+        className="py-8 md:py-10"
+        contentClassName="space-y-7"
+      >
+        <FavoritesHero count={favoriteCount} />
+
+        {loading ? <FavoritesLoadingState /> : null}
+
+        {!loading && error ? (
+          <FavoritesErrorState
+            message={error}
+            onRetry={() => reload(pagination.page || 1)}
           />
+        ) : null}
 
-          <PaginationControls
-            page={pagination.page}
-            totalPages={pagination.totalPages}
-            count={pagination.count}
-            itemLabel="favorites"
-            onPrevious={() => setPage(pagination.page - 1)}
-            onNext={() => setPage(pagination.page + 1)}
-          />
-        </>
-      ) : null}
-    </PageContainer>
+        {!loading && !error && boats.length === 0 ? (
+          <FavoritesEmptyState />
+        ) : null}
+
+        {!loading && !error && boats.length > 0 ? (
+          <section className="rounded-[34px] border border-white/15 bg-navy p-4 shadow-soft md:p-6">
+            <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+              <div>
+                <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-gold">
+                  Favorite fleet
+                </p>
+
+                <h2 className="mt-2 text-2xl font-black tracking-tight text-white md:text-3xl">
+                  Boats you saved
+                </h2>
+
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-white/60">
+                  Open a boat to view details, check availability, or remove it
+                  from your favorites.
+                </p>
+              </div>
+
+              <div className="inline-flex w-fit items-center gap-2 rounded-full border border-gold/20 bg-gold/10 px-4 py-2 text-sm font-bold text-gold">
+                <SparklesIcon className="h-4 w-4" />
+                {favoriteCount} saved
+              </div>
+            </div>
+
+            <FavoritesGrid
+              boats={boats}
+              onFavoriteChange={handleFavoriteChange}
+            />
+
+            <PaginationControls
+              page={pagination.page}
+              totalPages={pagination.totalPages}
+              count={pagination.count}
+              itemLabel="favorites"
+              onPrevious={() => setPage(pagination.page - 1)}
+              onNext={() => setPage(pagination.page + 1)}
+            />
+          </section>
+        ) : null}
+      </PageContainer>
+    </main>
   )
 }

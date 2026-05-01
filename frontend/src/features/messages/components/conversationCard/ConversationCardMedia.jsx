@@ -4,7 +4,6 @@ import {
   TrashIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline'
-import { getConversationTypeLabel } from '../../utils/chatFormatters'
 
 export default function ConversationCardMedia({
   conversation,
@@ -32,17 +31,13 @@ export default function ConversationCardMedia({
 
       <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/35 to-transparent" />
 
-      <div className="absolute left-3 top-3 flex flex-wrap gap-2">
-        <span className="rounded-full bg-gold px-3 py-1 text-[11px] font-extrabold uppercase tracking-wide text-navy shadow-sm ring-1 ring-gold/40">
-          {getConversationTypeLabel(conversation)}
-        </span>
-
-        {unreadCount > 0 ? (
+      {unreadCount > 0 ? (
+        <div className="absolute left-3 top-3 flex flex-wrap gap-2">
           <span className="rounded-full bg-white px-3 py-1 text-[11px] font-extrabold uppercase tracking-wide text-navy shadow-sm">
             {unreadCount} unread
           </span>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
 
       <div className="absolute inset-x-0 bottom-0 px-4 pb-4 pt-12 text-white">
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-gold">

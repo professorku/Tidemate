@@ -17,6 +17,7 @@ import PaginationControls from '../../../components/ui/PaginationControls'
 import { useNotifications } from '../../../context/useNotifications'
 import { useToast } from '../../../context/useToast'
 import { getErrorMessage } from '../../../utils/errors'
+import { safeInternalPath } from '../../../utils/navigation'
 import {
   formatNotificationFullTime,
   formatNotificationTime,
@@ -226,7 +227,7 @@ export default function NotificationsPage() {
         )
       }
 
-      navigate(notification.target_url || '/notifications')
+      navigate(safeInternalPath(notification.target_url))
     } catch (err) {
       console.error('Failed to open notification:', err)
 
