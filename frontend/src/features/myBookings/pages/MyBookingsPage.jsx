@@ -4,7 +4,6 @@ import PaginationControls from '../../../components/ui/PaginationControls'
 import BookingsFilters from '../../myBookings/components/BookingsFilters'
 import BookingsHero from '../../myBookings/components/BookingsHero'
 import BookingsResults from '../../myBookings/components/BookingsResults'
-import BookingsStats from '../../myBookings/components/BookingsStats'
 import useMyBookingsPageData from '../../myBookings/hooks/useMyBookingsPageData'
 import useConfirmAction from '../../../hooks/useConfirmAction'
 
@@ -63,29 +62,29 @@ export default function MyBookingsPage() {
 
   return (
     <>
-      <main className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100">
+      <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(31,76,107,0.18),_transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(201,161,74,0.16),_transparent_32%),linear-gradient(180deg,#f5f7fa_0%,#e8eef3_45%,#f5f7fa_100%)]">
         <PageContainer
           size="wide"
           as="div"
-          className="py-8 md:py-10"
-          contentClassName="space-y-6"
+          className="py-7 md:py-10"
+          contentClassName="space-y-7"
         >
           <BookingsHero counts={safeCounts} />
 
-          <BookingsStats counts={safeCounts} loading={loading} />
-
-          <section className="rounded-[32px] border border-slate-200 bg-white/90 p-4 shadow-sm md:p-6">
-            <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <section className="overflow-hidden rounded-[34px] border border-navy/10 bg-white/90 p-4 shadow-soft backdrop-blur md:p-6">
+            <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-navy">
+                <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-gold">
                   Trip overview
                 </p>
-                <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900">
+
+                <h2 className="mt-2 text-2xl font-black tracking-tight text-ink md:text-3xl">
                   Your booking timeline
                 </h2>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                  Check pending requests, upcoming trips, active rentals, completed trips,
-                  and cancellations in one clean view.
+
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-ocean">
+                  View your booking requests, active trips, completed rentals and
+                  cancellations in one clean place.
                 </p>
               </div>
 
@@ -127,4 +126,4 @@ export default function MyBookingsPage() {
       <ConfirmModal {...modalProps} />
     </>
   )
-} 
+}

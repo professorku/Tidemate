@@ -84,30 +84,30 @@ export function formatStatusLabel(status) {
 export function statusClasses(status) {
   switch (status) {
     case 'confirmed':
-      return 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200'
+      return 'bg-navy text-white ring-1 ring-navy/20'
     case 'pending':
-      return 'bg-amber-100 text-amber-800 ring-1 ring-amber-200'
+      return 'bg-gold/20 text-amber-900 ring-1 ring-gold/40'
     case 'cancelled':
       return 'bg-red-100 text-red-700 ring-1 ring-red-200'
     default:
-      return 'bg-slate-100 text-slate-700 ring-1 ring-slate-200'
+      return 'bg-mist text-ocean ring-1 ring-navy/10'
   }
 }
 
 export function timelineBadgeClasses(tab) {
   switch (tab) {
     case 'active':
-      return 'bg-sky-100 text-sky-700 ring-1 ring-sky-200'
+      return 'bg-ocean text-white ring-1 ring-white/20'
     case 'upcoming':
-      return 'bg-indigo-100 text-indigo-700 ring-1 ring-indigo-200'
+      return 'bg-navy text-white ring-1 ring-white/20'
     case 'completed':
-      return 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200'
+      return 'bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200'
     case 'pending':
-      return 'bg-amber-100 text-amber-800 ring-1 ring-amber-200'
+      return 'bg-gold/25 text-amber-950 ring-1 ring-gold/40'
     case 'cancelled':
       return 'bg-red-100 text-red-700 ring-1 ring-red-200'
     default:
-      return 'bg-slate-100 text-slate-700 ring-1 ring-slate-200'
+      return 'bg-mist text-ocean ring-1 ring-navy/10'
   }
 }
 

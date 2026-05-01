@@ -12,7 +12,6 @@ import LoadingState from '../../../components/ui/LoadingState'
 import PaginationControls from '../../../components/ui/PaginationControls'
 import MyBoatsGrid from '../../myBoats/components/MyBoatsGrid'
 import MyBoatsHero from '../../myBoats/components/MyBoatsHero'
-import MyBoatsStats from '../../myBoats/components/MyBoatsStats'
 import PendingRequestsPanel from '../../myBoats/components/PendingRequestsPanel'
 import useMyBoatsPageData from '../../myBoats/hooks/useMyBoatsPageData'
 import useConfirmAction from '../../../hooks/useConfirmAction'
@@ -76,11 +75,7 @@ export default function MyBoatsPage() {
             confirmedCount={stats.confirmed}
           />
 
-          <MyBoatsStats
-            totalBoats={pagination.count}
-            stats={stats}
-            loading={statsLoading}
-          />
+
 
           {statsError ? (
             <div className="flex items-start gap-3 rounded-[24px] border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
@@ -91,13 +86,6 @@ export default function MyBoatsPage() {
               </div>
             </div>
           ) : null}
-
-          <PendingRequestsPanel
-            requests={pendingRequests}
-            loading={pendingRequestsLoading}
-            error={pendingRequestsError}
-            onRetry={refreshHostActivity}
-          />
 
           <section className="rounded-[32px] border border-slate-200 bg-white/85 p-4 shadow-sm md:p-6">
             <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
