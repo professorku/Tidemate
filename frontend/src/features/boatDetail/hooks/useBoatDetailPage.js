@@ -27,18 +27,24 @@ export default function useBoatDetailPage(id) {
       setError(message)
       showToast({ tone: 'error', message })
     }
-  }, [id])
+  }, [id, showToast])
 
-  const loadReviews = useCallback(async (page = 1) => {
-    try {
-      const reviews = await getBoatReviews(id, { page })
-      setReviewsData(reviews)
-      setReviewsPage(page)
-    } catch (err) {
-      console.error(err)
-      showToast({ tone: 'error', message: getErrorMessage(err, 'Could not load reviews.') })
-    }
-  }, [id])
+  const loadReviews = useCallback(
+    async (page = 1) => {
+      try {
+        const reviews = await getBoatReviews(id, { page })
+        setReviewsData(reviews)
+        setReviewsPage(page)
+      } catch (err) {
+        console.error(err)
+        showToast({
+          tone: 'error',
+          message: getErrorMessage(err, 'Could not load reviews.'),
+        })
+      }
+    },
+    [id, showToast]
+  )
 
   const loadReviewEligibility = useCallback(async () => {
     if (!isAuthenticated) {
@@ -52,12 +58,22 @@ export default function useBoatDetailPage(id) {
     }
   }, [isAuthenticated, refreshReviewableBookings])
 
+  const handleFavoriteChange = useCallback((boatId, isFavorite) => {
+    setBoat((currentBoat) => {
+      if (!currentBoat || Number(currentBoat.id) !== Number(boatId)) {
+        return currentBoat
+      }
+
+      return {
+        ...currentBoat,
+        is_favorited: isFavorite,
+        favorite_id: isFavorite ? currentBoat.favorite_id : null,
+      }
+    })
+  }, [])
+
   useEffect(() => {
-    void Promise.all([
-      loadBoat(),
-      loadReviews(1),
-      loadReviewEligibility(),
-    ])
+    void Promise.all([loadBoat(), loadReviews(1), loadReviewEligibility()])
   }, [loadBoat, loadReviews, loadReviewEligibility])
 
   const reviewableBooking = useMemo(() => {
@@ -70,7 +86,7 @@ export default function useBoatDetailPage(id) {
   }, [id, reviewableBookings])
 
   const isOwner = useMemo(() => {
-    return currentUser && boat && boat.host_id === currentUser.id
+    return currentUser && boat && Number(boat.host_id) === Number(currentUser.id)
   }, [currentUser, boat])
 
   return {
@@ -84,5 +100,6 @@ export default function useBoatDetailPage(id) {
     loadBoat,
     loadReviews,
     loadReviewEligibility,
+    handleFavoriteChange,
   }
 }
