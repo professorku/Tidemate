@@ -4,6 +4,7 @@ from django.core import signing
 from django.core.mail import send_mail
 from django.db import IntegrityError, transaction
 
+from .email_utils import normalize_email
 from .models import Profile
 
 
@@ -15,7 +16,7 @@ def build_email_verification_token(user: User) -> str:
     return signing.dumps(
         {
             "user_id": user.id,
-            "email": user.email,
+            "email": normalize_email(user.email),
         },
         salt=EMAIL_VERIFICATION_SALT,
     )
@@ -28,6 +29,7 @@ def build_email_verification_link(user: User) -> str:
 
 def send_verification_email(user: User) -> str:
     verification_link = build_email_verification_link(user)
+
     send_mail(
         subject="Verify your TideMate email",
         message=(
@@ -40,6 +42,7 @@ def send_verification_email(user: User) -> str:
         recipient_list=[user.email],
         fail_silently=False,
     )
+
     return verification_link
 
 
@@ -49,19 +52,22 @@ def verify_email_token(token: str) -> User:
         salt=EMAIL_VERIFICATION_SALT,
         max_age=settings.EMAIL_VERIFICATION_MAX_AGE_SECONDS,
     )
+
     user = User.objects.get(id=payload["user_id"])
-    if user.email.lower() != payload["email"].lower():
+
+    if normalize_email(user.email) != normalize_email(payload["email"]):
         raise signing.BadSignature("Email mismatch.")
+
     return user
 
 
 def build_email_change_verification_token(user: User, pending_email: str) -> str:
-    normalized_pending_email = pending_email.strip().lower()
+    normalized_pending_email = normalize_email(pending_email)
 
     return signing.dumps(
         {
             "user_id": user.id,
-            "current_email": user.email,
+            "current_email": normalize_email(user.email),
             "pending_email": normalized_pending_email,
         },
         salt=EMAIL_CHANGE_VERIFICATION_SALT,
@@ -74,8 +80,11 @@ def build_email_change_verification_link(user: User, pending_email: str) -> str:
 
 
 def send_email_change_verification_email(user: User, pending_email: str) -> str:
-    normalized_pending_email = pending_email.strip().lower()
-    verification_link = build_email_change_verification_link(user, normalized_pending_email)
+    normalized_pending_email = normalize_email(pending_email)
+    verification_link = build_email_change_verification_link(
+        user,
+        normalized_pending_email,
+    )
 
     send_mail(
         subject="Verify your new TideMate email",
@@ -97,7 +106,7 @@ def send_email_change_verification_email(user: User, pending_email: str) -> str:
 
 
 def send_email_change_security_alert_email(user: User, pending_email: str) -> None:
-    normalized_pending_email = pending_email.strip().lower()
+    normalized_pending_email = normalize_email(pending_email)
 
     send_mail(
         subject="TideMate email change requested",
@@ -129,10 +138,8 @@ def _get_email_change_max_age_seconds() -> int:
 def verify_email_change_token(token: str) -> User:
     try:
         return _verify_email_change_token_in_transaction(token)
-    except IntegrityError:
-        # Database-level protection for the race where another user verifies or
-        # signs up with the same email after the application-level check.
-        raise signing.BadSignature("Email address is already in use.")
+    except IntegrityError as exc:
+        raise signing.BadSignature("Email address is already in use.") from exc
 
 
 @transaction.atomic
@@ -145,8 +152,8 @@ def _verify_email_change_token_in_transaction(token: str) -> User:
 
     try:
         user_id = payload["user_id"]
-        current_email = payload["current_email"].strip().lower()
-        pending_email = payload["pending_email"].strip().lower()
+        current_email = normalize_email(payload["current_email"])
+        pending_email = normalize_email(payload["pending_email"])
     except (KeyError, AttributeError):
         raise signing.BadSignature("Invalid email change token payload.")
 
@@ -154,16 +161,16 @@ def _verify_email_change_token_in_transaction(token: str) -> User:
 
     try:
         profile = Profile.objects.select_for_update().get(user=user)
-    except Profile.DoesNotExist:
-        raise signing.BadSignature("Profile not found.")
+    except Profile.DoesNotExist as exc:
+        raise signing.BadSignature("Profile not found.") from exc
 
-    if user.email.lower() != current_email:
+    if normalize_email(user.email) != current_email:
         raise signing.BadSignature("Current email no longer matches this request.")
 
     if not profile.pending_email:
         raise signing.BadSignature("There is no pending email change.")
 
-    if profile.pending_email.lower() != pending_email:
+    if normalize_email(profile.pending_email) != pending_email:
         raise signing.BadSignature("Pending email does not match this request.")
 
     email_taken = User.objects.filter(
