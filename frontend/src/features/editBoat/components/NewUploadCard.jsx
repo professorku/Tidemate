@@ -10,11 +10,11 @@ export default function NewUploadCard({
 }) {
   return (
     <article
-      className={`overflow-hidden rounded-[26px] border bg-white shadow-sm ${
-        isCover ? 'border-gold ring-2 ring-gold/30' : 'border-slate-200'
+      className={`overflow-hidden rounded-[26px] border bg-[#071d32]/70 shadow-sm ${
+        isCover ? 'border-gold ring-2 ring-gold/30' : 'border-gold/15'
       }`}
     >
-      <div className="relative h-48 bg-slate-100">
+      <div className="relative h-48 bg-[#071d32]">
         <img src={item.url} alt={item.file.name} className="h-full w-full object-cover" />
 
         {isCover ? (
@@ -27,10 +27,10 @@ export default function NewUploadCard({
 
       <div className="space-y-4 p-4">
         <div>
-          <p className="truncate text-sm font-bold text-slate-900">
+          <p className="truncate text-sm font-bold text-white">
             {item.file.name}
           </p>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-white/50">
             New upload #{index + 1}
           </p>
         </div>
@@ -43,7 +43,7 @@ export default function NewUploadCard({
             className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
               isCover
                 ? 'bg-gold text-navy'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                : 'bg-white/10 text-white hover:bg-white/15'
             }`}
           >
             <StarIcon className="h-4 w-4" />
@@ -54,7 +54,7 @@ export default function NewUploadCard({
             type="button"
             onClick={() => onRemove(index)}
             disabled={disabled}
-            className="inline-flex items-center gap-2 rounded-full bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-full bg-red-400/10 px-4 py-2 text-sm font-semibold text-red-200 transition hover:bg-red-400/20 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <TrashIcon className="h-4 w-4" />
             Remove

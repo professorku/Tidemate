@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
 import {
@@ -19,16 +19,49 @@ const EMPTY_PAGINATION = {
   previous: null,
 }
 
+const AUTO_SEARCH_DELAY_MS = 350
+
 export default function useHomePageData() {
   const { showToast } = useToast()
   const [searchParams, setSearchParams] = useSearchParams()
   const paramsKey = searchParams.toString()
-  const derivedFilters = useMemo(() => getFiltersFromSearchParams(searchParams), [searchParams])
-  const [filters, setFilters] = useState(derivedFilters)
+
+  const derivedFilters = useMemo(
+    () => getFiltersFromSearchParams(searchParams),
+    [searchParams]
+  )
+
+  const [filters, setFiltersState] = useState(derivedFilters)
+  const [filtersDirty, setFiltersDirty] = useState(false)
 
   useEffect(() => {
-    setFilters(derivedFilters)
+    setFiltersState(derivedFilters)
+    setFiltersDirty(false)
   }, [derivedFilters])
+
+  const setFilters = useCallback((nextFilters) => {
+    setFiltersState((currentFilters) => {
+      if (typeof nextFilters === 'function') {
+        return nextFilters(currentFilters)
+      }
+
+      return nextFilters
+    })
+
+    setFiltersDirty(true)
+  }, [])
+
+  useEffect(() => {
+    if (!filtersDirty) return
+
+    const timeoutId = window.setTimeout(() => {
+      const nextParams = buildSearchParamsFromFilters(filters)
+      setSearchParams(nextParams)
+      setFiltersDirty(false)
+    }, AUTO_SEARCH_DELAY_MS)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [filters, filtersDirty, setSearchParams])
 
   const boatsQuery = useQuery({
     queryKey: queryKeys.listings.page(paramsKey),
@@ -38,7 +71,9 @@ export default function useHomePageData() {
     },
   })
 
-  const error = boatsQuery.error ? getErrorMessage(boatsQuery.error, 'Could not load boats right now.') : ''
+  const error = boatsQuery.error
+    ? getErrorMessage(boatsQuery.error, 'Could not load boats right now.')
+    : ''
 
   useEffect(() => {
     if (!error) return
@@ -48,10 +83,12 @@ export default function useHomePageData() {
   const handleApply = () => {
     const nextParams = buildSearchParamsFromFilters(filters)
     setSearchParams(nextParams)
+    setFiltersDirty(false)
   }
 
   const handleClear = () => {
-    setFilters(initialHomeFilters)
+    setFiltersState(initialHomeFilters)
+    setFiltersDirty(false)
     setSearchParams({})
   }
 

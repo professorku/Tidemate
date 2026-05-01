@@ -35,7 +35,7 @@ export default function EditBoatPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100">
+      <main className="min-h-screen bg-[#071d32]">
         <PageContainer size="content" as="div" className="py-8 md:py-10">
           <LoadingState
             title="Loading boat"
@@ -49,7 +49,7 @@ export default function EditBoatPage() {
 
   if (!boat) {
     return (
-      <main className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100">
+      <main className="min-h-screen bg-[#071d32]">
         <PageContainer size="content" as="div" className="py-8 md:py-10">
           <ErrorState
             title="Could not load listing"
@@ -62,9 +62,9 @@ export default function EditBoatPage() {
           <div className="mt-5">
             <Link
               to="/my-boats"
-              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              className="inline-flex items-center gap-2 rounded-full border border-gold/20 bg-navy px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-white/10"
             >
-              <ArrowLeftIcon className="h-4 w-4" />
+              <ArrowLeftIcon className="h-4 w-4 text-gold" />
               Back to host dashboard
             </Link>
           </div>
@@ -74,7 +74,7 @@ export default function EditBoatPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100">
+    <main className="min-h-screen bg-[#071d32]">
       <PageContainer
         size="wide"
         as="div"
@@ -84,13 +84,13 @@ export default function EditBoatPage() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Link
             to="/my-boats"
-            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+            className="inline-flex items-center gap-2 rounded-full border border-gold/20 bg-navy px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-white/10"
           >
-            <ArrowLeftIcon className="h-4 w-4" />
+            <ArrowLeftIcon className="h-4 w-4 text-gold" />
             Back to host dashboard
           </Link>
 
-          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm">
+          <div className="inline-flex items-center gap-2 rounded-full border border-gold/20 bg-navy px-4 py-2 text-sm font-semibold text-white/80 shadow-sm">
             <ExclamationTriangleIcon className="h-4 w-4 text-gold" />
             Changes apply after saving
           </div>
@@ -153,4 +153,4 @@ export default function EditBoatPage() {
       </PageContainer>
     </main>
   )
-} 
+}

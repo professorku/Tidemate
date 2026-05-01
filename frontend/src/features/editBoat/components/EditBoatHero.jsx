@@ -8,12 +8,12 @@ import {
 function Metric({ icon, label, value, tone = 'default' }) {
   const toneClass =
     tone === 'warning'
-      ? 'border-amber-200 bg-amber-50 text-amber-900'
-      : 'border-slate-200 bg-white text-slate-900'
+      ? 'border-red-300/25 bg-red-400/10 text-red-200'
+      : 'border-gold/15 bg-[#071d32]/70 text-white'
 
   return (
     <div className={`rounded-[22px] border px-4 py-3 shadow-sm ${toneClass}`}>
-      <div className="flex items-center gap-2 text-slate-500">
+      <div className="flex items-center gap-2 text-gold">
         {icon}
         <p className="text-[11px] font-bold uppercase tracking-[0.16em]">
           {label}
@@ -31,26 +31,21 @@ export default function EditBoatHero({
   removedImagesCount = 0,
 }) {
   return (
-    <section className="overflow-hidden rounded-[34px] border border-slate-200 bg-white shadow-sm">
-      <div className="relative border-b border-slate-100 bg-gradient-to-br from-white via-sky-50 to-white px-6 py-8 md:px-8 md:py-10">
-        <div className="absolute right-8 top-8 hidden rounded-full bg-white p-5 text-navy shadow-sm ring-1 ring-slate-200 md:block">
+    <section className="overflow-hidden rounded-[34px] border border-gold/20 bg-navy shadow-soft">
+      <div className="relative border-b border-gold/10 px-6 py-8 md:px-8 md:py-10">
+        <div className="absolute right-8 top-8 hidden rounded-full bg-[#071d32]/80 p-5 text-gold shadow-sm ring-1 ring-gold/20 md:block">
           <LifebuoyIcon className="h-10 w-10" />
         </div>
 
         <div className="max-w-3xl">
-          <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-slate-600 shadow-sm">
-            <SparklesIcon className="h-4 w-4 text-gold" />
-            Listing editor
-          </span>
-
-          <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-900 md:text-5xl">
+          <h1 className="text-3xl font-extrabold tracking-tight text-white md:text-5xl">
             Edit boat
           </h1>
 
-          <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-600 md:text-base">
+          <p className="mt-4 max-w-2xl text-sm leading-6 text-white/70 md:text-base">
             Update details, gallery, cover photo, exact private pickup point, and
             renter-facing information for{' '}
-            <span className="font-bold text-slate-900">
+            <span className="font-bold text-gold">
               {boat?.title || 'this listing'}
             </span>
             .
@@ -60,19 +55,19 @@ export default function EditBoatHero({
 
       <div className="grid gap-3 px-6 py-5 sm:grid-cols-3 md:px-8">
         <Metric
-          icon={<PhotoIcon className="h-4 w-4 text-navy" />}
+          icon={<PhotoIcon className="h-4 w-4" />}
           label="Current photos"
           value={existingImagesCount}
         />
 
         <Metric
-          icon={<SparklesIcon className="h-4 w-4 text-navy" />}
+          icon={<SparklesIcon className="h-4 w-4" />}
           label="New uploads"
           value={newImagesCount}
         />
 
         <Metric
-          icon={<TrashIcon className="h-4 w-4 text-amber-700" />}
+          icon={<TrashIcon className="h-4 w-4" />}
           label="Marked remove"
           value={removedImagesCount}
           tone={removedImagesCount > 0 ? 'warning' : 'default'}
