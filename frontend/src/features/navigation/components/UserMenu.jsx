@@ -14,7 +14,7 @@ export default function UserMenu() {
   const menuRef = useRef(null)
 
   const navLinkClass =
-    'block rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100'
+    'block rounded-lg px-3 py-2.5 text-sm font-medium text-white/80 transition hover:bg-white/10 hover:text-white'
 
   const hasListedBoats = Number(user?.stats?.boats_listed || 0) > 0
 
@@ -52,17 +52,17 @@ export default function UserMenu() {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2.5 w-72 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-xl">
+        <div className="absolute right-0 z-50 mt-2.5 w-72 overflow-hidden rounded-2xl border border-gold/20 bg-navy p-2 shadow-xl">
           <Link
             to="/profile"
-            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
+            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-white transition hover:bg-white/10"
             onClick={() => setOpen(false)}
           >
-            <UserCircleIcon className="h-5 w-5 text-navy" />
+            <UserCircleIcon className="h-5 w-5 text-gold" />
             {user?.username ? `${user.username}'s profile` : 'My profile'}
           </Link>
 
-          <div className="my-2 border-t border-slate-200" />
+          <div className="my-2 border-t border-gold/15" />
 
           <Link
             to="/my-bookings"
@@ -82,7 +82,7 @@ export default function UserMenu() {
             </Link>
           ) : null}
 
-          <div className="my-2 border-t border-slate-200" />
+          <div className="my-2 border-t border-gold/15" />
 
           <Link
             to="/messages"
@@ -110,18 +110,18 @@ export default function UserMenu() {
 
           <Link
             to="/add-boat"
-            className="block rounded-lg px-3 py-2.5 text-sm font-medium text-navy hover:bg-slate-100 md:hidden"
+            className="block rounded-lg px-3 py-2.5 text-sm font-medium text-gold transition hover:bg-white/10 md:hidden"
             onClick={() => setOpen(false)}
           >
             Add boat
           </Link>
 
-          <div className="my-2 border-t border-slate-200" />
+          <div className="my-2 border-t border-gold/15" />
 
           <button
             type="button"
             onClick={handleLogout}
-            className="block w-full rounded-lg px-3 py-2.5 text-left text-sm font-medium text-red-600 hover:bg-red-50"
+            className="block w-full rounded-lg px-3 py-2.5 text-left text-sm font-medium text-red-300 transition hover:bg-red-400/10 hover:text-red-200"
           >
             Log out
           </button>

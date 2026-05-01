@@ -30,12 +30,12 @@ export default function LocationPickerMap(props) {
   } = props
 
   return (
-    <div className="rounded-[28px] bg-white p-6 shadow-soft md:p-8">
+    <div className="rounded-[28px] border border-gold/20 bg-navy p-6 shadow-soft md:p-8">
       <div className="flex flex-col gap-2">
-        <h2 className="text-2xl font-bold text-slate-900">
+        <h2 className="text-2xl font-bold text-white">
           Choose exact boat location
         </h2>
-        <p className="text-slate-600">
+        <p className="text-white/65">
           Search for a place or click directly on the map. Public users only see
           the nearest city or area. You, admins, and confirmed renters can see the
           exact location.

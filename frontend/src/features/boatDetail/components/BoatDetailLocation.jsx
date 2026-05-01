@@ -16,21 +16,21 @@ export default function BoatDetailLocation({ boat }) {
   const locationLabel = getBoatLocationLabel(boat, 'Location available after booking')
 
   return (
-    <section className="rounded-[30px] border border-slate-200 bg-white p-5 shadow-sm md:p-7">
+    <section className="rounded-[30px] border border-gold/20 bg-navy p-5 shadow-soft md:p-7">
       <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="flex items-start gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-navy">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#071d32]/80 text-gold ring-1 ring-gold/20">
             <MapIcon className="h-6 w-6" />
           </div>
 
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-navy">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-gold">
               Location
             </p>
-            <h2 className="mt-2 text-2xl font-extrabold text-slate-900">
+            <h2 className="mt-2 text-2xl font-extrabold text-white">
               {exactLocationVisible ? 'Exact pickup location' : 'Approximate trip area'}
             </h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-white/65">
               {boat?.location_disclosure_message ||
                 'The exact pickup point is only shared with confirmed renters.'}
             </p>
@@ -40,8 +40,8 @@ export default function BoatDetailLocation({ boat }) {
         <div
           className={`inline-flex items-start gap-2 rounded-2xl px-4 py-3 text-sm font-semibold ${
             exactLocationVisible
-              ? 'border border-emerald-200 bg-emerald-50 text-emerald-800'
-              : 'border border-amber-200 bg-amber-50 text-amber-900'
+              ? 'border border-emerald-300/25 bg-emerald-400/10 text-emerald-100'
+              : 'border border-gold/30 bg-gold/10 text-gold'
           }`}
         >
           <ShieldCheckIcon className="mt-0.5 h-5 w-5 shrink-0" />

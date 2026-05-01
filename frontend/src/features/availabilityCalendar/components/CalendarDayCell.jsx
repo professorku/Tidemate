@@ -35,14 +35,14 @@ export default function CalendarDayCell({
   const isToday = isSameDay(date, today)
 
   let className =
-    'relative flex aspect-square items-center justify-center rounded-2xl text-sm font-semibold '
+    'relative flex aspect-square items-center justify-center rounded-2xl text-sm font-semibold transition '
 
-  if (isStart || isEnd) className += 'bg-navy text-white'
-  else if (inSelectedRange) className += 'bg-navy/10 text-navy'
-  else if (blocked) className += 'bg-slate-400 text-white'
-  else if (disabled) className += 'bg-slate-100 text-slate-400'
-  else if (interactive) className += 'bg-white ring-1 ring-slate-200 hover:bg-slate-50'
-  else className += 'bg-white ring-1 ring-slate-200'
+  if (isStart || isEnd) className += 'bg-gold text-navy'
+  else if (inSelectedRange) className += 'bg-gold/15 text-gold'
+  else if (blocked) className += 'bg-white/30 text-white/80'
+  else if (disabled) className += 'bg-white/10 text-white/30'
+  else if (interactive) className += 'bg-[#071d32] text-white ring-1 ring-gold/20 hover:bg-white/10'
+  else className += 'bg-[#071d32] text-white ring-1 ring-gold/20'
 
   return (
     <button
@@ -52,7 +52,7 @@ export default function CalendarDayCell({
       className={className}
     >
       {isToday && !(isStart || isEnd) && (
-        <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-navy" />
+        <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-gold" />
       )}
       {date.getDate()}
     </button>

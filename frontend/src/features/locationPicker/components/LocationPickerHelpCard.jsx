@@ -1,6 +1,6 @@
 export default function LocationPickerHelpCard() {
   return (
-    <div className="rounded-[24px] bg-slate-50 p-5 text-sm text-slate-600">
+    <div className="rounded-[24px] border border-gold/15 bg-navy p-5 text-sm text-white/75 shadow-soft">
       <p>• Click anywhere on the map to place the boat.</p>
       <p className="mt-2">• You can also drag the marker after placing it.</p>
       <p className="mt-2">

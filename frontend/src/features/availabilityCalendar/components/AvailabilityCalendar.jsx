@@ -27,25 +27,25 @@ export default function AvailabilityCalendar(props) {
   } = useAvailabilityCalendar(props)
 
   return (
-    <div className="rounded-[28px] bg-white p-6 shadow-soft">
-      <div className="flex flex-col gap-3 border-b border-slate-100 pb-5 md:flex-row md:items-center md:justify-between">
+    <div className="rounded-[28px] border border-gold/20 bg-[#071d32]/70 p-6 shadow-soft">
+      <div className="flex flex-col gap-3 border-b border-gold/15 pb-5 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">{title}</h2>
-          {subtitle && <p className="mt-1 text-sm text-slate-500">{subtitle}</p>}
+          <h2 className="text-2xl font-bold text-white">{title}</h2>
+          {subtitle && <p className="mt-1 text-sm text-white/60">{subtitle}</p>}
         </div>
 
         <div className="flex items-center gap-2">
           <button
             disabled={!canGoPrev}
             onClick={() => setViewDate(addMonths(viewDate, -1))}
-            className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold disabled:opacity-40"
+            className="rounded-full border border-gold/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/15 disabled:opacity-40"
           >
             ←
           </button>
 
           <button
             onClick={() => setViewDate(addMonths(viewDate, 1))}
-            className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold"
+            className="rounded-full border border-gold/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/15"
           >
             →
           </button>

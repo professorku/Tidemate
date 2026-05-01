@@ -10,7 +10,7 @@ export function conditionMeta(label) {
     return {
       label: 'Calm',
       Icon: SunIcon,
-      classes: 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200',
+      classes: 'bg-emerald-400/10 text-emerald-100 ring-1 ring-emerald-300/20',
     }
   }
 
@@ -18,7 +18,7 @@ export function conditionMeta(label) {
     return {
       label: 'Moderate',
       Icon: CloudIcon,
-      classes: 'bg-amber-50 text-amber-600 ring-1 ring-amber-200',
+      classes: 'bg-gold/10 text-gold ring-1 ring-gold/25',
     }
   }
 
@@ -26,14 +26,14 @@ export function conditionMeta(label) {
     return {
       label: 'Choppy',
       Icon: ExclamationTriangleIcon,
-      classes: 'bg-sky-50 text-sky-700 ring-1 ring-sky-200',
+      classes: 'bg-red-400/10 text-red-200 ring-1 ring-red-300/20',
     }
   }
 
   return {
     label: 'Unknown',
     Icon: QuestionMarkCircleIcon,
-    classes: 'bg-slate-50 text-slate-600 ring-1 ring-slate-200',
+    classes: 'bg-[#071d32]/80 text-white/75 ring-1 ring-gold/20',
   }
 }
 

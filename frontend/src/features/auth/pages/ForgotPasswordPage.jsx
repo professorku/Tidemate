@@ -4,8 +4,10 @@ import PageContainer from '../../../components/layout/PageContainer'
 import { requestPasswordReset } from '../services/authService'
 import { getErrorMessage } from '../../../utils/errors'
 
-const inputClassName = 'w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-ocean focus:ring-2 focus:ring-ocean/10'
-const labelClassName = 'mb-1.5 block text-sm font-medium text-slate-700'
+const inputClassName =
+  'w-full rounded-xl border border-gold/25 bg-[#071d32]/80 px-3.5 py-2.5 text-sm text-white placeholder:text-white/40 outline-none transition focus:border-gold focus:bg-[#071d32] focus:ring-2 focus:ring-gold/25'
+
+const labelClassName = 'mb-1.5 block text-sm font-medium text-white/80'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
@@ -30,46 +32,48 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <PageContainer size="auth" className="py-8 md:py-10" contentClassName="space-y-0">
-      <div className="rounded-[20px] bg-white p-5 shadow-soft md:p-6">
-        <h1 className="mb-1 text-2xl font-extrabold text-slate-900">Forgot password</h1>
-        <p className="mb-5 text-sm text-slate-600">Enter your email and we will send you a reset link.</p>
+    <main className="min-h-screen bg-[#071d32]">
+      <PageContainer size="auth" className="py-8 md:py-10" contentClassName="space-y-0">
+        <div className="rounded-[20px] border border-gold/20 bg-navy p-5 shadow-soft md:p-6">
+          <h1 className="mb-1 text-2xl font-extrabold text-white">Forgot password</h1>
+          <p className="mb-5 text-sm text-white/70">Enter your email and we will send you a reset link.</p>
 
-        <form className="space-y-3.5" onSubmit={handleSubmit}>
-          <div>
-            <label className={labelClassName} htmlFor="forgot-password-email">
-              Email
-            </label>
-            <input
-              id="forgot-password-email"
-              name="email"
-              className={inputClassName}
-              type="email"
-              autoComplete="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
+          <form className="space-y-3.5" onSubmit={handleSubmit}>
+            <div>
+              <label className={labelClassName} htmlFor="forgot-password-email">
+                Email
+              </label>
+              <input
+                id="forgot-password-email"
+                name="email"
+                className={inputClassName}
+                type="email"
+                autoComplete="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
 
-          {message ? <p className="text-sm text-green-700">{message}</p> : null}
-          {error ? <p className="text-sm text-red-600">{error}</p> : null}
+            {message ? <p className="text-sm text-green-200">{message}</p> : null}
+            {error ? <p className="text-sm text-red-200">{error}</p> : null}
 
-          <button
-            disabled={loading}
-            className="w-full rounded-full bg-navy px-5 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {loading ? 'Sending reset link...' : 'Send reset link'}
-          </button>
-        </form>
+            <button
+              disabled={loading}
+              className="w-full rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-navy transition hover:bg-gold/90 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? 'Sending reset link...' : 'Send reset link'}
+            </button>
+          </form>
 
-        <p className="mt-5 text-sm text-slate-600">
-          Remembered your password?{' '}
-          <Link to="/login" className="font-semibold text-ocean">
-            Back to login
-          </Link>
-        </p>
-      </div>
-    </PageContainer>
+          <p className="mt-5 text-sm text-white/70">
+            Remembered your password?{' '}
+            <Link to="/login" className="font-semibold text-gold">
+              Back to login
+            </Link>
+          </p>
+        </div>
+      </PageContainer>
+    </main>
   )
 }

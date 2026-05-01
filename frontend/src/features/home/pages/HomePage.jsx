@@ -23,7 +23,7 @@ export default function HomePage() {
   } = useHomePageData()
 
   return (
-    <main className="min-h-screen bg-[#071d32]">
+    <main className="min-h-screen overflow-hidden bg-[#071d32] text-white">
       <PageContainer size="wide" as="div" className="py-8 md:py-10">
         <HomeHero />
 

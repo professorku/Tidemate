@@ -6,12 +6,12 @@ export default function CalendarMonth(props) {
   const days = buildCalendarDays(monthDate)
 
   return (
-    <div className="overflow-hidden rounded-[24px] border border-slate-200">
-      <div className="border-b border-slate-200 bg-slate-50 px-4 py-4 text-center font-semibold">
+    <div className="overflow-hidden rounded-[24px] border border-gold/20">
+      <div className="border-b border-gold/15 bg-navy px-4 py-4 text-center font-semibold text-white">
         {monthLabel(monthDate)}
       </div>
 
-      <div className="grid grid-cols-7 border-b border-slate-100 px-2 py-3 text-center text-xs font-semibold text-slate-500">
+      <div className="grid grid-cols-7 border-b border-gold/10 px-2 py-3 text-center text-xs font-semibold text-white/55">
         <div>Mon</div>
         <div>Tue</div>
         <div>Wed</div>

@@ -35,24 +35,24 @@ export default function BookingForm(props) {
           <div className="grid gap-2.5 sm:grid-cols-2">
             <button
               type="button"
-              className="rounded-[18px] border border-slate-200 p-3 text-left"
+              className="rounded-[18px] border border-gold/20 bg-[#071d32]/70 p-3 text-left"
             >
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-gold">
                 Pickup
               </p>
-              <p className="mt-1.5 text-sm font-semibold text-slate-900">
+              <p className="mt-1.5 text-sm font-semibold text-white">
                 {formatDateWithTime(form.start_date, pickupTime)}
               </p>
             </button>
 
             <button
               type="button"
-              className="rounded-[18px] border border-slate-200 p-3 text-left"
+              className="rounded-[18px] border border-gold/20 bg-[#071d32]/70 p-3 text-left"
             >
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-gold">
                 Return
               </p>
-              <p className="mt-1.5 text-sm font-semibold text-slate-900">
+              <p className="mt-1.5 text-sm font-semibold text-white">
                 {formatDateWithTime(form.end_date, returnTime)}
               </p>
             </button>
@@ -76,13 +76,13 @@ export default function BookingForm(props) {
           />
 
           {(error || selectionError) && (
-            <div className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-700">
+            <div className="rounded-xl border border-red-300/25 bg-red-400/10 px-3.5 py-2.5 text-sm text-red-200">
               {error || selectionError}
             </div>
           )}
 
           {success && (
-            <div className="rounded-xl border border-green-200 bg-green-50 px-3.5 py-2.5 text-sm text-green-700">
+            <div className="rounded-xl border border-emerald-300/25 bg-emerald-400/10 px-3.5 py-2.5 text-sm text-emerald-100">
               {success}
             </div>
           )}
@@ -91,14 +91,14 @@ export default function BookingForm(props) {
             <button
               type="button"
               onClick={clearDates}
-              className="rounded-full border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700"
+              className="rounded-full border border-gold/20 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
             >
               Clear
             </button>
 
             <button
               disabled={loading || !!selectionError || !form.start_date || !form.end_date}
-              className="flex-1 rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-navy disabled:opacity-60"
+              className="flex-1 rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-navy transition hover:bg-gold/90 disabled:opacity-60"
             >
               {loading ? 'Sending request...' : 'Request booking'}
             </button>

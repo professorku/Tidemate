@@ -50,26 +50,36 @@ export default function VerifyEmailPage({ mode = 'account' }) {
   }, [token, isEmailChange])
 
   return (
-    <PageContainer size="auth" className="py-8 md:py-10" contentClassName="space-y-0">
-      <div className="rounded-[20px] bg-white p-5 shadow-soft md:p-6">
-        <h1 className="mb-1 text-2xl font-extrabold text-slate-900">
-          {isEmailChange ? 'Verify new email' : 'Verify email'}
-        </h1>
+    <main className="min-h-screen bg-[#071d32]">
+      <PageContainer size="auth" className="py-8 md:py-10" contentClassName="space-y-0">
+        <div className="rounded-[20px] border border-gold/20 bg-navy p-5 shadow-soft md:p-6">
+          <h1 className="mb-1 text-2xl font-extrabold text-white">
+            {isEmailChange ? 'Verify new email' : 'Verify email'}
+          </h1>
 
-        <p className="mb-5 text-sm text-slate-600">
-          {isEmailChange ? 'Confirm your updated email address.' : 'Almost there.'}
-        </p>
+          <p className="mb-5 text-sm text-white/70">
+            {isEmailChange ? 'Confirm your updated email address.' : 'Almost there.'}
+          </p>
 
-        <p className={`text-sm ${status === 'success' ? 'text-green-700' : status === 'error' ? 'text-red-600' : 'text-slate-700'}`}>
-          {message}
-        </p>
+          <p
+            className={`text-sm ${
+              status === 'success'
+                ? 'text-green-200'
+                : status === 'error'
+                  ? 'text-red-200'
+                  : 'text-white/80'
+            }`}
+          >
+            {message}
+          </p>
 
-        <div className="mt-5">
-          <Link to={isEmailChange ? '/profile' : '/login'} className="font-semibold text-ocean">
-            {isEmailChange ? 'Go to profile' : 'Go to login'}
-          </Link>
+          <div className="mt-5">
+            <Link to={isEmailChange ? '/profile' : '/login'} className="font-semibold text-gold">
+              {isEmailChange ? 'Go to profile' : 'Go to login'}
+            </Link>
+          </div>
         </div>
-      </div>
-    </PageContainer>
+      </PageContainer>
+    </main>
   )
 }

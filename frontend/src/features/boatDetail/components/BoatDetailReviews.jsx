@@ -16,20 +16,20 @@ export default function BoatDetailReviews({
   return (
     <section className="space-y-6">
       {canReview ? (
-        <div className="rounded-[30px] border border-slate-200 bg-white p-5 shadow-sm md:p-7">
+        <div className="rounded-[30px] border border-gold/20 bg-navy p-5 shadow-soft md:p-7">
           <div className="mb-5 flex items-start gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-violet-50 text-violet-700 ring-1 ring-violet-100">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#071d32]/80 text-gold ring-1 ring-gold/20">
               <StarIcon className="h-6 w-6" />
             </div>
 
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-gold">
                 Completed trip
               </p>
-              <h2 className="mt-2 text-2xl font-extrabold text-slate-900">
+              <h2 className="mt-2 text-2xl font-extrabold text-white">
                 Review this boat
               </h2>
-              <p className="mt-2 text-sm leading-6 text-slate-600">
+              <p className="mt-2 text-sm leading-6 text-white/65">
                 Share feedback about {boat?.title || 'this boat'} after your completed
                 trip.
               </p>

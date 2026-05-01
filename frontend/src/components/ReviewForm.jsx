@@ -20,6 +20,11 @@ const FORM_COPY = {
   },
 }
 
+const inputClassName =
+  'w-full rounded-xl border border-gold/25 bg-[#071d32]/80 px-4 py-3 text-sm text-white placeholder:text-white/40 outline-none transition focus:border-gold focus:bg-[#071d32] focus:ring-2 focus:ring-gold/25'
+
+const labelClassName = 'mb-2 block text-sm font-medium text-white/80'
+
 export default function ReviewForm({
   bookingId,
   reviewType = 'boat',
@@ -67,11 +72,14 @@ export default function ReviewForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-[24px] bg-slate-50 p-5">
-      <h3 className="text-lg font-bold text-slate-900">{copy.title}</h3>
+    <form
+      onSubmit={handleSubmit}
+      className="rounded-[24px] border border-gold/15 bg-[#071d32]/70 p-5"
+    >
+      <h3 className="text-lg font-bold text-white">{copy.title}</h3>
 
       <div className="mt-4">
-        <label htmlFor={ratingFieldId} className="mb-2 block text-sm font-medium text-slate-700">
+        <label htmlFor={ratingFieldId} className={labelClassName}>
           Rating
         </label>
         <select
@@ -79,7 +87,7 @@ export default function ReviewForm({
           name="rating"
           value={rating}
           onChange={(e) => setRating(Number(e.target.value))}
-          className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none"
+          className={inputClassName}
         >
           <option value={5}>5 - Excellent</option>
           <option value={4}>4 - Very good</option>
@@ -90,7 +98,7 @@ export default function ReviewForm({
       </div>
 
       <div className="mt-4">
-        <label htmlFor={commentFieldId} className="mb-2 block text-sm font-medium text-slate-700">
+        <label htmlFor={commentFieldId} className={labelClassName}>
           {copy.commentLabel}
         </label>
         <textarea
@@ -99,18 +107,18 @@ export default function ReviewForm({
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           rows={4}
-          className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none"
+          className={inputClassName}
           placeholder={copy.placeholder}
         />
       </div>
 
-      {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
-      {success ? <p className="mt-3 text-sm text-emerald-600">{success}</p> : null}
+      {error ? <p className="mt-3 text-sm text-red-200">{error}</p> : null}
+      {success ? <p className="mt-3 text-sm text-emerald-100">{success}</p> : null}
 
       <button
         type="submit"
         disabled={submitting}
-        className="mt-4 rounded-full bg-navy px-5 py-2.5 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-4 rounded-full bg-gold px-5 py-2.5 font-semibold text-navy transition hover:bg-gold/90 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {submitting ? 'Submitting...' : copy.submitLabel}
       </button>

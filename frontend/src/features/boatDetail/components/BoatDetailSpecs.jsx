@@ -1,66 +1,147 @@
+import { Link, useParams } from 'react-router-dom'
 import {
-  CurrencyDollarIcon,
-  PhotoIcon,
-  ShieldCheckIcon,
-  UserGroupIcon,
+  ArrowLeftIcon,
+  ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline'
-import {
-  formatMoney,
-  formatRatingSummary,
-  getGuestLabel,
-  getImageCount,
-} from '../utils/boatDetailFormatters'
+import PageContainer from '../../../components/layout/PageContainer'
+import BoatImageGallery from '../../../components/BoatImageGallery'
+import BookingForm from '../../bookingForm/components/BookingForm'
+import ErrorState from '../../../components/ui/ErrorState'
+import LoadingState from '../../../components/ui/LoadingState'
+import MarineConditionsCard from '../../../components/marineConditions/MarineConditionsCard'
+import NearbyBoats from '../../../components/NearbyBoats'
 
-function SpecCard({ icon, label, value, text }) {
+import BoatDetailHeader from '../../boatDetail/components/BoatDetailHeader'
+import BoatDetailDescription from '../../boatDetail/components/BoatDetailDescription'
+import BoatDetailReviews from '../../boatDetail/components/BoatDetailReviews'
+import BoatDetailLocation from '../../boatDetail/components/BoatDetailLocation'
+import BoatOwnerNotice from '../../boatDetail/components/BoatOwnerNotice'
+
+import useBoatDetailPage from '../../boatDetail/hooks/useBoatDetailPage'
+
+function BoatDetailSkeleton() {
   return (
-    <div className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="flex items-start gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-navy">
-          {icon}
-        </div>
-
-        <div className="min-w-0">
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
-            {label}
-          </p>
-          <p className="mt-1 text-xl font-extrabold text-slate-900">{value}</p>
-          {text ? <p className="mt-1 text-sm leading-6 text-slate-600">{text}</p> : null}
-        </div>
-      </div>
-    </div>
+    <main className="min-h-screen bg-[#071d32]">
+      <PageContainer size="wide" as="div" className="py-8 md:py-10">
+        <LoadingState
+          title="Loading boat details"
+          text="Preparing photos, availability, location, reviews, and booking details."
+          compact={false}
+        />
+      </PageContainer>
+    </main>
   )
 }
 
-export default function BoatDetailSpecs({ boat, reviewsData }) {
+export default function BoatDetailPage() {
+  const { id } = useParams()
+
+  const {
+    boat,
+    reviewsData,
+    reviewableBooking,
+    reviewsPage,
+    isOwner,
+    error,
+    loadBoat,
+    loadReviews,
+    loadReviewEligibility,
+    handleFavoriteChange,
+  } = useBoatDetailPage(id)
+
+  if (error) {
+    return (
+      <main className="min-h-screen bg-[#071d32]">
+        <PageContainer size="content" className="py-8 md:py-10">
+          <ErrorState
+            title="Boat detail unavailable"
+            message={error}
+            actionLabel="Retry"
+            onRetry={loadBoat}
+            compact={false}
+          />
+
+          <div className="mt-5">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-2 rounded-full border border-gold/20 bg-navy px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-white/10"
+            >
+              <ArrowLeftIcon className="h-4 w-4 text-gold" />
+              Back to boats
+            </Link>
+          </div>
+        </PageContainer>
+      </main>
+    )
+  }
+
+  if (!boat) {
+    return <BoatDetailSkeleton />
+  }
+
   return (
-    <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      <SpecCard
-        icon={<CurrencyDollarIcon className="h-5 w-5" />}
-        label="Day price"
-        value={formatMoney(boat.price_per_day)}
-        text="Final price is calculated from selected dates."
-      />
+    <main className="min-h-screen bg-[#071d32]">
+      <PageContainer
+        size="wide"
+        as="div"
+        className="py-8 md:py-10"
+        contentClassName="space-y-6"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 rounded-full border border-gold/20 bg-navy px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-white/10"
+          >
+            <ArrowLeftIcon className="h-4 w-4 text-gold" />
+            Back to boats
+          </Link>
 
-      <SpecCard
-        icon={<UserGroupIcon className="h-5 w-5" />}
-        label="Capacity"
-        value={getGuestLabel(boat.guests)}
-        text="Maximum number of guests for this listing."
-      />
+          <div className="inline-flex items-center gap-2 rounded-full border border-gold/20 bg-navy px-4 py-2 text-sm font-semibold text-white/80 shadow-sm">
+            <ExclamationTriangleIcon className="h-4 w-4 text-gold" />
+            Pickup details are protected until booking is confirmed
+          </div>
+        </div>
 
-      <SpecCard
-        icon={<PhotoIcon className="h-5 w-5" />}
-        label="Photos"
-        value={getImageCount(boat)}
-        text="Images uploaded by the host."
-      />
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_390px]">
+          <section className="min-w-0 space-y-6">
+            <div className="rounded-[34px] border border-gold/20 bg-navy p-3 shadow-soft">
+              <BoatImageGallery boat={boat} />
+            </div>
 
-      <SpecCard
-        icon={<ShieldCheckIcon className="h-5 w-5" />}
-        label="Reviews"
-        value={formatRatingSummary(reviewsData)}
-        text="Feedback from previous renters."
-      />
-    </section>
+            <BoatDetailHeader
+              boat={boat}
+              reviewsData={reviewsData}
+              isOwner={isOwner}
+              onFavoriteChange={handleFavoriteChange}
+            />
+
+            <BoatDetailDescription boat={boat} />
+
+            <BoatDetailLocation boat={boat} />
+
+            <BoatDetailReviews
+              boat={boat}
+              reviewsData={reviewsData}
+              reviewableBooking={reviewableBooking}
+              reloadReviews={loadReviews}
+              reloadEligibility={loadReviewEligibility}
+              reviewsPage={reviewsPage}
+            />
+
+            <MarineConditionsCard boatId={boat.id} />
+
+            <NearbyBoats boat={boat} />
+          </section>
+
+          <aside className="xl:sticky xl:top-24 xl:self-start">
+            {isOwner ? (
+              <BoatOwnerNotice boat={boat} />
+            ) : (
+              <BookingForm boat={boat} onBookingCreated={loadBoat} />
+            )}
+          </aside>
+        </div>
+      </PageContainer>
+    </main>
   )
 }

@@ -28,10 +28,10 @@ export default function BookingInfoCard({ boat }) {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-[22px] bg-white p-4 shadow-soft md:p-5">
-        <h3 className="text-base font-bold text-slate-900">How booking works</h3>
+      <div className="rounded-[22px] border border-gold/20 bg-navy p-4 shadow-soft md:p-5">
+        <h3 className="text-base font-bold text-white">How booking works</h3>
 
-        <div className="mt-3 space-y-2.5 text-sm text-slate-600">
+        <div className="mt-3 space-y-2.5 text-sm text-white/65">
           <p>1. Choose your dates in the calendar.</p>
           <p>2. Review the rental rules and cancellation terms before sending the request.</p>
           <p>3. Send a booking request to the host.</p>

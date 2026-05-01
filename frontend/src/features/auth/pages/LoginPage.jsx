@@ -5,8 +5,10 @@ import { useAuth } from '../../../context/useAuth'
 import { loginUser, resendVerificationEmail } from '../services/authService'
 import { getErrorMessage } from '../../../utils/errors'
 
-const inputClassName = 'w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-ocean focus:ring-2 focus:ring-ocean/10'
-const labelClassName = 'mb-1.5 block text-sm font-medium text-slate-700'
+const inputClassName =
+  'w-full rounded-xl border border-gold/25 bg-[#071d32]/80 px-3.5 py-2.5 text-sm text-white placeholder:text-white/40 outline-none transition focus:border-gold focus:bg-[#071d32] focus:ring-2 focus:ring-gold/25'
+
+const labelClassName = 'mb-1.5 block text-sm font-medium text-white/80'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -22,7 +24,9 @@ export default function LoginPage() {
     password: '',
   })
   const [error, setError] = useState('')
-  const [info, setInfo] = useState(initialMessage || (initialEmail ? 'Please verify your email before logging in.' : ''))
+  const [info, setInfo] = useState(
+    initialMessage || (initialEmail ? 'Please verify your email before logging in.' : '')
+  )
   const [resending, setResending] = useState(false)
   const [loading, setLoading] = useState(false)
 
@@ -62,78 +66,80 @@ export default function LoginPage() {
   }
 
   return (
-    <PageContainer size="auth" className="py-8 md:py-10" contentClassName="space-y-0">
-      <div className="rounded-[20px] bg-white p-5 shadow-soft md:p-6">
-        <h1 className="mb-1 text-2xl font-extrabold text-slate-900">Log in</h1>
-        <p className="mb-5 text-sm text-slate-600">Welcome back aboard.</p>
+    <main className="min-h-screen bg-[#071d32]">
+      <PageContainer size="auth" className="py-8 md:py-10" contentClassName="space-y-0">
+        <div className="rounded-[20px] border border-gold/20 bg-navy p-5 shadow-soft md:p-6">
+          <h1 className="mb-1 text-2xl font-extrabold text-white">Log in</h1>
+          <p className="mb-5 text-sm text-white/70">Welcome back aboard.</p>
 
-        <form className="space-y-3.5" onSubmit={handleSubmit}>
-          <div>
-            <label className={labelClassName} htmlFor="login-username">
-              Username
-            </label>
-            <input
-              id="login-username"
-              name="username"
-              autoComplete="username"
-              className={inputClassName}
-              placeholder="Username"
-              value={form.username}
-              onChange={(e) => setForm({ ...form, username: e.target.value })}
-            />
-          </div>
+          <form className="space-y-3.5" onSubmit={handleSubmit}>
+            <div>
+              <label className={labelClassName} htmlFor="login-username">
+                Username
+              </label>
+              <input
+                id="login-username"
+                name="username"
+                autoComplete="username"
+                className={inputClassName}
+                placeholder="Username"
+                value={form.username}
+                onChange={(e) => setForm({ ...form, username: e.target.value })}
+              />
+            </div>
 
-          <div>
-            <label className={labelClassName} htmlFor="login-password">
-              Password
-            </label>
-            <input
-              id="login-password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              className={inputClassName}
-              placeholder="Password"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-            />
-          </div>
+            <div>
+              <label className={labelClassName} htmlFor="login-password">
+                Password
+              </label>
+              <input
+                id="login-password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                className={inputClassName}
+                placeholder="Password"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+              />
+            </div>
 
-          {info ? <p className="text-sm text-slate-600">{info}</p> : null}
-          {error ? <p className="text-sm text-red-600">{error}</p> : null}
+            {info ? <p className="text-sm text-white/70">{info}</p> : null}
+            {error ? <p className="text-sm text-red-200">{error}</p> : null}
 
-          <button
-            disabled={loading}
-            className="w-full rounded-full bg-navy px-5 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {loading ? 'Logging in...' : 'Log in'}
-          </button>
-        </form>
+            <button
+              disabled={loading}
+              className="w-full rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-navy transition hover:bg-gold/90 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? 'Logging in...' : 'Log in'}
+            </button>
+          </form>
 
-        {initialEmail ? (
-          <button
-            type="button"
-            onClick={handleResendVerification}
-            disabled={resending}
-            className="mt-4 text-sm font-semibold text-ocean disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {resending ? 'Sending verification email...' : 'Resend verification email'}
-          </button>
-        ) : null}
+          {initialEmail ? (
+            <button
+              type="button"
+              onClick={handleResendVerification}
+              disabled={resending}
+              className="mt-4 text-sm font-semibold text-gold disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {resending ? 'Sending verification email...' : 'Resend verification email'}
+            </button>
+          ) : null}
 
-        <div className="mt-4 flex items-center justify-between gap-3 text-sm">
-          <Link to="/forgot-password" className="font-semibold text-ocean">
-            Forgot password?
-          </Link>
-
-          <p className="text-slate-600">
-            Need an account?{' '}
-            <Link to="/signup" className="font-semibold text-ocean">
-              Sign up
+          <div className="mt-4 flex items-center justify-between gap-3 text-sm">
+            <Link to="/forgot-password" className="font-semibold text-gold">
+              Forgot password?
             </Link>
-          </p>
+
+            <p className="text-white/70">
+              Need an account?{' '}
+              <Link to="/signup" className="font-semibold text-gold">
+                Sign up
+              </Link>
+            </p>
+          </div>
         </div>
-      </div>
-    </PageContainer>
+      </PageContainer>
+    </main>
   )
 }

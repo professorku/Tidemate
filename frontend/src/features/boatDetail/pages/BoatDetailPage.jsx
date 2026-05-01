@@ -12,7 +12,6 @@ import MarineConditionsCard from '../../../components/marineConditions/MarineCon
 import NearbyBoats from '../../../components/NearbyBoats'
 
 import BoatDetailHeader from '../../boatDetail/components/BoatDetailHeader'
-import BoatDetailSpecs from '../../boatDetail/components/BoatDetailSpecs'
 import BoatDetailDescription from '../../boatDetail/components/BoatDetailDescription'
 import BoatDetailReviews from '../../boatDetail/components/BoatDetailReviews'
 import BoatDetailLocation from '../../boatDetail/components/BoatDetailLocation'
@@ -22,7 +21,7 @@ import useBoatDetailPage from '../../boatDetail/hooks/useBoatDetailPage'
 
 function BoatDetailSkeleton() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100">
+    <main className="min-h-screen bg-[#071d32]">
       <PageContainer size="wide" as="div" className="py-8 md:py-10">
         <LoadingState
           title="Loading boat details"
@@ -52,7 +51,7 @@ export default function BoatDetailPage() {
 
   if (error) {
     return (
-      <main className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100">
+      <main className="min-h-screen bg-[#071d32]">
         <PageContainer size="content" className="py-8 md:py-10">
           <ErrorState
             title="Boat detail unavailable"
@@ -65,9 +64,9 @@ export default function BoatDetailPage() {
           <div className="mt-5">
             <Link
               to="/"
-              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              className="inline-flex items-center gap-2 rounded-full border border-gold/20 bg-navy px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-white/10"
             >
-              <ArrowLeftIcon className="h-4 w-4" />
+              <ArrowLeftIcon className="h-4 w-4 text-gold" />
               Back to boats
             </Link>
           </div>
@@ -81,7 +80,7 @@ export default function BoatDetailPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100">
+    <main className="min-h-screen bg-[#071d32]">
       <PageContainer
         size="wide"
         as="div"
@@ -91,13 +90,13 @@ export default function BoatDetailPage() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Link
             to="/"
-            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+            className="inline-flex items-center gap-2 rounded-full border border-gold/20 bg-navy px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-white/10"
           >
-            <ArrowLeftIcon className="h-4 w-4" />
+            <ArrowLeftIcon className="h-4 w-4 text-gold" />
             Back to boats
           </Link>
 
-          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm">
+          <div className="inline-flex items-center gap-2 rounded-full border border-gold/20 bg-navy px-4 py-2 text-sm font-semibold text-white/80 shadow-sm">
             <ExclamationTriangleIcon className="h-4 w-4 text-gold" />
             Pickup details are protected until booking is confirmed
           </div>
@@ -105,7 +104,7 @@ export default function BoatDetailPage() {
 
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_390px]">
           <section className="min-w-0 space-y-6">
-            <div className="rounded-[34px] border border-slate-200 bg-white p-3 shadow-sm">
+            <div className="rounded-[34px] border border-gold/20 bg-navy p-3 shadow-soft">
               <BoatImageGallery boat={boat} />
             </div>
 
@@ -115,8 +114,6 @@ export default function BoatDetailPage() {
               isOwner={isOwner}
               onFavoriteChange={handleFavoriteChange}
             />
-
-            <BoatDetailSpecs boat={boat} reviewsData={reviewsData} />
 
             <BoatDetailDescription boat={boat} />
 
