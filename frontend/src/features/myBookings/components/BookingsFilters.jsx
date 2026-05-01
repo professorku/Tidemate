@@ -8,8 +8,14 @@ export default function BookingsFilters({ activeTab, counts, onChange }) {
   }))
 
   return (
-    <section className="mt-6">
-      <FilterTabs tabs={tabs} activeKey={activeTab} onChange={onChange} showCount />
-    </section>
+    <div className="max-w-full overflow-x-auto">
+      <FilterTabs
+        tabs={tabs}
+        activeKey={activeTab}
+        onChange={onChange}
+        showCount
+        className="min-w-max lg:min-w-0 lg:justify-end"
+      />
+    </div>
   )
 }

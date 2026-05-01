@@ -11,7 +11,7 @@ const EMPTY_STATE_CONTENT = {
   },
   upcoming: {
     title: 'No upcoming trips',
-    text: 'Once a booking gets confirmed for future dates, it will appear here.',
+    text: 'Confirmed future bookings will appear here.',
   },
   active: {
     title: 'No active trips right now',
@@ -73,7 +73,7 @@ export default function BookingsResults({
         text={state.text}
         actionLabel="Browse boats"
         actionTo="/"
-        compact
+        compact={false}
       />
     )
   }

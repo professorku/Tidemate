@@ -1,4 +1,5 @@
 import {
+  formatBoatType,
   formatBookingDate,
   formatBookingDateTime,
   formatBookingWindow as buildBookingWindow,
@@ -17,7 +18,13 @@ export function formatDateTime(value) {
   return formatBookingDateTime(value, {
     locale: 'en-GB',
     fallback: '—',
-    dateOptions: { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' },
+    dateOptions: {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    },
   })
 }
 
@@ -30,8 +37,14 @@ export function formatBookingWindow(booking) {
 }
 
 export function formatMoney(value) {
-  return formatCurrency(value, { locale: 'en-NO', currency: 'NOK' })
+  return formatCurrency(value, {
+    locale: 'en-NO',
+    currency: 'NOK',
+    maximumFractionDigits: 0,
+  })
 }
+
+export { formatBoatType }
 
 export function getTimelineStatus(booking) {
   if (booking?.lifecycle_stage) {
@@ -56,12 +69,24 @@ export function getTimelineStatus(booking) {
   return 'upcoming'
 }
 
+export function formatStatusLabel(status) {
+  if (!status) return 'Booking'
+
+  const labels = {
+    confirmed: 'Confirmed',
+    pending: 'Pending',
+    cancelled: 'Cancelled',
+  }
+
+  return labels[status] || status
+}
+
 export function statusClasses(status) {
   switch (status) {
     case 'confirmed':
-      return 'bg-green-100 text-green-700 ring-1 ring-green-200'
+      return 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200'
     case 'pending':
-      return 'bg-amber-100 text-amber-700 ring-1 ring-amber-200'
+      return 'bg-amber-100 text-amber-800 ring-1 ring-amber-200'
     case 'cancelled':
       return 'bg-red-100 text-red-700 ring-1 ring-red-200'
     default:
@@ -78,7 +103,7 @@ export function timelineBadgeClasses(tab) {
     case 'completed':
       return 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200'
     case 'pending':
-      return 'bg-amber-100 text-amber-700 ring-1 ring-amber-200'
+      return 'bg-amber-100 text-amber-800 ring-1 ring-amber-200'
     case 'cancelled':
       return 'bg-red-100 text-red-700 ring-1 ring-red-200'
     default:

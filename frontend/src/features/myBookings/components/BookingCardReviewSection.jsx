@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { StarIcon } from '@heroicons/react/24/outline'
 import ReviewForm from '../../../components/ReviewForm'
 import { formatRatingLabel } from '../utils/bookingFormatters'
 
@@ -16,7 +17,7 @@ function ReviewPreviewCard({ title, review }) {
         {formatRatingLabel(review.rating)} · {review.rating}/5
       </p>
 
-      <p className="mt-2 text-sm text-slate-700">
+      <p className="mt-2 text-sm leading-6 text-slate-700">
         {review.comment_preview || 'No written comment.'}
       </p>
     </div>
@@ -32,10 +33,10 @@ export default function BookingCardReviewSection({ booking, isCompleted, onRefre
     }
 
     if (booking.can_review_boat || booking.can_review_user) {
-      return 'Leave review'
+      return 'Leave a review'
     }
 
-    return ''
+    return 'Completed trip'
   }, [booking])
 
   const handleReviewCreated = async () => {
@@ -48,23 +49,29 @@ export default function BookingCardReviewSection({ booking, isCompleted, onRefre
   if (!isCompleted) return null
 
   return (
-    <div className="rounded-[20px] border border-slate-200 bg-slate-50 p-4">
+    <div className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Post-trip
-          </p>
-          <h3 className="mt-1 text-base font-bold text-slate-900">
-            {reviewHeadline || 'Completed trip'}
-          </h3>
-          <p className="mt-1 text-sm text-slate-600">
-            This trip is finished. You can review the experience or book the boat again.
-          </p>
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-violet-50 text-violet-700 ring-1 ring-violet-100">
+            <StarIcon className="h-5 w-5" />
+          </div>
+
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Post-trip
+            </p>
+            <h3 className="mt-1 text-base font-bold text-slate-900">
+              {reviewHeadline}
+            </h3>
+            <p className="mt-1 text-sm leading-6 text-slate-600">
+              This trip is finished. You can review the experience or book the boat again.
+            </p>
+          </div>
         </div>
 
         <Link
           to={`/boats/${booking.boat}`}
-          className="rounded-full bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+          className="rounded-full bg-slate-900 px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:opacity-90"
         >
           Book again
         </Link>

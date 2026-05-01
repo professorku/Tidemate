@@ -1,9 +1,14 @@
 import { Link } from 'react-router-dom'
-import BookingCardImageThumb from '../../../components/bookings/BookingCardImageThumb'
 import {
-  getTimelineLabel,
+  LifebuoyIcon,
+  MapPinIcon,
+  ShieldCheckIcon,
+  UserGroupIcon,
+} from '@heroicons/react/24/outline'
+import {
+  formatBoatType,
+  formatStatusLabel,
   statusClasses,
-  timelineBadgeClasses,
 } from '../utils/bookingFormatters'
 import {
   canShowExactLocation,
@@ -11,81 +16,80 @@ import {
   getBoatPublicLocationLabel,
 } from '../../../utils/locationPrivacy'
 
-export default function BookingCardHeader({ booking, timelineStatus, isCancelled, isCompleted }) {
+export default function BookingCardHeader({ booking, timelineStatus }) {
   const hasExactLocation = canShowExactLocation(booking)
   const locationLabel = getBoatLocationLabel(booking, 'Location not set')
   const publicLocationLabel = getBoatPublicLocationLabel(booking, '')
 
   return (
-    <div className="flex items-start justify-between gap-4 pr-14">
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <span
-            className={`rounded-full px-3 py-1 text-xs font-semibold ${timelineBadgeClasses(
-              timelineStatus
-            )}`}
-          >
-            {getTimelineLabel(timelineStatus)}
+    <div className="pr-12">
+      <div className="flex flex-wrap items-center gap-2">
+        <span
+          className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusClasses(
+            booking.status
+          )}`}
+        >
+          {formatStatusLabel(booking.status)}
+        </span>
+
+        {hasExactLocation ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-100">
+            <ShieldCheckIcon className="h-3.5 w-3.5" />
+            Exact pickup visible
           </span>
-
-          <span
-            className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusClasses(
-              booking.status
-            )}`}
-          >
-            {booking.status}
-          </span>
-
-          {hasExactLocation ? (
-            <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-              Exact pickup visible
-            </span>
-          ) : null}
-        </div>
-
-        <h2 className="mt-2 text-lg font-bold text-slate-900 md:text-xl">
-          {booking.boat_title || 'Boat'}
-        </h2>
-
-        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-slate-600">
-          <span>{locationLabel}</span>
-          {booking.boat_type ? <span>{booking.boat_type}</span> : null}
-          {booking.boat_guests ? <span>Up to {booking.boat_guests} guests</span> : null}
-        </div>
-
-        {hasExactLocation && publicLocationLabel && publicLocationLabel !== locationLabel ? (
-          <p className="mt-1 text-xs text-slate-500">
-            Public area: {publicLocationLabel}
-          </p>
         ) : null}
 
-        <p className="mt-2.5 text-sm text-slate-600">
-          Hosted by{' '}
-          {booking.host_id ? (
-            <Link
-              to={`/users/${booking.host_id}`}
-              className="font-semibold text-slate-800 hover:underline"
-            >
-              {booking.host_username || 'Host'}
-            </Link>
-          ) : (
-            <span className="font-semibold text-slate-800">
-              {booking.host_username || 'Host'}
-            </span>
-          )}
-        </p>
+        {timelineStatus === 'pending' ? (
+          <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800 ring-1 ring-amber-100">
+            Host needs to approve
+          </span>
+        ) : null}
       </div>
 
-      <BookingCardImageThumb
-        image={booking.boat_image}
-        alt={booking.boat_title}
-        overlay={(
-          <>
-            {isCancelled ? <div className="absolute inset-0 bg-red-500/30" /> : null}
-            {isCompleted ? <div className="absolute inset-0 bg-green-500/30" /> : null}
-          </>
+      <h3 className="mt-3 text-2xl font-extrabold tracking-tight text-slate-900">
+        {booking.boat_title || 'Boat'}
+      </h3>
+
+      <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-600">
+        <span className="inline-flex items-center gap-1.5">
+          <MapPinIcon className="h-4 w-4 text-slate-400" />
+          {locationLabel}
+        </span>
+
+        <span className="inline-flex items-center gap-1.5">
+          <LifebuoyIcon className="h-4 w-4 text-slate-400" />
+          {formatBoatType(booking.boat_type)}
+        </span>
+
+        {booking.boat_guests ? (
+          <span className="inline-flex items-center gap-1.5">
+            <UserGroupIcon className="h-4 w-4 text-slate-400" />
+            Up to {booking.boat_guests} guests
+          </span>
+        ) : null}
+      </div>
+
+      {hasExactLocation && publicLocationLabel && publicLocationLabel !== locationLabel ? (
+        <p className="mt-2 text-xs text-slate-500">
+          Public area: {publicLocationLabel}
+        </p>
+      ) : null}
+
+      <p className="mt-3 text-sm text-slate-600">
+        Hosted by{' '}
+        {booking.host_id ? (
+          <Link
+            to={`/users/${booking.host_id}`}
+            className="font-bold text-navy hover:underline"
+          >
+            {booking.host_username || 'Host'}
+          </Link>
+        ) : (
+          <span className="font-bold text-slate-800">
+            {booking.host_username || 'Host'}
+          </span>
         )}
-      />
+      </p>
     </div>
   )
 }
