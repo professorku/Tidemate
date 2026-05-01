@@ -15,11 +15,11 @@
     "@heroicons/react": "^2.2.0",
     "axios": "^1.13.6",
     "leaflet": "^1.9.4",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
     "react-leaflet": "^5.0.0",
-    "react-router-dom": "^7.13.1",
-    "@tanstack/react-query": "^5.90.3",
+    "react-router-dom": "^7.14.2",
+    "@tanstack/react-query": "^5.100.7",
     "react-hook-form": "^7.66.0"
   },
   "devDependencies": {
