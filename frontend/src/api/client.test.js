@@ -129,9 +129,13 @@ describe('api client auth and error handling', () => {
       ok: true,
     })
 
-    expect(axiosMocks.getMock).toHaveBeenCalledWith('/api/users/csrf/', {
-      withCredentials: true,
-    })
+    expect(axiosMocks.getMock).toHaveBeenCalledWith(
+      '/api/users/csrf/',
+      expect.objectContaining({
+        withCredentials: true,
+        timeout: 15000,
+      })
+    )
 
     expect(axiosMocks.dispatchMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -198,12 +202,13 @@ describe('api client auth and error handling', () => {
     expect(axiosMocks.postMock).toHaveBeenCalledWith(
       '/api/users/refresh/',
       {},
-      {
+      expect.objectContaining({
         withCredentials: true,
+        timeout: 15000,
         headers: {
           'X-CSRFToken': 'refresh-csrf',
         },
-      }
+      })
     )
 
     expect(axiosMocks.dispatchMock).toHaveBeenCalledTimes(2)
