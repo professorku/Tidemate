@@ -10,6 +10,15 @@ from .services import write_audit_event
 request_logger = logging.getLogger("monitoring.requests")
 security_logger = logging.getLogger("security")
 
+# Paths that are audited only on failure (4xx/5xx), not on success.
+# Successful calls are too noisy to log row-by-row, but failures are
+# security-relevant (e.g. a burst of failed refreshes from an unusual
+# IP can indicate a stolen refresh token being replayed).
+AUDIT_ON_FAILURE_ONLY_PATHS = {
+    "/api/users/refresh/",
+    "/api/users/refresh",
+}
+
 
 class RequestMonitoringMiddleware:
     """
@@ -20,6 +29,13 @@ class RequestMonitoringMiddleware:
 
     It intentionally does NOT store request bodies, cookies, auth headers,
     passwords, JWTs, or CSRF tokens.
+
+    Refresh endpoint behaviour
+    --------------------------
+    Successful token refreshes are not audited (too noisy — every page load
+    that finds an expired access token triggers one). Failed refreshes ARE
+    audited because a spike of 4xx responses from an unusual IP is a signal
+    worth keeping in the audit trail.
     """
 
     WRITE_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
@@ -90,6 +106,13 @@ class RequestMonitoringMiddleware:
         skip_prefixes = getattr(settings, "AUDIT_SKIP_PATH_PREFIXES", [])
         return any(path.startswith(prefix) for prefix in skip_prefixes)
 
+    def _is_failure_only_path(self, path):
+        """
+        Return True if this path should only be audited on failure (4xx/5xx).
+        Successful calls on these paths are intentionally suppressed.
+        """
+        return path.rstrip("/") + "/" in AUDIT_ON_FAILURE_ONLY_PATHS
+
     def _is_api_path(self, request):
         return request.path.startswith("/api/")
 
@@ -99,6 +122,12 @@ class RequestMonitoringMiddleware:
 
         if not self._is_api_path(request):
             return False
+
+        # Failure-only paths: audit on 4xx/5xx, skip on 2xx/3xx.
+        # This must be checked before the general skip list so that failures
+        # on these paths are never silently swallowed.
+        if self._is_failure_only_path(request.path):
+            return status_code >= 400
 
         if self._path_is_skipped(request.path):
             return False
@@ -168,6 +197,7 @@ class RequestMonitoringMiddleware:
             ("POST", "/api/users/signup"): "auth.signup",
             ("POST", "/api/users/login"): "auth.login",
             ("POST", "/api/users/logout"): "auth.logout",
+            ("POST", "/api/users/refresh"): "auth.token_refresh",
             ("POST", "/api/users/forgot-password"): "auth.forgot_password",
             ("POST", "/api/users/reset-password"): "auth.reset_password",
             ("POST", "/api/users/change-password"): "auth.change_password",

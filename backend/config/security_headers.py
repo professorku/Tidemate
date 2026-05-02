@@ -3,6 +3,7 @@ from django.conf import settings
 
 CONTENT_SECURITY_POLICY_HEADER = "Content-Security-Policy"
 CONTENT_SECURITY_POLICY_REPORT_ONLY_HEADER = "Content-Security-Policy-Report-Only"
+PERMISSIONS_POLICY_HEADER = "Permissions-Policy"
 
 
 def _normalize_directive_values(values):
@@ -35,27 +36,38 @@ def build_content_security_policy_header(policy):
     return "; ".join(directives)
 
 
-class ContentSecurityPolicyMiddleware:
-    """
-    Adds a Content Security Policy header to Django responses.
+def build_permissions_policy_header(policy):
 
-    The React frontend should still be served with its own CSP header by the
-    frontend host/reverse proxy. This middleware protects Django-served pages,
-    API responses, browsable API pages, and the admin if enabled.
-    """
+    directives = []
+
+    for feature, allowlist in policy.items():
+        if not allowlist:
+            directives.append(f"{feature}=()")
+        else:
+            origins = " ".join(str(o) for o in allowlist)
+            directives.append(f"{feature}=({origins})")
+
+    return ", ".join(directives)
+
+
+class ContentSecurityPolicyMiddleware:
 
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
         response = self.get_response(request)
+        self._add_csp_header(response)
+        self._add_permissions_policy_header(response)
+        return response
 
+    def _add_csp_header(self, response):
         if not getattr(settings, "CSP_ENABLED", True):
-            return response
+            return
 
         policy = getattr(settings, "CSP_POLICY", None)
         if not policy:
-            return response
+            return
 
         header_name = (
             CONTENT_SECURITY_POLICY_REPORT_ONLY_HEADER
@@ -64,7 +76,16 @@ class ContentSecurityPolicyMiddleware:
         )
 
         if response.has_header(header_name):
-            return response
+            return
 
         response[header_name] = build_content_security_policy_header(policy)
-        return response
+
+    def _add_permissions_policy_header(self, response):
+        policy = getattr(settings, "PERMISSIONS_POLICY", None)
+        if not policy:
+            return
+
+        if response.has_header(PERMISSIONS_POLICY_HEADER):
+            return
+
+        response[PERMISSIONS_POLICY_HEADER] = build_permissions_policy_header(policy)

