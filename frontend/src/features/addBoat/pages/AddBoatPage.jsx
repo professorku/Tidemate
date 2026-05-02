@@ -57,10 +57,6 @@ export default function AddBoatPage() {
 
         <section className="overflow-hidden rounded-[34px] border border-gold/20 bg-navy shadow-soft">
           <div className="relative px-6 py-8 md:px-8 md:py-10">
-            <div className="absolute right-8 top-8 hidden rounded-full bg-[#071d32]/80 p-5 text-gold shadow-sm ring-1 ring-gold/20 md:block">
-              <LifebuoyIcon className="h-10 w-10" />
-            </div>
-
             <div className="max-w-3xl">
               <h1 className="text-3xl font-extrabold tracking-tight text-white md:text-5xl">
                 Add your boat

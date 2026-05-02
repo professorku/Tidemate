@@ -31,13 +31,17 @@ MAX_LONGITUDE = Decimal('180.000000')
 
 class BoatListing(models.Model):
     BOAT_TYPES = [
-        ('rib', 'RIB'),
-        ('sailboat', 'Sailboat'),
-        ('kayak', 'Kayak'),
-        ('yacht', 'Yacht'),
-        ('motorboat', 'Motorboat'),
-        ('other', 'Other'),
-    ]
+            ('rib', 'RIB'),
+            ('sailboat', 'Sailboat'),
+            ('kayak', 'Kayak'),
+            ('yacht', 'Yacht'),
+            ('motorboat', 'Motorboat'),
+            ('fishing_boat', 'Fishing Boat'),
+            ('rowboat', 'Rowboat'),
+            ('catamaran', 'Catamaran'),
+            ('canoe', 'Canoe'),
+            ('other', 'Other'),
+        ]
 
     host = models.ForeignKey(User, on_delete=models.CASCADE, related_name='boat_listings')
     title = models.CharField(max_length=255)
