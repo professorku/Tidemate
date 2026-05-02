@@ -1,15 +1,21 @@
 import re
+from datetime import timedelta
 from decimal import Decimal, InvalidOperation
 
+from django.utils import timezone
+
+from bookings.lifecycle import booking_pickup_datetime, booking_return_datetime
 from bookings.models import Booking
 from listings.services.public_coordinates import get_approximate_boat_coordinates
 
 
 APPROXIMATE_LOCATION_RADIUS_KM = 5
+EXACT_LOCATION_DISCLOSURE_WINDOW_HOURS = 24
 
 EXACT_LOCATION_MESSAGE = 'Exact pickup location is available for this booking.'
 APPROXIMATE_LOCATION_MESSAGE = (
-    'Exact pickup location is shared after the booking is confirmed. '
+    'Exact pickup location is only shared with confirmed renters from '
+    f'{EXACT_LOCATION_DISCLOSURE_WINDOW_HOURS} hours before pickup until return. '
     'Until then, this map only shows an approximate area.'
 )
 UNAVAILABLE_LOCATION_MESSAGE = 'This boat does not have saved map coordinates yet.'
@@ -194,7 +200,27 @@ def get_public_location_name(value):
     return ', '.join(safe_parts[:2])
 
 
-def user_can_view_exact_boat_location(user, boat):
+def _booking_exact_location_window(booking):
+    pickup_datetime = booking_pickup_datetime(booking)
+    return_datetime = booking_return_datetime(booking)
+    disclosure_start = pickup_datetime - timedelta(
+        hours=EXACT_LOCATION_DISCLOSURE_WINDOW_HOURS,
+    )
+
+    return disclosure_start, return_datetime
+
+
+def confirmed_booking_is_in_exact_location_window(booking, *, now=None):
+    if getattr(booking, 'status', None) != 'confirmed':
+        return False
+
+    current_time = now or timezone.now()
+    disclosure_start, disclosure_end = _booking_exact_location_window(booking)
+
+    return disclosure_start <= current_time <= disclosure_end
+
+
+def user_can_view_exact_boat_location(user, boat, *, now=None):
     if not user or not getattr(user, 'is_authenticated', False):
         return False
 
@@ -207,14 +233,19 @@ def user_can_view_exact_boat_location(user, boat):
     if not getattr(boat, 'pk', None):
         return False
 
-    return Booking.objects.filter(
+    confirmed_bookings = Booking.objects.filter(
         boat=boat,
         renter=user,
         status='confirmed',
-    ).exists()
+    ).only('id', 'status', 'start_date', 'end_date')
+
+    return any(
+        confirmed_booking_is_in_exact_location_window(booking, now=now)
+        for booking in confirmed_bookings
+    )
 
 
-def build_location_privacy_payload(boat, user):
+def build_location_privacy_payload(boat, user, *, now=None):
     exact_latitude = _as_float(getattr(boat, 'latitude', None))
     exact_longitude = _as_float(getattr(boat, 'longitude', None))
 
@@ -240,7 +271,7 @@ def build_location_privacy_payload(boat, user):
         }
 
     approximate_latitude, approximate_longitude = get_approximate_boat_coordinates(boat)
-    can_view_exact = user_can_view_exact_boat_location(user, boat)
+    can_view_exact = user_can_view_exact_boat_location(user, boat, now=now)
 
     if can_view_exact:
         return {

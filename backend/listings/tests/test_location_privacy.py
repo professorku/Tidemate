@@ -1,5 +1,6 @@
-from datetime import timedelta
+from datetime import date, datetime, timedelta
 from decimal import Decimal
+from unittest import mock
 
 from django.contrib.auth.models import User
 from django.urls import reverse
@@ -36,6 +37,12 @@ class BoatLocationPrivacyTests(APITestCase):
             price_per_day=Decimal('1200.00'),
             latitude=Decimal('66.312800'),
             longitude=Decimal('14.142800'),
+        )
+
+    def _aware_datetime(self, year, month, day, hour=12, minute=0):
+        return timezone.make_aware(
+            datetime(year, month, day, hour, minute),
+            timezone.get_current_timezone(),
         )
 
     def _detail_payload(self, user=None):
@@ -148,17 +155,52 @@ class BoatLocationPrivacyTests(APITestCase):
         self.assertIsNone(payload['pickup_address'])
         self.assertIsNone(payload['pickup_instructions'])
 
-    def test_renter_with_confirmed_booking_sees_exact_coordinates(self):
+    def test_confirmed_renter_before_24_hour_window_only_sees_approximate_coordinates(self):
         Booking.objects.create(
             boat=self.boat,
             renter=self.renter,
-            start_date=timezone.localdate() + timedelta(days=7),
-            end_date=timezone.localdate() + timedelta(days=9),
+            start_date=date(2026, 1, 11),
+            end_date=date(2026, 1, 13),
             total_price=Decimal('3600.00'),
             status='confirmed',
         )
 
-        payload = self._detail_payload(self.renter)
+        # Pickup is 2026-01-11 at 15:00. Exact location should not be visible
+        # before 2026-01-10 at 15:00.
+        before_disclosure_window = self._aware_datetime(2026, 1, 10, 12, 0)
+
+        with mock.patch(
+            'listings.services.location_privacy.timezone.now',
+            return_value=before_disclosure_window,
+        ):
+            payload = self._detail_payload(self.renter)
+
+        self.assertFalse(payload['exact_location_available'])
+        self.assertEqual(payload['location_precision'], 'approximate')
+        self.assertNotEqual(payload['latitude'], 66.3128)
+        self.assertNotEqual(payload['longitude'], 14.1428)
+        self.assertIsNone(payload['pickup_address'])
+        self.assertIsNone(payload['pickup_instructions'])
+
+    def test_confirmed_renter_within_24_hour_window_sees_exact_coordinates(self):
+        Booking.objects.create(
+            boat=self.boat,
+            renter=self.renter,
+            start_date=date(2026, 1, 11),
+            end_date=date(2026, 1, 13),
+            total_price=Decimal('3600.00'),
+            status='confirmed',
+        )
+
+        # Pickup is 2026-01-11 at 15:00. Exact location becomes visible from
+        # 2026-01-10 at 15:00 and remains visible until return time.
+        inside_disclosure_window = self._aware_datetime(2026, 1, 10, 16, 0)
+
+        with mock.patch(
+            'listings.services.location_privacy.timezone.now',
+            return_value=inside_disclosure_window,
+        ):
+            payload = self._detail_payload(self.renter)
 
         self.assertTrue(payload['exact_location_available'])
         self.assertEqual(payload['location_precision'], 'exact')
@@ -169,6 +211,31 @@ class BoatLocationPrivacyTests(APITestCase):
             payload['pickup_instructions'],
             'Use the private gate code near the red boathouse.',
         )
+
+    def test_confirmed_renter_after_return_time_only_sees_approximate_coordinates(self):
+        Booking.objects.create(
+            boat=self.boat,
+            renter=self.renter,
+            start_date=date(2026, 1, 7),
+            end_date=date(2026, 1, 9),
+            total_price=Decimal('3600.00'),
+            status='confirmed',
+        )
+
+        after_return_time = self._aware_datetime(2026, 1, 10, 12, 0)
+
+        with mock.patch(
+            'listings.services.location_privacy.timezone.now',
+            return_value=after_return_time,
+        ):
+            payload = self._detail_payload(self.renter)
+
+        self.assertFalse(payload['exact_location_available'])
+        self.assertEqual(payload['location_precision'], 'approximate')
+        self.assertNotEqual(payload['latitude'], 66.3128)
+        self.assertNotEqual(payload['longitude'], 14.1428)
+        self.assertIsNone(payload['pickup_address'])
+        self.assertIsNone(payload['pickup_instructions'])
 
     def test_renter_with_cancelled_booking_does_not_see_exact_coordinates(self):
         Booking.objects.create(
@@ -191,14 +258,20 @@ class BoatLocationPrivacyTests(APITestCase):
         booking = Booking.objects.create(
             boat=self.boat,
             renter=self.renter,
-            start_date=timezone.localdate() + timedelta(days=7),
-            end_date=timezone.localdate() + timedelta(days=9),
+            start_date=date(2026, 1, 11),
+            end_date=date(2026, 1, 13),
             total_price=Decimal('3600.00'),
             status='pending',
         )
 
+        inside_disclosure_window = self._aware_datetime(2026, 1, 10, 16, 0)
+
         self.client.force_authenticate(user=self.renter)
-        response = self.client.get(reverse('booking-detail', args=[booking.id]))
+        with mock.patch(
+            'listings.services.location_privacy.timezone.now',
+            return_value=inside_disclosure_window,
+        ):
+            response = self.client.get(reverse('booking-detail', args=[booking.id]))
 
         self.assertEqual(response.status_code, 200)
         payload = response.json()
@@ -210,7 +283,11 @@ class BoatLocationPrivacyTests(APITestCase):
         booking.status = 'confirmed'
         booking.save(update_fields=['status'])
 
-        response = self.client.get(reverse('booking-detail', args=[booking.id]))
+        with mock.patch(
+            'listings.services.location_privacy.timezone.now',
+            return_value=inside_disclosure_window,
+        ):
+            response = self.client.get(reverse('booking-detail', args=[booking.id]))
 
         self.assertEqual(response.status_code, 200)
         payload = response.json()
