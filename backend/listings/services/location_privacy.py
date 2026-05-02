@@ -220,7 +220,7 @@ def confirmed_booking_is_in_exact_location_window(booking, *, now=None):
     return disclosure_start <= current_time <= disclosure_end
 
 
-def user_can_view_exact_boat_location(user, boat, *, now=None):
+def user_can_view_exact_boat_location(user, boat, *, booking=None, now=None):
     if not user or not getattr(user, 'is_authenticated', False):
         return False
 
@@ -232,6 +232,13 @@ def user_can_view_exact_boat_location(user, boat, *, now=None):
 
     if not getattr(boat, 'pk', None):
         return False
+
+    if booking is not None:
+        return bool(
+            getattr(booking, 'boat_id', None) == boat.id
+            and getattr(booking, 'renter_id', None) == user.id
+            and confirmed_booking_is_in_exact_location_window(booking, now=now)
+        )
 
     confirmed_bookings = Booking.objects.filter(
         boat=boat,
@@ -245,7 +252,7 @@ def user_can_view_exact_boat_location(user, boat, *, now=None):
     )
 
 
-def build_location_privacy_payload(boat, user, *, now=None):
+def build_location_privacy_payload(boat, user, *, booking=None, now=None):
     exact_latitude = _as_float(getattr(boat, 'latitude', None))
     exact_longitude = _as_float(getattr(boat, 'longitude', None))
 
@@ -271,7 +278,12 @@ def build_location_privacy_payload(boat, user, *, now=None):
         }
 
     approximate_latitude, approximate_longitude = get_approximate_boat_coordinates(boat)
-    can_view_exact = user_can_view_exact_boat_location(user, boat, now=now)
+    can_view_exact = user_can_view_exact_boat_location(
+        user,
+        boat,
+        booking=booking,
+        now=now,
+    )
 
     if can_view_exact:
         return {

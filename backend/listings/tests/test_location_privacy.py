@@ -222,6 +222,7 @@ class BoatLocationPrivacyTests(APITestCase):
             status='confirmed',
         )
 
+        # Return is 2026-01-09 at 12:00, so exact pickup info should be hidden again.
         after_return_time = self._aware_datetime(2026, 1, 10, 12, 0)
 
         with mock.patch(
@@ -254,7 +255,7 @@ class BoatLocationPrivacyTests(APITestCase):
         self.assertIsNone(payload['pickup_address'])
         self.assertIsNone(payload['pickup_instructions'])
 
-    def test_booking_detail_uses_same_location_privacy_rule(self):
+    def test_booking_detail_uses_the_specific_booking_location_privacy_rule(self):
         booking = Booking.objects.create(
             boat=self.boat,
             renter=self.renter,

@@ -164,7 +164,11 @@ class BookingRepresentationMixin(BookingReviewMixin):
         if cached_payload is not None:
             return cached_payload
 
-        payload = build_location_privacy_payload(obj.boat, self._get_request_user())
+        payload = build_location_privacy_payload(
+            obj.boat,
+            self._get_request_user(),
+            booking=obj,
+        )
         setattr(obj, cache_key, payload)
         return payload
 
