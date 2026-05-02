@@ -3,6 +3,7 @@ from django.middleware.csrf import CsrfViewMiddleware
 
 ACCESS_COOKIE_NAME = getattr(settings, 'JWT_ACCESS_COOKIE_NAME', 'access_token')
 ACCESS_COOKIE_PATH = getattr(settings, 'JWT_ACCESS_COOKIE_PATH', '/')
+ACCESS_COOKIE_DOMAIN = getattr(settings, 'JWT_ACCESS_COOKIE_DOMAIN', None)
 ACCESS_COOKIE_SECURE = getattr(settings, 'JWT_ACCESS_COOKIE_SECURE', not settings.DEBUG)
 ACCESS_COOKIE_HTTPONLY = getattr(settings, 'JWT_ACCESS_COOKIE_HTTPONLY', True)
 ACCESS_COOKIE_SAMESITE = getattr(settings, 'JWT_ACCESS_COOKIE_SAMESITE', 'Lax')
@@ -10,6 +11,7 @@ ACCESS_COOKIE_MAX_AGE = int(settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_s
 
 REFRESH_COOKIE_NAME = getattr(settings, 'JWT_REFRESH_COOKIE_NAME', 'refresh_token')
 REFRESH_COOKIE_PATH = getattr(settings, 'JWT_REFRESH_COOKIE_PATH', '/api/users/')
+REFRESH_COOKIE_DOMAIN = getattr(settings, 'JWT_REFRESH_COOKIE_DOMAIN', None)
 REFRESH_COOKIE_SECURE = getattr(settings, 'JWT_REFRESH_COOKIE_SECURE', not settings.DEBUG)
 REFRESH_COOKIE_HTTPONLY = getattr(settings, 'JWT_REFRESH_COOKIE_HTTPONLY', True)
 REFRESH_COOKIE_SAMESITE = getattr(settings, 'JWT_REFRESH_COOKIE_SAMESITE', 'Lax')
@@ -25,6 +27,7 @@ def set_access_cookie(response, access_token):
         secure=ACCESS_COOKIE_SECURE,
         samesite=ACCESS_COOKIE_SAMESITE,
         path=ACCESS_COOKIE_PATH,
+        domain=ACCESS_COOKIE_DOMAIN,
     )
 
 
@@ -32,6 +35,7 @@ def clear_access_cookie(response):
     response.delete_cookie(
         key=ACCESS_COOKIE_NAME,
         path=ACCESS_COOKIE_PATH,
+        domain=ACCESS_COOKIE_DOMAIN,
         samesite=ACCESS_COOKIE_SAMESITE,
     )
 
@@ -45,6 +49,7 @@ def set_refresh_cookie(response, refresh_token):
         secure=REFRESH_COOKIE_SECURE,
         samesite=REFRESH_COOKIE_SAMESITE,
         path=REFRESH_COOKIE_PATH,
+        domain=REFRESH_COOKIE_DOMAIN,
     )
 
 
@@ -52,6 +57,7 @@ def clear_refresh_cookie(response):
     response.delete_cookie(
         key=REFRESH_COOKIE_NAME,
         path=REFRESH_COOKIE_PATH,
+        domain=REFRESH_COOKIE_DOMAIN,
         samesite=REFRESH_COOKIE_SAMESITE,
     )
 

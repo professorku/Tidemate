@@ -689,6 +689,47 @@ class BoatListingValueValidationTests(TestCase):
         self.assertEqual(serializer.validated_data['title'], 'Clean Boat Title')
         self.assertEqual(serializer.validated_data['location_name'], 'Bodø')
 
+    def test_accepts_realistic_norwegian_public_location_names(self):
+        valid_location_names = [
+            'Mo i Rana',
+            'Bodø havn',
+            'Sandnessjøen marina',
+            'Trondheim båthavn',
+            'Oslofjorden',
+        ]
+
+        for location_name in valid_location_names:
+            with self.subTest(location_name=location_name):
+                serializer = self._serializer({
+                    **self._base_payload(),
+                    'location_name': location_name,
+                })
+
+                self.assertTrue(serializer.is_valid(), serializer.errors)
+                self.assertEqual(
+                    serializer.validated_data['location_name'],
+                    location_name,
+                )
+
+    def test_still_rejects_exact_pickup_details_in_public_location_name(self):
+        private_location_names = [
+            'Storgata 12, Bodø',
+            '8006 Bodø',
+            'Dock 12, Mo i Rana',
+            'Marina slip A7',
+            '66.312800, 14.142800',
+        ]
+
+        for location_name in private_location_names:
+            with self.subTest(location_name=location_name):
+                serializer = self._serializer({
+                    **self._base_payload(),
+                    'location_name': location_name,
+                })
+
+                self.assertFalse(serializer.is_valid())
+                self.assertIn('location_name', serializer.errors)
+
     def test_rejects_zero_price(self):
         serializer = self._serializer({
             **self._base_payload(),

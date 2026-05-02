@@ -70,7 +70,7 @@ The main goal of TideMate is to demonstrate how a marketplace-style application 
 - **Django Channels**
 - **SQLite** for local development
 - **PostgreSQL** recommended for production
-- **Redis** recommended for production WebSockets, throttling, and caching
+- **Redis** is required when using the production settings.
 
 ---
 
