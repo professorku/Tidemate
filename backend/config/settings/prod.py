@@ -22,6 +22,12 @@ SECURE_REDIRECT_EXEMPT = (
     if os.getenv("ENABLE_PLAIN_HTTP_HEALTHCHECK", "").strip().lower() in {"1", "true", "yes", "on"}
     else []
 )
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": os.environ["REDIS_URL"],
+    }
+}
 
 if os.getenv("SECRET_KEY", "").strip() in {"", DEFAULT_DEV_SECRET_KEY}:
     raise ImproperlyConfigured("SECRET_KEY must be configured in production.")
