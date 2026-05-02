@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { render, screen } from '@testing-library/react'
 import ProtectedRoute from './ProtectedRoute'
 
@@ -8,6 +8,11 @@ vi.mock('../../../context/useAuth', () => ({
 }))
 
 import { useAuth } from '../../../context/useAuth'
+
+function LoginStateProbe() {
+  const location = useLocation()
+  return <div>Redirected from {location.state?.from?.pathname || 'unknown'}</div>
+}
 
 describe('ProtectedRoute', () => {
   it('renders a loading state while auth is bootstrapping', () => {
@@ -44,6 +49,28 @@ describe('ProtectedRoute', () => {
     )
 
     expect(screen.getByText('Login page')).not.toBeNull()
+  })
+
+  it('preserves the attempted protected route in redirect state', () => {
+    useAuth.mockReturnValue({ isAuthenticated: false, loading: false })
+
+    render(
+      <MemoryRouter initialEntries={['/profile']}>
+        <Routes>
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <div>Private page</div>
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/login" element={<LoginStateProbe />} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    expect(screen.getByText('Redirected from /profile')).not.toBeNull()
   })
 
   it('renders protected content for authenticated users', () => {
