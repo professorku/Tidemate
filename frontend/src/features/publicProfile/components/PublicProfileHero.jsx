@@ -6,8 +6,8 @@ import {
 
 function InfoPill({ icon, text }) {
   return (
-    <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700">
-      {icon}
+    <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-[#071d32]/80 px-3 py-2 text-sm font-bold text-white/75 shadow-sm">
+      <span className="text-gold">{icon}</span>
       <span>{text}</span>
     </span>
   )
@@ -22,27 +22,30 @@ export default function PublicProfileHero({
   actions = null,
 }) {
   return (
-    <div className="border-b border-slate-200 bg-gradient-to-br from-slate-50 via-white to-slate-100 px-6 py-8 md:px-8 md:py-10">
-      <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+    <div className="relative overflow-hidden border-b border-white/15 px-6 py-8 md:px-8 md:py-10">
+      <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-gold/10 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-28 left-10 h-72 w-72 rounded-full bg-ocean/40 blur-3xl" />
+
+      <div className="relative flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
         <div className="flex flex-col gap-5 md:flex-row md:items-start">
           {profile.avatar ? (
             <img
               src={profile.avatar}
               alt={profile.username}
-              className="h-24 w-24 rounded-[26px] border border-slate-200 object-cover md:h-28 md:w-28"
+              className="h-28 w-28 rounded-full border-4 border-gold object-cover shadow-lg ring-1 ring-gold/40 md:h-32 md:w-32"
             />
           ) : (
-            <div className="flex h-24 w-24 items-center justify-center rounded-[26px] border border-slate-200 bg-slate-100 text-3xl font-extrabold text-slate-700 md:h-28 md:w-28">
+            <div className="flex h-28 w-28 items-center justify-center rounded-full border-4 border-gold bg-[#071d32] text-4xl font-extrabold text-white shadow-lg ring-1 ring-gold/40 md:h-32 md:w-32">
               {initials}
             </div>
           )}
 
           <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+            <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-gold">
               Public profile
             </p>
 
-            <h1 className="mt-2 text-4xl font-black tracking-tight text-slate-900 md:text-5xl">
+            <h1 className="mt-2 text-4xl font-black tracking-tight text-white md:text-5xl">
               {profile.username}
             </h1>
 
@@ -51,17 +54,19 @@ export default function PublicProfileHero({
                 icon={<MapPinIcon className="h-4 w-4" />}
                 text={profile.location || 'No location added'}
               />
+
               <InfoPill
                 icon={<CalendarDaysIcon className="h-4 w-4" />}
                 text={`Joined ${joinedText}`}
               />
+
               <InfoPill
                 icon={<StarIcon className="h-4 w-4" />}
                 text={reviewCount > 0 ? `${Number(averageRating).toFixed(1)} rating` : 'No reviews yet'}
               />
             </div>
 
-            <p className="mt-5 max-w-2xl text-[15px] leading-7 text-slate-600 md:text-base">
+            <p className="mt-5 max-w-2xl text-[15px] leading-7 text-white/70 md:text-base">
               {profile.bio
                 ? profile.bio
                 : `${profile.username} has not added a bio yet. You can still browse their listed boats and reviews below.`}

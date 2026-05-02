@@ -57,8 +57,13 @@ export default function PublicProfilePage() {
   const joinedText = formatJoinedDate(profile.member_since)
 
   return (
-    <PageContainer className="py-6 md:py-8">
-      <div className="space-y-6">
+    <main className="min-h-screen bg-[#071d32]">
+      <PageContainer
+        size="wide"
+        className="py-8 md:py-10"
+        as="div"
+        contentClassName="space-y-6"
+      >
         <PublicProfileHeaderCard
           profile={profile}
           initials={initials}
@@ -104,7 +109,7 @@ export default function PublicProfilePage() {
           onPreviousPage={() => reloadPage({ page: reviewsPage - 1, silent: true })}
           onNextPage={() => reloadPage({ page: reviewsPage + 1, silent: true })}
         />
-      </div>
-    </PageContainer>
+      </PageContainer>
+    </main>
   )
 }

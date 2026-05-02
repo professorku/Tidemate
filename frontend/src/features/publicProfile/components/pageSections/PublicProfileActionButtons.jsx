@@ -25,7 +25,7 @@ export default function PublicProfileActionButtons({
         type="button"
         onClick={handleStartMessage}
         disabled={!canMessage || actionLoading !== ''}
-        className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex items-center justify-center gap-2 rounded-full bg-gold px-5 py-3 text-sm font-extrabold text-navy shadow-sm ring-1 ring-gold/40 transition hover:-translate-y-0.5 hover:bg-[#d8b45d] disabled:cursor-not-allowed disabled:opacity-60"
       >
         <ChatBubbleLeftRightIcon className="h-5 w-5" />
         {actionLoading === 'message' ? 'Opening chat...' : 'Message'}
@@ -35,9 +35,9 @@ export default function PublicProfileActionButtons({
         type="button"
         onClick={handleToggleCrew}
         disabled={isBlocked || hasBlockedYou || actionLoading !== ''}
-        className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex items-center justify-center gap-2 rounded-full border border-white/25 bg-navy px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-ocean disabled:cursor-not-allowed disabled:opacity-60"
       >
-        <UserPlusIcon className="h-5 w-5" />
+        <UserPlusIcon className="h-5 w-5 text-gold" />
         {actionLoading === 'crew' ? 'Updating...' : isCrewmate ? 'Remove crew' : 'Add to crew'}
       </button>
 
@@ -45,9 +45,9 @@ export default function PublicProfileActionButtons({
         type="button"
         onClick={handleToggleBlock}
         disabled={actionLoading !== ''}
-        className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex items-center justify-center gap-2 rounded-full border border-white/25 bg-navy px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-ocean disabled:cursor-not-allowed disabled:opacity-60"
       >
-        <NoSymbolIcon className="h-5 w-5" />
+        <NoSymbolIcon className="h-5 w-5 text-gold" />
         {actionLoading === 'block' ? 'Updating...' : isBlocked ? 'Unblock user' : 'Block user'}
       </button>
     </div>

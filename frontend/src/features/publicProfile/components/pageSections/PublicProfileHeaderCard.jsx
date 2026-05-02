@@ -34,8 +34,10 @@ export default function PublicProfileHeaderCard({
     />
   )
 
+  const hasStatus = refreshing || actionMessage || hasBlockedYou || isBlocked
+
   return (
-    <section className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-soft">
+    <section className="overflow-hidden rounded-[34px] border border-gold/20 bg-navy text-white shadow-soft">
       <PublicProfileHero
         profile={profile}
         initials={initials}
@@ -45,14 +47,16 @@ export default function PublicProfileHeaderCard({
         actions={actions}
       />
 
-      <div className="px-6 pb-6 md:px-8 md:pb-8">
-        <PublicProfileStatusBanners
-          refreshing={refreshing}
-          actionMessage={actionMessage}
-          hasBlockedYou={hasBlockedYou}
-          isBlocked={isBlocked}
-        />
-      </div>
+      {hasStatus ? (
+        <div className="px-6 pb-6 md:px-8 md:pb-8">
+          <PublicProfileStatusBanners
+            refreshing={refreshing}
+            actionMessage={actionMessage}
+            hasBlockedYou={hasBlockedYou}
+            isBlocked={isBlocked}
+          />
+        </div>
+      ) : null}
     </section>
   )
 }
