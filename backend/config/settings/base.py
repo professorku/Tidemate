@@ -186,7 +186,6 @@ _num_proxies_raw = os.getenv("NUM_PROXIES", "").strip()
 _NUM_PROXIES = int(_num_proxies_raw) if _num_proxies_raw != "" else None
 
 REST_FRAMEWORK = {
-
     "NUM_PROXIES": _NUM_PROXIES,
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
@@ -194,7 +193,14 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "config.authentication.CookieJWTAuthentication",
     ],
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
     "DEFAULT_THROTTLE_RATES": {
+        "anon": os.getenv("GLOBAL_ANON_RATE", "1000/hour"),
+        "user": os.getenv("GLOBAL_USER_RATE", "5000/hour"),
+
         "auth_anon": "20/minute",
         "auth_user": "60/minute",
         "chat": "30/minute",
