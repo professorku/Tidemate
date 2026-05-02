@@ -2,7 +2,6 @@ import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 import PageContainer from '../../../components/layout/PageContainer'
 import FiltersBar from '../../../components/FiltersBar'
 import LoadingState from '../../../components/ui/LoadingState'
-import EmptyState from '../../../components/ui/EmptyState'
 import ErrorState from '../../../components/ui/ErrorState'
 import HomeHero from '../../home/components/HomeHero'
 import HomeResults from '../../home/components/HomeResults'
@@ -50,13 +49,31 @@ export default function HomePage() {
             compact={false}
           />
         ) : boats.length === 0 ? (
-          <EmptyState
-            icon={<MagnifyingGlassIcon className="h-8 w-8" />}
-            title="No boats found"
-            text="Try another search or clear the filters."
-            tone="subtle"
-            compact={false}
-          />
+          <section
+            className="relative overflow-hidden rounded-[32px] border border-gold/25 bg-navy px-6 py-12 text-center shadow-soft md:px-10 md:py-16"
+            aria-label="No boat listings found"
+          >
+            <div className="pointer-events-none absolute -left-24 -top-24 h-56 w-56 rounded-full bg-gold/10 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-28 -right-24 h-64 w-64 rounded-full bg-ocean/40 blur-3xl" />
+
+            <div className="relative mx-auto max-w-lg">
+              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-gold/35 bg-[#071d32]/80 text-gold shadow-sm ring-4 ring-gold/10">
+                <MagnifyingGlassIcon className="h-9 w-9" />
+              </div>
+
+              <p className="mt-6 text-xs font-extrabold uppercase tracking-[0.28em] text-gold">
+                No results
+              </p>
+
+              <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-white md:text-4xl">
+                No boats found
+              </h2>
+
+              <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-white/70 md:text-base">
+                Try another search or clear the filters to see more available boats.
+              </p>
+            </div>
+          </section>
         ) : (
           <>
             <HomeResults boats={boats} />

@@ -1,9 +1,10 @@
 import hashlib
 import json
 import logging
+import os
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode, urlparse
-from urllib.request import Request, urlopen
+from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 from django.conf import settings
 from django.core.cache import cache
@@ -13,6 +14,7 @@ logger = logging.getLogger(__name__)
 COORDINATE_DECIMALS = 6
 SEARCH_CACHE_PREFIX = "geocoding:search:v1"
 REVERSE_CACHE_PREFIX = "geocoding:reverse:v1"
+DEFAULT_GEOCODING_PROVIDER_HOST = "nominatim.openstreetmap.org"
 
 
 class GeocodingError(Exception):
@@ -145,11 +147,90 @@ def _safe_cache_key(prefix, *parts):
 
 
 def _provider_base_url():
-    return getattr(
+    base_url = getattr(
         settings,
         "GEOCODING_PROVIDER_BASE_URL",
-        "https://nominatim.openstreetmap.org",
-    ).rstrip("/")
+        f"https://{DEFAULT_GEOCODING_PROVIDER_HOST}",
+    )
+    return str(base_url or "").strip().rstrip("/")
+
+
+def _setting_or_env(name, default=""):
+    value = getattr(settings, name, None)
+
+    if value is None:
+        value = os.getenv(name, default)
+
+    return value
+
+
+def _as_bool(value, default=False):
+    if value is None:
+        return default
+
+    if isinstance(value, bool):
+        return value
+
+    return str(value).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _provider_allowed_hosts():
+    raw_hosts = _setting_or_env(
+        "GEOCODING_ALLOWED_HOSTS",
+        DEFAULT_GEOCODING_PROVIDER_HOST,
+    )
+
+    if isinstance(raw_hosts, str):
+        hosts = raw_hosts.split(",")
+    else:
+        hosts = raw_hosts or []
+
+    return {
+        str(host).strip().lower().rstrip(".")
+        for host in hosts
+        if str(host).strip()
+    }
+
+
+def _provider_requires_https():
+    default = not bool(getattr(settings, "DEBUG", False))
+    raw_value = _setting_or_env("GEOCODING_REQUIRE_HTTPS", default)
+    return _as_bool(raw_value, default=default)
+
+
+def _validated_provider_base_url():
+    base_url = _provider_base_url()
+
+    if not base_url:
+        raise GeocodingError("Geocoding provider URL is not configured.")
+
+    parsed = urlparse(base_url)
+
+    if parsed.scheme not in ("http", "https"):
+        raise GeocodingError("Geocoding provider URL must use http or https scheme.")
+
+    if _provider_requires_https() and parsed.scheme != "https":
+        raise GeocodingError("Geocoding provider URL must use https.")
+
+    if not parsed.hostname:
+        raise GeocodingError("Geocoding provider URL must include a hostname.")
+
+    if parsed.username or parsed.password:
+        raise GeocodingError("Geocoding provider URL must not include credentials.")
+
+    if parsed.query or parsed.fragment:
+        raise GeocodingError("Geocoding provider URL must not include query strings or fragments.")
+
+    provider_host = parsed.hostname.lower().rstrip(".")
+    allowed_hosts = _provider_allowed_hosts()
+
+    if not allowed_hosts:
+        raise GeocodingError("At least one geocoding provider host must be allowlisted.")
+
+    if provider_host not in allowed_hosts:
+        raise GeocodingError("Geocoding provider host is not allowlisted.")
+
+    return base_url
 
 
 def _provider_user_agent():
@@ -160,12 +241,19 @@ def _provider_timeout():
     return float(getattr(settings, "GEOCODING_TIMEOUT_SECONDS", 4.0))
 
 
-def _fetch_json(path, params):
-    url = f"{_provider_base_url()}/{path.lstrip('/')}?{urlencode(params)}"
+class _NoRedirectHandler(HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise HTTPError(
+            req.full_url,
+            code,
+            "Geocoding provider redirects are not allowed.",
+            headers,
+            fp,
+        )
 
-    parsed = urlparse(url)
-    if parsed.scheme not in ("http", "https"):
-        raise GeocodingError("Geocoding provider URL must use http or https scheme.")
+
+def _fetch_json(path, params):
+    url = f"{_validated_provider_base_url()}/{path.lstrip('/')}?{urlencode(params)}"
 
     request = Request(
         url,
@@ -175,8 +263,10 @@ def _fetch_json(path, params):
         },
     )
 
+    opener = build_opener(_NoRedirectHandler)
+
     try:
-        with urlopen(request, timeout=_provider_timeout()) as response:  # nosec B310
+        with opener.open(request, timeout=_provider_timeout()) as response:  # nosec B310
             if response.status != 200:
                 raise GeocodingError("Geocoding provider returned an unexpected status.")
 
