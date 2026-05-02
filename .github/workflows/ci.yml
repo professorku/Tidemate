@@ -71,6 +71,7 @@ jobs:
       CORS_ALLOWED_ORIGINS: https://tidemate.example.com
       CSRF_TRUSTED_ORIGINS: https://tidemate.example.com
       REDIS_URL: redis://localhost:6379/0
+      LOCATION_PRIVACY_SALT: ci-location-privacy-salt-only-not-production-change-me-32-plus-chars # pragma: allowlist secret
       JWT_ACCESS_COOKIE_SECURE: "True"
       JWT_REFRESH_COOKIE_SECURE: "True"
       EMAIL_BACKEND: django.core.mail.backends.console.EmailBackend
@@ -130,7 +131,7 @@ jobs:
         run: npm run build
 
       - name: Upload frontend build artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: frontend-dist
           path: frontend/dist
