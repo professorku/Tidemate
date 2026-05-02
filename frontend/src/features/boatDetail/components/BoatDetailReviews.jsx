@@ -1,7 +1,7 @@
 import { StarIcon } from '@heroicons/react/24/outline'
 import ReviewForm from '../../../components/ReviewForm'
 import ReviewList from '../../../components/ReviewList'
-import { isAuthenticated } from '../../../utils/auth'
+import { useAuth } from '../../../context/useAuth'
 
 export default function BoatDetailReviews({
   boat,
@@ -11,7 +11,8 @@ export default function BoatDetailReviews({
   reloadEligibility,
   reviewsPage,
 }) {
-  const canReview = isAuthenticated() && reviewableBooking?.can_review_boat
+  const { isAuthenticated } = useAuth()
+  const canReview = isAuthenticated && reviewableBooking?.can_review_boat
 
   return (
     <section className="space-y-6">

@@ -16,12 +16,12 @@ vi.mock('../../../api/domains/bookings', () => ({
   createBooking: vi.fn(),
 }))
 
-vi.mock('../../../utils/auth', () => ({
-  isAuthenticated: vi.fn(),
+vi.mock('../../../context/useAuth', () => ({
+  useAuth: vi.fn(),
 }))
 
 import { createBooking } from '../../../api/domains/bookings'
-import { isAuthenticated } from '../../../utils/auth'
+import { useAuth } from '../../../context/useAuth'
 
 const boat = {
   id: 7,
@@ -34,11 +34,11 @@ describe('useBookingForm', () => {
     vi.restoreAllMocks()
     navigateMock.mockReset()
     createBooking.mockResolvedValue({ id: 55 })
-    isAuthenticated.mockReturnValue(true)
+    useAuth.mockReturnValue({ isAuthenticated: true, isAuthReady: true })
   })
 
   it('redirects unauthenticated users to login', async () => {
-    isAuthenticated.mockReturnValue(false)
+    useAuth.mockReturnValue({ isAuthenticated: false, isAuthReady: true })
     const { result } = renderHook(() => useBookingForm({ boat }))
 
     await act(async () => {
@@ -95,21 +95,21 @@ describe('useBookingForm', () => {
   })
 
   it('blocks same-day return selections', async () => {
-  const { result } = renderHook(() => useBookingForm({ boat }))
+    const { result } = renderHook(() => useBookingForm({ boat }))
 
-  act(() => {
-    result.current.handleDateClick('2026-06-14')
-  })
+    act(() => {
+      result.current.handleDateClick('2026-06-14')
+    })
 
-  act(() => {
-    result.current.handleDateClick('2026-06-14')
-  })
+    act(() => {
+      result.current.handleDateClick('2026-06-14')
+    })
 
-  await act(async () => {
-    await result.current.submitBooking()
-  })
+    await act(async () => {
+      await result.current.submitBooking()
+    })
 
-  expect(result.current.error).toMatch(/return date must be after/i)
-  expect(createBooking).not.toHaveBeenCalled()
+    expect(result.current.error).toMatch(/return date must be after/i)
+    expect(createBooking).not.toHaveBeenCalled()
   })
 })

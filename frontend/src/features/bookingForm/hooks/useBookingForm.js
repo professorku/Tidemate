@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createBooking } from '../../../api/domains/bookings'
-import { isAuthenticated } from '../../../utils/auth'
+import { useAuth } from '../../../context/useAuth'
 import { getErrorMessage } from '../../../utils/errors'
 import {
   parseISODate,
@@ -11,6 +11,7 @@ import {
 
 export function useBookingForm({ boat, onBookingCreated }) {
   const navigate = useNavigate()
+  const { isAuthenticated, isAuthReady } = useAuth()
 
   const [form, setForm] = useState({
     start_date: '',
@@ -121,7 +122,12 @@ export function useBookingForm({ boat, onBookingCreated }) {
   }
 
   const submitBooking = async () => {
-    if (!isAuthenticated()) {
+    if (!isAuthReady) {
+      setError('Please wait while we check your session.')
+      return
+    }
+
+    if (!isAuthenticated) {
       navigate('/login')
       return
     }

@@ -3,13 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import { HeartIcon as HeartOutline } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid'
 import { useToast } from '../../context/useToast'
+import { useAuth } from '../../context/useAuth'
 import { createFavorite, deleteFavorite } from '../../api/domains/favorites'
-import { isAuthenticated } from '../../utils/auth'
 import { getErrorMessage } from '../../utils/errors'
 
 export default function FavoriteButton({ boat, onFavoriteChange, className = '' }) {
   const navigate = useNavigate()
   const { showToast } = useToast()
+  const { isAuthenticated, isAuthReady } = useAuth()
 
   const [favorited, setFavorited] = useState(Boolean(boat.is_favorited))
   const [favoriteId, setFavoriteId] = useState(boat.favorite_id ?? null)
@@ -25,7 +26,11 @@ export default function FavoriteButton({ boat, onFavoriteChange, className = '' 
     e.preventDefault()
     e.stopPropagation()
 
-    if (!isAuthenticated()) {
+    if (!isAuthReady) {
+      return
+    }
+
+    if (!isAuthenticated) {
       navigate('/login')
       return
     }
@@ -71,11 +76,11 @@ export default function FavoriteButton({ boat, onFavoriteChange, className = '' 
     <button
       type="button"
       onClick={toggleFavorite}
-      disabled={submitting}
+      disabled={submitting || !isAuthReady}
       aria-pressed={favorited}
       aria-label={favorited ? `Remove ${boat.title} from favorites` : `Add ${boat.title} to favorites`}
       title={favorited ? 'Remove from favorites' : 'Add to favorites'}
-      className={`${className} flex h-9 w-9 items-center justify-center rounded-full bg-white/60 shadow-md backdrop-blur-sm transition ${animate ? 'scale-125' : 'hover:scale-110'}`}
+      className={`${className} flex h-9 w-9 items-center justify-center rounded-full bg-white/60 shadow-md backdrop-blur-sm transition ${animate ? 'scale-125' : 'hover:scale-110'} disabled:cursor-not-allowed disabled:opacity-60`}
     >
       {favorited ? (
         <HeartSolid className="h-5 w-5 text-red-500" />

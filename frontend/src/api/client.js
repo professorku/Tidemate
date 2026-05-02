@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { clearSessionHint, hasSessionHint, markSessionHintActive } from '../utils/auth'
+import { clearSessionHint, markSessionHintActive } from '../utils/auth'
 
 const baseURL = import.meta.env.VITE_API_BASE_URL || '/api'
 const DEFAULT_API_TIMEOUT_MS = 15000
@@ -36,6 +36,10 @@ let refreshPromise = null
 let csrfPromise = null
 
 function getCsrfTokenFromCookie() {
+  if (typeof document === 'undefined') {
+    return null
+  }
+
   const match = document.cookie.match(/(?:^|; )csrftoken=([^;]+)/)
   return match ? decodeURIComponent(match[1]) : null
 }
@@ -94,8 +98,8 @@ async function refreshAccessToken() {
 
 api.interceptors.request.use(
   async (config) => {
-
     const method = (config.method || 'get').toLowerCase()
+
     if (['post', 'put', 'patch', 'delete'].includes(method)) {
       const csrfToken = await ensureCsrfCookie()
 
@@ -110,18 +114,30 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
+function getRequestUrl(config) {
+  return String(config?.url || '')
+}
+
+function shouldSkipRefresh(config) {
+  const url = getRequestUrl(config)
+
+  return (
+    config?._retry ||
+    url.includes('/users/login/') ||
+    url.includes('/users/logout/') ||
+    url.includes('/users/refresh/') ||
+    url.includes('/users/signup/') ||
+    url.includes('/users/forgot-password/') ||
+    url.includes('/users/reset-password/')
+  )
+}
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config
 
-    if (
-      error.response?.status === 401 &&
-      hasSessionHint() &&
-      !originalRequest?._retry &&
-      !originalRequest?.url?.includes('/users/login/') &&
-      !originalRequest?.url?.includes('/users/refresh/')
-    ) {
+    if (error.response?.status === 401 && originalRequest && !shouldSkipRefresh(originalRequest)) {
       originalRequest._retry = true
 
       try {

@@ -1,5 +1,10 @@
 import { createContext, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { clearSessionHint, hasSessionHint, markSessionHintActive } from '../utils/auth'
+import {
+  clearSessionHint,
+  hasSessionHint,
+  markSessionHintActive,
+  subscribeToSessionHintChanges,
+} from '../utils/auth'
 import { fetchCurrentUser } from '../api/domains/users'
 import { logoutUser, refreshSession } from '../features/auth/services/authService'
 
@@ -19,18 +24,26 @@ export function AuthProvider({ children }) {
   const [sessionStatus, setSessionStatus] = useState(SESSION_STATUS.INITIALIZING)
   const bootstrapRef = useRef(false)
 
-  const clearSession = useCallback(() => {
-    clearSessionHint()
+  const setAnonymousSession = useCallback(({ clearHint = true } = {}) => {
+    if (clearHint) {
+      clearSessionHint()
+    }
+
     setUser(null)
     setSessionStatus(SESSION_STATUS.ANONYMOUS)
   }, [])
 
-  const establishSession = useCallback(async () => {
-    const currentUser = await fetchCurrentUser()
+  const setAuthenticatedSession = useCallback((currentUser) => {
+    markSessionHintActive()
     setUser(currentUser)
     setSessionStatus(SESSION_STATUS.AUTHENTICATED)
     return currentUser
   }, [])
+
+  const establishSession = useCallback(async () => {
+    const currentUser = await fetchCurrentUser()
+    return setAuthenticatedSession(currentUser)
+  }, [setAuthenticatedSession])
 
   const bootstrapSession = useCallback(async () => {
     setLoading(true)
@@ -38,16 +51,15 @@ export function AuthProvider({ children }) {
     try {
       if (hasSessionHint()) {
         await refreshSession()
-        markSessionHintActive()
       }
 
       await establishSession()
     } catch {
-      clearSession()
+      setAnonymousSession()
     } finally {
       setLoading(false)
     }
-  }, [clearSession, establishSession])
+  }, [establishSession, setAnonymousSession])
 
   useEffect(() => {
     if (bootstrapRef.current) {
@@ -58,28 +70,37 @@ export function AuthProvider({ children }) {
     void bootstrapSession()
   }, [bootstrapSession])
 
+  useEffect(() => {
+    return subscribeToSessionHintChanges((isActive) => {
+      if (!isActive) {
+        setUser(null)
+        setSessionStatus(SESSION_STATUS.ANONYMOUS)
+        setLoading(false)
+      }
+    })
+  }, [])
+
   const refreshUser = useCallback(async () => {
     try {
       return await establishSession()
     } catch {
-      clearSession()
+      setAnonymousSession()
       return null
     }
-  }, [clearSession, establishSession])
+  }, [establishSession, setAnonymousSession])
 
   const login = useCallback(async () => {
     setLoading(true)
 
     try {
-      markSessionHintActive()
-      await establishSession()
+      return await establishSession()
     } catch {
-      clearSession()
+      setAnonymousSession()
       throw new Error('Unable to restore your session.')
     } finally {
       setLoading(false)
     }
-  }, [clearSession, establishSession])
+  }, [establishSession, setAnonymousSession])
 
   const logout = useCallback(async () => {
     setLoading(true)
@@ -89,14 +110,14 @@ export function AuthProvider({ children }) {
     } catch {
       // Clear local auth state even if the server-side logout request fails.
     } finally {
-      clearSession()
+      setAnonymousSession()
       setLoading(false)
     }
-  }, [clearSession])
+  }, [setAnonymousSession])
 
   const expireSession = useCallback(() => {
-    clearSession()
-  }, [clearSession])
+    setAnonymousSession()
+  }, [setAnonymousSession])
 
   const value = useMemo(
     () => ({
