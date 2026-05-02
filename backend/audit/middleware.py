@@ -1,4 +1,5 @@
 import logging
+import re
 import time
 import uuid
 
@@ -23,6 +24,8 @@ class RequestMonitoringMiddleware:
 
     WRITE_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
     SECURITY_STATUS_CODES = {401, 403, 429}
+    REQUEST_ID_MAX_LENGTH = 64
+    REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9._-]+$")
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -65,10 +68,20 @@ class RequestMonitoringMiddleware:
     def _get_or_create_request_id(self, request):
         incoming = request.headers.get("X-Request-ID", "").strip()
 
-        if incoming and len(incoming) <= 64:
+        if self._is_safe_request_id(incoming):
             return incoming
 
         return uuid.uuid4().hex
+
+    @classmethod
+    def _is_safe_request_id(cls, value):
+        if not value:
+            return False
+
+        if len(value) > cls.REQUEST_ID_MAX_LENGTH:
+            return False
+
+        return bool(cls.REQUEST_ID_PATTERN.fullmatch(value))
 
     def _duration_ms(self, started_at):
         return round((time.monotonic() - started_at) * 1000, 2)

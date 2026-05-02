@@ -2,6 +2,19 @@ import axios from 'axios'
 import { clearSessionHint, hasSessionHint, markSessionHintActive } from '../utils/auth'
 
 const baseURL = import.meta.env.VITE_API_BASE_URL || '/api'
+const DEFAULT_API_TIMEOUT_MS = 15000
+
+function parseApiTimeoutMs(value) {
+  const timeout = Number(value)
+
+  if (Number.isFinite(timeout) && timeout > 0) {
+    return timeout
+  }
+
+  return DEFAULT_API_TIMEOUT_MS
+}
+
+const apiTimeout = parseApiTimeoutMs(import.meta.env.VITE_API_TIMEOUT_MS)
 
 export class ApiError extends Error {
   constructor(message, { status = null, data = null, originalError = null } = {}) {
@@ -16,6 +29,7 @@ export class ApiError extends Error {
 const api = axios.create({
   baseURL,
   withCredentials: true,
+  timeout: apiTimeout,
 })
 
 let refreshPromise = null
@@ -35,7 +49,10 @@ async function ensureCsrfCookie() {
 
   if (!csrfPromise) {
     csrfPromise = axios
-      .get(`${baseURL}/users/csrf/`, { withCredentials: true })
+      .get(`${baseURL}/users/csrf/`, {
+        withCredentials: true,
+        timeout: apiTimeout,
+      })
       .then(() => getCsrfTokenFromCookie())
       .finally(() => {
         csrfPromise = null
@@ -54,6 +71,7 @@ async function refreshAccessToken() {
           {},
           {
             withCredentials: true,
+            timeout: apiTimeout,
             headers: csrfToken ? { 'X-CSRFToken': csrfToken } : {},
           }
         )
@@ -124,11 +142,13 @@ export function normalizeApiError(error, fallbackMessage = 'Something went wrong
   }
 
   const responseData = error?.response?.data
-  const message =
-    responseData?.detail ||
-    responseData?.message ||
-    error?.message ||
-    fallbackMessage
+  const isTimeout = error?.code === 'ECONNABORTED' || error?.message?.toLowerCase().includes('timeout')
+  const message = isTimeout
+    ? 'The request timed out. Please try again.'
+    : responseData?.detail ||
+      responseData?.message ||
+      error?.message ||
+      fallbackMessage
 
   return new ApiError(message, {
     status: error?.response?.status ?? null,
