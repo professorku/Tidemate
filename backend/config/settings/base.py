@@ -1,3 +1,4 @@
+import hashlib
 import os
 from pathlib import Path
 from datetime import timedelta
@@ -38,7 +39,7 @@ def env_list(name: str, default: str = "") -> list[str]:
     return [item.strip() for item in value.split(",") if item.strip()]
 
 
-DEFAULT_DEV_SECRET_KEY = "tidemate-dev-secret-key-change-me-please-2026-very-long"  # pragma: allowlist secret
+DEFAULT_DEV_SECRET_KEY = "dev-only-" + hashlib.sha256(str(BASE_DIR).encode("utf-8")).hexdigest()
 SECRET_KEY = os.getenv("SECRET_KEY", DEFAULT_DEV_SECRET_KEY)
 DEBUG = env_bool("DEBUG", False)
 

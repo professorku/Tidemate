@@ -16,7 +16,11 @@ export function ToastProvider({ children }) {
   const showToast = useCallback(({ title = '', message, tone = 'info', duration = DEFAULT_TOAST_DURATION }) => {
     if (!message) return null
 
-    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+    const id =
+      typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+        ? crypto.randomUUID()
+        : `${Date.now()}-${toasts.length}`
+
     setToasts((current) => [...current, { id, title, message, tone }])
 
     window.setTimeout(() => {
@@ -24,7 +28,7 @@ export function ToastProvider({ children }) {
     }, duration)
 
     return id
-  }, [dismissToast])
+  }, [dismissToast, toasts.length])
 
   const value = useMemo(() => ({ showToast, dismissToast }), [showToast, dismissToast])
 

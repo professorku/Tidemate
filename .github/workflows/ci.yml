@@ -24,7 +24,7 @@ jobs:
 
     env:
       DJANGO_SETTINGS_MODULE: config.settings.dev
-      SECRET_KEY: ci-test-secret-key-only-not-production-change-me-long-value
+      SECRET_KEY: ci-test-secret-key-only-not-production-change-me-long-value # pragma: allowlist secret
       DEBUG: "False"
       PYTHONUNBUFFERED: "1"
       EMAIL_BACKEND: django.core.mail.backends.console.EmailBackend
@@ -64,7 +64,7 @@ jobs:
 
     env:
       DJANGO_SETTINGS_MODULE: config.settings.prod
-      SECRET_KEY: ci-production-check-secret-key-only-not-production-change-me-long-value
+      SECRET_KEY: ci-production-check-secret-key-only-not-production-change-me-long-value # pragma: allowlist secret
       DEBUG: "False"
       PYTHONUNBUFFERED: "1"
       ALLOWED_HOSTS: tidemate.example.com
