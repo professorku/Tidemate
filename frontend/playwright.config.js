@@ -1,4 +1,7 @@
+import process from "node:process";
 import { defineConfig, devices } from "@playwright/test";
+
+const isCI = Boolean(process.env.CI);
 
 export default defineConfig({
   testDir: "./e2e",
@@ -7,9 +10,9 @@ export default defineConfig({
     timeout: 5_000,
   },
   fullyParallel: true,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
-  reporter: process.env.CI ? [["html"], ["github"]] : [["list"], ["html"]],
+  retries: isCI ? 2 : 0,
+  workers: isCI ? 1 : undefined,
+  reporter: isCI ? [["html"], ["github"]] : [["list"], ["html"]],
   use: {
     baseURL: process.env.E2E_BASE_URL || "http://localhost:5173",
     trace: "on-first-retry",
