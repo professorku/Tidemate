@@ -95,7 +95,7 @@ def fetch_json(url, params, headers=None):
     request = Request(f"{url}?{query}", headers=headers or {})
 
     try:
-        with urlopen(request, timeout=get_request_timeout_seconds()) as response:
+        with urlopen(request, timeout=get_request_timeout_seconds()) as response:  # nosec B310 - caller always passes hardcoded https:// URLs
             return json.loads(response.read().decode("utf-8"))
     except (HTTPError, URLError, TimeoutError, json.JSONDecodeError, UnicodeDecodeError) as exc:
         logger.warning("Failed to fetch forecast JSON from %s: %s", url, exc)

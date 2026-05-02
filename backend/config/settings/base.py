@@ -38,7 +38,7 @@ def env_list(name: str, default: str = "") -> list[str]:
     return [item.strip() for item in value.split(",") if item.strip()]
 
 
-DEFAULT_DEV_SECRET_KEY = "tidemate-dev-secret-key-change-me-please-2026-very-long"
+DEFAULT_DEV_SECRET_KEY = "tidemate-dev-secret-key-change-me-please-2026-very-long"  # pragma: allowlist secret
 SECRET_KEY = os.getenv("SECRET_KEY", DEFAULT_DEV_SECRET_KEY)
 DEBUG = env_bool("DEBUG", False)
 
@@ -218,16 +218,16 @@ REST_FRAMEWORK = {
         "login_ip": "20/10minutes",
         "signup_ip": "10/hour",
         "resend_verification_ip": "10/hour",
-        "forgot_password_ip": "10/hour",
+        "forgot_password_ip": "10/hour",  # pragma: allowlist secret
         "signup_anon_identity": "3/hour",
         "signup_user_identity": "5/hour",
         "resend_verification_anon_identity": "5/hour",
-        "resend_verification_user_identity": "10/hour",
-        "forgot_password_anon_identity": "5/hour",
-        "forgot_password_user_identity": "10/hour",
+        "resend_verification_user_identity": "10/hour",  # pragma: allowlist secret
+        "forgot_password_anon_identity": "5/hour",  # pragma: allowlist secret
+        "forgot_password_user_identity": "10/hour",  # pragma: allowlist secret
         "verify_email": "20/hour",
-        "reset_password": "20/hour",
-        "change_password": "10/hour",
+        "reset_password": "20/hour",  # pragma: allowlist secret
+        "change_password": "10/hour",  # pragma: allowlist secret
         "relationship_write": "60/hour",
         "geocoding": os.getenv("GEOCODING_RATE", "60/hour"),
     },

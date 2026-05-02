@@ -2,7 +2,7 @@ import hashlib
 import json
 import logging
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 from urllib.request import Request, urlopen
 
 from django.conf import settings
@@ -163,6 +163,10 @@ def _provider_timeout():
 def _fetch_json(path, params):
     url = f"{_provider_base_url()}/{path.lstrip('/')}?{urlencode(params)}"
 
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https"):
+        raise GeocodingError("Geocoding provider URL must use http or https scheme.")
+
     request = Request(
         url,
         headers={
@@ -172,7 +176,7 @@ def _fetch_json(path, params):
     )
 
     try:
-        with urlopen(request, timeout=_provider_timeout()) as response:
+        with urlopen(request, timeout=_provider_timeout()) as response:  # nosec B310
             if response.status != 200:
                 raise GeocodingError("Geocoding provider returned an unexpected status.")
 
