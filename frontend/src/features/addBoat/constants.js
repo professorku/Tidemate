@@ -9,4 +9,4 @@ export const BOAT_TYPE_OPTIONS = [
   { value: 'catamaran', label: 'Catamaran' },
   { value: 'canoe', label: 'Canoe' },
   { value: 'other', label: 'Other' },
-]
+] 

@@ -1,3 +1,5 @@
+import { BOAT_TYPE_OPTIONS } from '../features/addBoat/constants'
+
 export default function FiltersBar({ filters, setFilters, onApply, onClear }) {
   const inputClassName =
     'w-full rounded-xl border border-white/15 bg-[#071d32] px-3.5 py-2.5 text-sm font-semibold text-white outline-none transition placeholder:text-white/35 focus:border-gold/60 focus:ring-2 focus:ring-gold/20'
@@ -34,12 +36,11 @@ export default function FiltersBar({ filters, setFilters, onApply, onClear }) {
             onChange={(e) => setFilters({ ...filters, boat_type: e.target.value })}
           >
             <option value="">Any type</option>
-            <option value="rib">RIB</option>
-            <option value="sailboat">Sailboat</option>
-            <option value="kayak">Kayak</option>
-            <option value="yacht">Yacht</option>
-            <option value="motorboat">Motorboat</option>
-            <option value="other">Other</option>
+            {BOAT_TYPE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
           </select>
         </div>
 
