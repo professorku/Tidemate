@@ -60,6 +60,9 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+    volumes:
+      - backend-static:/usr/share/nginx/static:ro
+      - backend-media:/usr/share/nginx/media:ro
     depends_on:
       - backend
 
