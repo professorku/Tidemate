@@ -21,20 +21,120 @@ jobs:
   backend-tests:
     name: Backend tests
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
     steps:
-      # ...
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Django system checks
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings.dev
+        run: python manage.py check
+
+      - name: Check migrations are committed
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings.dev
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Run backend tests
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings.dev
+        run: python manage.py test
 
   backend-deploy-check:
     name: Backend production deploy check
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
+    env:
+      DJANGO_SETTINGS_MODULE: config.settings.prod
+      SECRET_KEY: ci-only-secret-key-not-production-change-me-32-plus-chars
+      LOCATION_PRIVACY_SALT: ci-location-privacy-salt-only-not-production-change-me-32-plus-chars
+      DEBUG: "False"
+      ALLOWED_HOSTS: example.com,www.example.com
+      CORS_ALLOWED_ORIGINS: https://example.com
+      CSRF_TRUSTED_ORIGINS: https://example.com
+      WEBSOCKET_ALLOWED_ORIGINS: https://example.com
+      DATABASE_URL: sqlite:///ci.sqlite3
+      REDIS_URL: redis://localhost:6379/0
+      JWT_ACCESS_COOKIE_SECURE: "True"
+      JWT_REFRESH_COOKIE_SECURE: "True"
+
     steps:
-      # ...
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Django production deploy check
+        run: python manage.py check --deploy --fail-level WARNING
 
   frontend-tests:
     name: Frontend lint, test, build
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
     steps:
-      # ...
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Run frontend lint
+        run: npm run lint
+
+      - name: Run frontend tests
+        run: npm run test
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Upload frontend build artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: frontend-dist
+          path: frontend/dist
+          retention-days: 7
 
   frontend-e2e:
     name: Frontend E2E smoke test
