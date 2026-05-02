@@ -488,6 +488,20 @@ The project is functional, but the following areas should be improved before it 
 
 ---
 
+### Future production hardening
+
+The booking service already uses transactions and row locks to prevent overlapping confirmed bookings at the application level. For a real production marketplace running on PostgreSQL, this could be strengthened further with a partial GiST exclusion constraint that prevents two confirmed bookings for the same boat from having overlapping date ranges.
+
+Conceptually:
+
+- same `boat_id`
+- overlapping `[start_date, end_date)` date range
+- only where `status = "confirmed"`
+
+This would protect the database even if future code accidentally bypassed the booking service layer.
+
+---
+
 ## What This Project Demonstrates
 
 TideMate demonstrates practical experience with:
@@ -515,3 +529,4 @@ TideMate demonstrates practical experience with:
 TideMate is a functional full-stack marketplace prototype with a strong focus on backend architecture, authentication, authorization, validation, image upload safety, and user-facing marketplace features.
 
 It is suitable as a student/portfolio project and can be improved further with more frontend tests, stronger production deployment hardening, and real marketplace infrastructure such as payments, verification, and moderation.
+
