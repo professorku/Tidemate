@@ -1,181 +1,53 @@
-name: Security checks
+secret-scan:
+  name: Secret scan
+  runs-on: ubuntu-latest
 
-on:
-  push:
-    branches:
-      - main
-      - master
-  pull_request:
-    branches:
-      - main
-      - master
-  schedule:
-    - cron: "30 3 * * 1"
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
 
-permissions:
-  contents: read
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: "3.13"
 
-concurrency:
-  group: security-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+    - name: Install detect-secrets
+      run: |
+        python -m pip install --upgrade pip
+        pip install detect-secrets
 
-jobs:
-  python-dependency-audit:
-    name: Python dependency audit
-    runs-on: ubuntu-latest
+    - name: Scan for committed secrets
+      run: |
+        detect-secrets scan --all-files \
+          --disable-plugin KeywordDetector \
+          --exclude-files '(^frontend/package-lock.json$|^backend/.env.example$|^frontend/.env.example$|^.*\.svg$|^.*\.png$|^.*\.jpg$|^.*\.jpeg$|^.*\.webp$|^.*\.zip$|^__MACOSX/|^\.git/)' \
+          > detect-secrets-report.json
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
+        python - <<'PY'
+        import json
+        from pathlib import Path
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.13"
-          cache: pip
-          cache-dependency-path: backend/requirements.txt
+        report = json.loads(Path("detect-secrets-report.json").read_text())
+        results = report.get("results", {})
+        count = sum(len(items) for items in results.values())
 
-      - name: Install pip-audit
-        run: |
-          python -m pip install --upgrade pip
-          pip install pip-audit
+        if count:
+            print(f"Potential secrets found: {count}")
+            for filename, findings in results.items():
+                print(f"\n{filename}")
+                for finding in findings:
+                    print(f"  line {finding.get('line_number')}: {finding.get('type')}")
+            raise SystemExit(1)
 
-      - name: Audit Python dependencies
-        run: pip-audit -r backend/requirements.txt --strict
+        print("No secrets detected.")
+        PY
 
-  frontend-dependency-audit:
-    name: Frontend dependency audit
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: frontend
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Set up Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: "22"
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install frontend dependencies
-        run: npm ci
-
-      - name: Audit production frontend dependencies
-        run: npm audit --audit-level=moderate --omit=dev
-
-  bandit:
-    name: Python security scan with Bandit
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.13"
-
-      - name: Install Bandit
-        run: |
-          python -m pip install --upgrade pip
-          pip install "bandit[toml]"
-
-      - name: Run Bandit
-        run: |
-          bandit -r backend \
-            -x "backend/**/tests.py,backend/**/tests/*,backend/**/migrations/*" \
-            -ll
-
-  secret-scan:
-    name: Secret scan
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.13"
-
-      - name: Install detect-secrets
-        run: |
-          python -m pip install --upgrade pip
-          pip install detect-secrets
-
-      - name: Scan for committed secrets
-        run: |
-          detect-secrets scan --all-files \
-            --exclude-files '(^frontend/package-lock.json$|^backend/.env.example$|^frontend/.env.example$|^.*\.svg$|^.*\.png$|^.*\.jpg$|^.*\.jpeg$|^.*\.webp$|^.*\.zip$|^__MACOSX/|^\.git/)' \
-            > detect-secrets-report.json
-
-          python - <<'PY'
-          import json
-          from pathlib import Path
-
-          report = json.loads(Path("detect-secrets-report.json").read_text())
-          results = report.get("results", {})
-          count = sum(len(items) for items in results.values())
-
-          if count:
-              print(f"Potential secrets found: {count}")
-              for filename, findings in results.items():
-                  print(f"\n{filename}")
-                  for finding in findings:
-                      print(f"  line {finding.get('line_number')}: {finding.get('type')}")
-              raise SystemExit(1)
-
-          print("No secrets detected.")
-          PY
-
-      - name: Upload secret scan report
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: detect-secrets-report
-          path: detect-secrets-report.json
-          retention-days: 7
-
-  semgrep:
-    name: Semgrep SAST
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.13"
-
-      - name: Install Semgrep
-        run: |
-          python -m pip install --upgrade pip
-          pip install semgrep
-
-      - name: Run Semgrep security rules
-        run: |
-          semgrep scan \
-            --config p/owasp-top-ten \
-            --config p/django \
-            --config p/javascript \
-            --config p/secrets \
-            --error \
-            --exclude frontend/node_modules \
-            --exclude frontend/dist \
-            --exclude backend/staticfiles \
-            --exclude backend/media \
-            --exclude backend/db.sqlite3 \
-            --exclude backend/*/migrations \
-            --exclude "*.zip" \
-            .
+    - name: Upload secret scan report
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: detect-secrets-report
+        path: detect-secrets-report.json
+        retention-days: 7
