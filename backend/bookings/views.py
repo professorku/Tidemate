@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from config.pagination import BookingsPagination
 from config.throttling import BookingWriteRateThrottle
 
+from .read_serializers import BookingReadSerializer
 from .selectors import (
     apply_timeline_filter,
     get_host_booking_for_user,
@@ -15,28 +16,43 @@ from .selectors import (
     get_user_bookings,
     get_visible_booking_for_user,
 )
-from .serializers import BookingSerializer
 from .services import cancel_booking, confirm_booking, create_booking, delete_booking
 from .view_helpers import (
     BookingRequestContextMixin,
     booking_not_found_response,
     exception_to_response,
 )
+from .write_serializers import BookingCreateSerializer
 
 logger = logging.getLogger(__name__)
 
 
 class BookingCreateView(BookingRequestContextMixin, generics.CreateAPIView):
-    serializer_class = BookingSerializer
+    serializer_class = BookingCreateSerializer
     permission_classes = [permissions.IsAuthenticated]
     throttle_classes = [BookingWriteRateThrottle]
 
-    def perform_create(self, serializer):
-        create_booking(serializer=serializer)
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        booking = create_booking(serializer=serializer)
+
+        read_serializer = BookingReadSerializer(
+            booking,
+            context=self.get_serializer_context(),
+        )
+        headers = self.get_success_headers(read_serializer.data)
+
+        return Response(
+            read_serializer.data,
+            status=status.HTTP_201_CREATED,
+            headers=headers,
+        )
 
 
 class MyBookingsView(BookingRequestContextMixin, generics.ListAPIView):
-    serializer_class = BookingSerializer
+    serializer_class = BookingReadSerializer
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = BookingsPagination
 
@@ -47,7 +63,7 @@ class MyBookingsView(BookingRequestContextMixin, generics.ListAPIView):
 
 
 class HostBookingsView(BookingRequestContextMixin, generics.ListAPIView):
-    serializer_class = BookingSerializer
+    serializer_class = BookingReadSerializer
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = BookingsPagination
 
@@ -57,13 +73,14 @@ class HostBookingsView(BookingRequestContextMixin, generics.ListAPIView):
 
 
 class BookingDetailView(BookingRequestContextMixin, generics.RetrieveAPIView):
-    serializer_class = BookingSerializer
+    serializer_class = BookingReadSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
         booking = get_visible_booking_for_user(self.request.user, self.kwargs['pk'])
         if not booking:
             from django.http import Http404
+
             raise Http404
         return booking
 
@@ -80,10 +97,15 @@ class BookingConfirmView(APIView):
         try:
             booking = confirm_booking(booking=booking)
         except (PermissionError, ValueError, ValidationError) as exc:
-            logger.info("Booking confirm rejected for booking %s by user %s: %s", pk, request.user.id, exc)
+            logger.info(
+                "Booking confirm rejected for booking %s by user %s: %s",
+                pk,
+                request.user.id,
+                exc,
+            )
             return exception_to_response(exc)
 
-        serializer = BookingSerializer(booking, context={'request': request})
+        serializer = BookingReadSerializer(booking, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -97,12 +119,21 @@ class BookingCancelView(APIView):
             return booking_not_found_response()
 
         try:
-            booking = cancel_booking(booking=booking, actor=request.user, data=request.data)
+            booking = cancel_booking(
+                booking=booking,
+                actor=request.user,
+                data=request.data,
+            )
         except (PermissionError, ValueError, ValidationError) as exc:
-            logger.info("Booking cancel rejected for booking %s by user %s: %s", pk, request.user.id, exc)
+            logger.info(
+                "Booking cancel rejected for booking %s by user %s: %s",
+                pk,
+                request.user.id,
+                exc,
+            )
             return exception_to_response(exc)
 
-        serializer = BookingSerializer(booking, context={'request': request})
+        serializer = BookingReadSerializer(booking, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -118,7 +149,12 @@ class BookingDeleteView(APIView):
         try:
             delete_booking(booking=booking, actor=request.user)
         except (PermissionError, ValueError, ValidationError) as exc:
-            logger.info("Booking delete rejected for booking %s by user %s: %s", pk, request.user.id, exc)
+            logger.info(
+                "Booking delete rejected for booking %s by user %s: %s",
+                pk,
+                request.user.id,
+                exc,
+            )
             return exception_to_response(exc)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
