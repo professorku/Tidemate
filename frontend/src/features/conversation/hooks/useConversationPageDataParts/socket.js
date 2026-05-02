@@ -34,8 +34,8 @@ export function useConversationSocket({
     baseReconnectDelayMs: 1500,
     maxReconnectDelayMs: 10000,
     maxReconnectAttempts: 8,
-    onOpen: () => {
-      socketApi.sendJson({ type: 'message.read' })
+    onOpen: (socket) => {
+      socket.send(JSON.stringify({ type: 'message.read' }))
     },
     onMessage: (data) => {
       switch (data.type) {
