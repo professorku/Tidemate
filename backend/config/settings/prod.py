@@ -19,7 +19,8 @@ SECURE_REFERRER_POLICY = "same-origin"
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
 SECURE_REDIRECT_EXEMPT = (
     [r"^api/users/health/?$"]
-    if os.getenv("ENABLE_PLAIN_HTTP_HEALTHCHECK", "").strip().lower() in {"1", "true", "yes", "on"}
+    if os.getenv("ENABLE_PLAIN_HTTP_HEALTHCHECK", "").strip().lower()
+    in {"1", "true", "yes", "on"}
     else []
 )
 
@@ -36,13 +37,6 @@ PERMISSIONS_POLICY = {
     "display-capture": [],
 }
 
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": os.environ["REDIS_URL"],
-    }
-}
-
 if os.getenv("SECRET_KEY", "").strip() in {"", DEFAULT_DEV_SECRET_KEY}:
     raise ImproperlyConfigured("SECRET_KEY must be configured in production.")
 
@@ -55,14 +49,23 @@ if not os.getenv("CORS_ALLOWED_ORIGINS", "").strip():
 if not os.getenv("CSRF_TRUSTED_ORIGINS", "").strip():
     raise ImproperlyConfigured("CSRF_TRUSTED_ORIGINS must be configured in production.")
 
-if not os.getenv("REDIS_URL", "").strip():
+REDIS_URL = os.getenv("REDIS_URL", "").strip()
+
+if not REDIS_URL:
     raise ImproperlyConfigured("REDIS_URL must be configured in production for Channels/Redis.")
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": REDIS_URL,
+    }
+}
 
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [os.getenv("REDIS_URL").strip()],
+            "hosts": [REDIS_URL],
         },
     }
 }
