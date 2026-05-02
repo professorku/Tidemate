@@ -1,12 +1,20 @@
 import hashlib
+import hmac
 import math
 from decimal import Decimal, InvalidOperation
+
+from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 
 
 APPROXIMATE_LOCATION_MIN_OFFSET_KM = 1.5
 APPROXIMATE_LOCATION_MAX_OFFSET_KM = 3.5
 EARTH_RADIUS_KM = 6371.0088
 PUBLIC_COORDINATE_QUANTUM = Decimal('0.000001')
+
+
+class LocationPrivacySaltError(ImproperlyConfigured):
+    pass
 
 
 def _as_float(value):
@@ -37,6 +45,17 @@ def _round_public_coordinate_decimal(value):
     return Decimal(str(rounded_value)).quantize(PUBLIC_COORDINATE_QUANTUM)
 
 
+def _get_location_privacy_salt():
+    salt = getattr(settings, 'LOCATION_PRIVACY_SALT', '')
+
+    if not salt:
+        raise LocationPrivacySaltError(
+            'LOCATION_PRIVACY_SALT must be configured before public boat coordinates can be generated.'
+        )
+
+    return str(salt).encode('utf-8')
+
+
 def _destination_point(latitude, longitude, distance_km, bearing_degrees):
     lat1 = math.radians(latitude)
     lon1 = math.radians(longitude)
@@ -57,6 +76,24 @@ def _destination_point(latitude, longitude, distance_km, bearing_degrees):
     return math.degrees(lat2), normalized_lon
 
 
+def _coordinate_digest(listing_id, latitude, longitude):
+    """
+    Generate deterministic but secret-keyed bytes for public coordinate obfuscation.
+
+    The previous implementation used a plain SHA-256 hash of listing id + exact
+    coordinates. That was deterministic, but not secret: someone could guess likely
+    marina/dock coordinates and compare outputs. HMAC keeps the deterministic behavior
+    needed for stable public coordinates while preventing offline guessing unless the
+    server-side LOCATION_PRIVACY_SALT leaks.
+    """
+    seed = f'tidemate-location-v2:{listing_id}:{latitude:.6f}:{longitude:.6f}'.encode('utf-8')
+    return hmac.new(
+        _get_location_privacy_salt(),
+        seed,
+        hashlib.sha256,
+    ).digest()
+
+
 def get_public_coordinate_values(listing_id, latitude, longitude):
     latitude = _as_float(latitude)
     longitude = _as_float(longitude)
@@ -64,8 +101,11 @@ def get_public_coordinate_values(listing_id, latitude, longitude):
     if listing_id is None or latitude is None or longitude is None:
         return None, None
 
-    seed = f'tidemate-location-v1:{listing_id}:{latitude:.6f}:{longitude:.6f}'.encode('utf-8')
-    digest = hashlib.sha256(seed).digest()
+    digest = _coordinate_digest(
+        listing_id=listing_id,
+        latitude=latitude,
+        longitude=longitude,
+    )
 
     bearing = int.from_bytes(digest[:2], 'big') / 65535 * 360
     offset_ratio = int.from_bytes(digest[2:4], 'big') / 65535

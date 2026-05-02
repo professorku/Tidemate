@@ -49,6 +49,20 @@ IS_PRODUCTION_SETTINGS = DJANGO_SETTINGS_MODULE.endswith(".prod")
 if IS_PRODUCTION_SETTINGS and SECRET_KEY == DEFAULT_DEV_SECRET_KEY:
     raise ImproperlyConfigured("SECRET_KEY must be set to a real value in production.")
 
+LOCATION_PRIVACY_SALT = os.getenv("LOCATION_PRIVACY_SALT", "")
+
+if not LOCATION_PRIVACY_SALT:
+    if IS_PRODUCTION_SETTINGS:
+        raise ImproperlyConfigured("LOCATION_PRIVACY_SALT must be set in production.")
+
+    LOCATION_PRIVACY_SALT = (
+        "dev-only-location-privacy-"
+        + hashlib.sha256(str(BASE_DIR).encode("utf-8")).hexdigest()
+    )
+
+if IS_PRODUCTION_SETTINGS and len(LOCATION_PRIVACY_SALT) < 32:
+    raise ImproperlyConfigured("LOCATION_PRIVACY_SALT must be at least 32 characters in production.")
+
 ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "127.0.0.1,localhost")
 
 INSTALLED_APPS = [
@@ -159,6 +173,15 @@ LISTING_SEARCH_FALLBACK_MIN_CANDIDATES = env_int(
 LISTING_SEARCH_FALLBACK_MAX_CANDIDATES = env_int(
     "LISTING_SEARCH_FALLBACK_MAX_CANDIDATES",
     250,
+)
+
+LISTING_SEARCH_PUBLIC_RADIUS_MIN_CANDIDATES = env_int(
+    "LISTING_SEARCH_PUBLIC_RADIUS_MIN_CANDIDATES",
+    LISTING_SEARCH_FALLBACK_MIN_CANDIDATES,
+)
+LISTING_SEARCH_PUBLIC_RADIUS_MAX_CANDIDATES = env_int(
+    "LISTING_SEARCH_PUBLIC_RADIUS_MAX_CANDIDATES",
+    LISTING_SEARCH_FALLBACK_MAX_CANDIDATES,
 )
 
 GEOCODING_PROVIDER_BASE_URL = os.getenv(
