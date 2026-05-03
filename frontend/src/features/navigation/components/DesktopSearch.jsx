@@ -336,13 +336,16 @@ export default function DesktopSearch({
   hasMarketplaceSearch,
   filtersOpen,
   toggleFilters,
+  closeFilters = () => {},
   children,
 }) {
   const searchRef = useRef(null)
   const [searchExpanded, setSearchExpanded] = useState(false)
   const [datesOpen, setDatesOpen] = useState(false)
 
-  const shouldShowExtraFields = searchExpanded || Boolean(boatType || startDate || endDate)
+  const shouldShowExtraFields =
+    searchExpanded || Boolean(boatType || startDate || endDate)
+
   const shouldShowFilterButton = hasMarketplaceSearch || filtersOpen
 
   const closeDates = () => {
@@ -354,6 +357,7 @@ export default function DesktopSearch({
       if (!searchRef.current?.contains(event.target)) {
         setSearchExpanded(false)
         setDatesOpen(false)
+        closeFilters()
       }
     }
 
@@ -362,7 +366,7 @@ export default function DesktopSearch({
     return () => {
       document.removeEventListener('mousedown', handleDocumentMouseDown)
     }
-  }, [])
+  }, [closeFilters])
 
   return (
     <div
@@ -374,6 +378,7 @@ export default function DesktopSearch({
           onClick={() => setSearchExpanded(true)}
           onSubmit={(event) => {
             closeDates()
+            closeFilters()
             handleSearch(event)
           }}
           className={`flex h-12 min-w-0 items-center rounded-full border border-white/15 bg-white/10 p-1 shadow-sm backdrop-blur transition-all duration-500 ease-out focus-within:border-gold/35 focus-within:bg-white/[0.13] ${
@@ -428,7 +433,10 @@ export default function DesktopSearch({
                 setStartDate={setStartDate}
                 setEndDate={setEndDate}
                 isOpen={datesOpen}
-                onToggle={() => setDatesOpen((current) => !current)}
+                onToggle={() => {
+                  closeFilters()
+                  setDatesOpen((current) => !current)
+                }}
                 onClose={closeDates}
                 onFocus={() => setSearchExpanded(true)}
               />
@@ -437,7 +445,7 @@ export default function DesktopSearch({
 
           <button
             type="submit"
-            className="h-10 shrink-0 rounded-full bg-gold px-4 text-sm font-extrabold text-navy shadow-sm ring-1 ring-gold/40 transition hover:bg-[#d8b45d]"
+            className="h-11 shrink-0 rounded-full bg-gold px-5 text-sm font-extrabold text-navy shadow-sm ring-1 ring-gold/40 transition hover:bg-[#d8b45d]"
           >
             Search
           </button>
@@ -450,28 +458,28 @@ export default function DesktopSearch({
               : 'pointer-events-none max-w-0 translate-x-4 opacity-0'
           }`}
         >
-        <button
-          type="button"
-          onClick={() => {
-            closeDates()
-            toggleFilters()
-          }}
-          className={`inline-flex h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-4 text-sm font-extrabold text-white shadow-sm transition focus:outline-none focus-visible:outline-none ${
-            filtersOpen
-              ? 'border-white/80 bg-transparent'
-              : 'border-transparent bg-transparent hover:bg-transparent'
-          }`}
-          aria-expanded={filtersOpen}
-          tabIndex={shouldShowFilterButton ? 0 : -1}
-        >
-          <AdjustmentsHorizontalIcon className="h-4 w-4 text-white" />
-          Filters
-        </button>
+          <button
+            type="button"
+            onClick={() => {
+              closeDates()
+              toggleFilters()
+            }}
+            className={`inline-flex h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-4 text-sm font-extrabold text-white shadow-sm transition focus:outline-none focus-visible:outline-none ${
+              filtersOpen
+                ? 'border-white/80 bg-transparent'
+                : 'border-transparent bg-transparent hover:bg-white/10'
+            }`}
+            aria-expanded={filtersOpen}
+            tabIndex={shouldShowFilterButton ? 0 : -1}
+          >
+            <AdjustmentsHorizontalIcon className="h-4 w-4 text-white" />
+            Filters
+          </button>
         </div>
       </div>
 
       <div
-        className={`absolute right-0 top-[calc(100%+0.8rem)] z-[2500] w-[min(52rem,calc(100vw-2rem))] origin-top-right transform-gpu transition-all duration-300 ease-out ${
+        className={`absolute right-0 top-[calc(100%+0.8rem)] z-[2500] w-[min(40rem,calc(100vw-2rem))] origin-top-right transform-gpu transition-all duration-300 ease-out ${
           filtersOpen
             ? 'translate-y-0 scale-100 opacity-100'
             : 'pointer-events-none -translate-y-4 scale-95 opacity-0'

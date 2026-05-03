@@ -94,6 +94,7 @@ export default function Navbar() {
           hasMarketplaceSearch={hasMarketplaceSearch}
           filtersOpen={filtersOpen}
           toggleFilters={toggleFilters}
+          closeFilters={closeFilters}
         >
           <NavbarMarketplaceFilters onClose={closeFilters} />
         </DesktopSearch>
