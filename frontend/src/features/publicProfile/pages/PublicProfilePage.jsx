@@ -53,7 +53,6 @@ export default function PublicProfilePage() {
 
   const reviewCount = reviewsData?.review_count || 0
   const averageRating = reviewsData?.average_rating || null
-  const boatCount = boats?.length || 0
   const joinedText = formatJoinedDate(profile.member_since)
 
   return (

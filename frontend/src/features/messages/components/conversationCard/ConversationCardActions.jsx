@@ -7,9 +7,9 @@ import {
 
 import { getConversationBookingPath } from '../../../../utils/bookingReference'
 
-const bookingPath = getConversationBookingPath(conversation)
-
 export default function ConversationCardActions({ conversation }) {
+  const bookingPath = getConversationBookingPath(conversation)
+
   return (
     <div className="mt-5 flex flex-wrap gap-2 border-t border-white/15 pt-5">
       <Link
