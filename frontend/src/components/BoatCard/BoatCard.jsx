@@ -12,8 +12,8 @@ export default function BoatCard({ boat, onFavoriteChange }) {
         : 0
 
   return (
-    <BaseBoatCard
-      className="!border-[#071d32] !bg-transparent !shadow-none transition hover:-translate-y-1 hover:!shadow-lg"
+      <BaseBoatCard
+        className="!border-transparent !bg-transparent !shadow-none !transition-none hover:!translate-y-0 hover:!shadow-none"
       media={(
         <Link
           to={`/boats/${boat.id}`}
