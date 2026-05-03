@@ -30,12 +30,18 @@ MAX_IMAGE_WIDTH_PX = 8000
 MAX_IMAGE_HEIGHT_PX = 8000
 MAX_IMAGE_TOTAL_PIXELS = 25_000_000
 
+# Stored image size after sanitizing/optimizing.
+# This keeps uploaded camera photos from being stored as huge 4000px+ files.
+MAX_STORED_IMAGE_WIDTH_PX = 1600
+MAX_STORED_IMAGE_HEIGHT_PX = 1600
+
 # Make Pillow reject decompression-bomb candidates before full decoding.
 # This protects memory before image.load() is ever reached.
 Image.MAX_IMAGE_PIXELS = MAX_IMAGE_TOTAL_PIXELS
 
-SANITIZED_JPEG_QUALITY = 85
-SANITIZED_IMAGE_SUFFIX = "sanitized"
+SANITIZED_WEBP_QUALITY = 82
+SANITIZED_WEBP_METHOD = 6
+SANITIZED_IMAGE_SUFFIX = "optimized"
 
 
 class ImageUploadInfo:
@@ -169,15 +175,32 @@ def _build_sanitized_filename(original_name, extension):
     return f"{safe_stem}_{SANITIZED_IMAGE_SUFFIX}.{extension}"
 
 
+def _resize_for_storage(image):
+    """
+    Resize image in-place if it is larger than the stored image limit.
+
+    thumbnail() keeps the original aspect ratio and never upscales small images.
+    """
+    image.thumbnail(
+        (MAX_STORED_IMAGE_WIDTH_PX, MAX_STORED_IMAGE_HEIGHT_PX),
+        Image.Resampling.LANCZOS,
+    )
+
+    return image
+
+
 def _prepare_image_for_saving(image):
     """
-    Normalize the image before storing it:
+    Normalize and optimize the image before storing it:
 
     - apply EXIF orientation to the actual pixels
     - drop EXIF and metadata by saving into a fresh file
     - convert animated images to their first frame
-    - use PNG when transparency exists
-    - use JPEG otherwise
+    - resize very large uploads to a web-friendly maximum size
+    - convert every accepted upload to WebP
+
+    WebP supports normal photos and transparency, so JPG/PNG/GIF/WEBP uploads
+    can all be stored in one optimized web format.
     """
     image.seek(0)
     image = ImageOps.exif_transpose(image)
@@ -185,30 +208,31 @@ def _prepare_image_for_saving(image):
     has_alpha = _image_has_alpha(image)
 
     if has_alpha:
-        if image.mode not in ("RGBA", "LA"):
+        if image.mode != "RGBA":
             image = image.convert("RGBA")
+    else:
+        if image.mode != "RGB":
+            image = image.convert("RGB")
 
-        return image, "PNG", "png", "image/png"
+    image = _resize_for_storage(image)
 
-    if image.mode != "RGB":
-        image = image.convert("RGB")
-
-    return image, "JPEG", "jpg", "image/jpeg"
+    return image, "WEBP", "webp", "image/webp"
 
 
 def sanitize_image_upload(upload, *, field_label, max_size_bytes):
     """
-    Return a sanitized copy of a validated upload.
+    Return an optimized, sanitized WebP copy of a validated upload.
 
     This avoids storing the original user-supplied bytes.
 
-    Security/privacy benefits:
+    Security/privacy/performance benefits:
 
     - strips EXIF metadata, including possible GPS data
     - strips camera/device metadata
     - applies EXIF orientation safely
-    - re-encodes the image into a clean JPEG or PNG
     - flattens GIF/animated uploads to the first frame
+    - resizes huge camera uploads to a web-friendly size
+    - re-encodes the image into a clean optimized WebP file
     """
     current_position = _remember_position(upload)
 
@@ -239,23 +263,10 @@ def sanitize_image_upload(upload, *, field_label, max_size_bytes):
                 )
 
                 output = BytesIO()
-                save_kwargs = {}
-
-                if save_format == "JPEG":
-                    save_kwargs.update(
-                        {
-                            "quality": SANITIZED_JPEG_QUALITY,
-                            "optimize": True,
-                            "progressive": True,
-                        }
-                    )
-
-                elif save_format == "PNG":
-                    save_kwargs.update(
-                        {
-                            "optimize": True,
-                        }
-                    )
+                save_kwargs = {
+                    "quality": SANITIZED_WEBP_QUALITY,
+                    "method": SANITIZED_WEBP_METHOD,
+                }
 
                 sanitized_image.save(output, format=save_format, **save_kwargs)
 
@@ -265,7 +276,7 @@ def sanitize_image_upload(upload, *, field_label, max_size_bytes):
             max_size_mb = max_size_bytes / (1024 * 1024)
 
             raise serializers.ValidationError(
-                f"{field_label} is too large after sanitizing. "
+                f"{field_label} is too large after optimizing. "
                 f"Please upload an image that can be stored as {max_size_mb:.0f} MB or smaller."
             )
 
@@ -290,7 +301,7 @@ def sanitize_image_upload(upload, *, field_label, max_size_bytes):
 
     except (UnidentifiedImageError, OSError, ValueError):
         raise serializers.ValidationError(
-            f"{field_label} could not be sanitized. Please upload a valid image file."
+            f"{field_label} could not be optimized. Please upload a valid image file."
         )
 
     finally:

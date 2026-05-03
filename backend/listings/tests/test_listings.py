@@ -117,11 +117,11 @@ class BoatListingUploadValidationTests(TestCase):
 
         sanitized_upload = serializer.validated_data['new_images'][0]
 
-        self.assertTrue(sanitized_upload.name.endswith('_sanitized.jpg'))
-        self.assertEqual(sanitized_upload.content_type, 'image/jpeg')
+        self.assertTrue(sanitized_upload.name.endswith('_optimized.webp'))
+        self.assertEqual(sanitized_upload.content_type, 'image/webp')
         self.assertGreater(sanitized_upload.size, 0)
 
-    def test_new_images_sanitize_transparent_png_as_png(self):
+    def test_new_images_sanitize_transparent_png_as_webp(self):
         image = Image.new('RGBA', (16, 16), color=(255, 255, 255, 0))
         output = BytesIO()
         image.save(output, format='PNG')
@@ -145,8 +145,8 @@ class BoatListingUploadValidationTests(TestCase):
 
         sanitized_upload = serializer.validated_data['new_images'][0]
 
-        self.assertTrue(sanitized_upload.name.endswith('_sanitized.png'))
-        self.assertEqual(sanitized_upload.content_type, 'image/png')
+        self.assertTrue(sanitized_upload.name.endswith('_optimized.webp'))
+        self.assertEqual(sanitized_upload.content_type, 'image/webp')
         self.assertGreater(sanitized_upload.size, 0)
 
 

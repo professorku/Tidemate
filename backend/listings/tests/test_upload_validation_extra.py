@@ -108,7 +108,7 @@ class DirectImageUploadValidationRegressionTests(TestCase):
 
         self.assertIn("dimensions are too large", str(context.exception))
 
-    def test_accepts_valid_image_and_returns_sanitized_copy(self):
+    def test_accepts_valid_image_and_returns_optimized_webp_copy(self):
         upload = make_image_upload(
             name="raw-camera-upload.png",
             image_format="PNG",
@@ -121,8 +121,8 @@ class DirectImageUploadValidationRegressionTests(TestCase):
             max_size_bytes=MAX_BOAT_IMAGE_SIZE_BYTES,
         )
 
-        self.assertTrue(sanitized.name.endswith("_sanitized.jpg"))
-        self.assertEqual(sanitized.content_type, "image/jpeg")
+        self.assertTrue(sanitized.name.endswith("_optimized.webp"))
+        self.assertEqual(sanitized.content_type, "image/webp")
         self.assertGreater(sanitized.size, 0)
 
 
@@ -200,7 +200,7 @@ class BoatListingApiUploadValidationRegressionTests(APITestCase):
         )
         self.assertEqual(BoatImage.objects.count(), 0)
 
-    def test_create_listing_accepts_valid_image_and_stores_sanitized_boat_image(self):
+    def test_create_listing_accepts_valid_image_and_stores_optimized_webp_boat_image(self):
         response = self.client.post(
             reverse("boat-list-create"),
             {
@@ -222,7 +222,7 @@ class BoatListingApiUploadValidationRegressionTests(APITestCase):
         boat = BoatListing.objects.get(title="Upload API Boat")
         image = boat.images.get()
 
-        self.assertTrue(image.image.name.endswith("_sanitized.jpg"))
+        self.assertTrue(image.image.name.endswith("_optimized.webp"))
         self.assertTrue(image.is_cover)
         self.assertEqual(BoatImage.objects.count(), 1)
 
