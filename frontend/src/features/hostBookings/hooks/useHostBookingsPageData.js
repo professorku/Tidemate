@@ -69,7 +69,10 @@ export default function useHostBookingsPageData() {
     : EMPTY_PAGINATION
 
   const canDeleteBooking = (booking) =>
-    booking?.status === 'cancelled' || isPastTrip(booking)
+    booking?.status === 'cancelled' ||
+    booking?.lifecycle_stage === 'cancelled' ||
+    booking?.lifecycle_stage === 'completed' ||
+    isPastTrip(booking)
 
   const loadBookings = async () => {
     await Promise.all([

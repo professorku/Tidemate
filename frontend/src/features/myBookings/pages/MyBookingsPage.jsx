@@ -72,7 +72,7 @@ export default function MyBookingsPage() {
           <BookingsHero counts={safeCounts} />
 
           <section className="rounded-[34px] border border-white/15 bg-navy p-4 text-white shadow-soft md:p-6">
-            <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="mb-6 space-y-4">
               <div>
                 <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-gold">
                   Trip overview

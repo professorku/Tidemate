@@ -381,7 +381,7 @@ export default function DesktopSearch({
             closeFilters()
             handleSearch(event)
           }}
-          className="flex h-12 min-w-0 flex-1 items-center overflow-hidden rounded-full border border-white/15 bg-white/10 shadow-sm backdrop-blur transition-all duration-500 ease-out focus-within:border-gold/35 focus-within:bg-white/[0.13]"
+          className="flex h-12 min-w-0 flex-1 items-center overflow-visible rounded-full border border-white/15 bg-white/10 shadow-sm backdrop-blur transition-all duration-500 ease-out focus-within:border-gold/35 focus-within:bg-white/[0.13]"
         >
           <div
             className={`grid min-w-0 flex-1 items-center transition-[grid-template-columns] duration-300 ease-out ${
@@ -448,7 +448,7 @@ export default function DesktopSearch({
         </form>
 
         <div
-          className={`shrink-0 overflow-hidden transition-all duration-500 ease-out ${
+          className={`shrink-0 overflow-visible transition-all duration-500 ease-out ${
             shouldShowFilterButton
               ? 'max-w-[8.25rem] translate-x-0 opacity-100'
               : 'pointer-events-none max-w-0 translate-x-4 opacity-0'

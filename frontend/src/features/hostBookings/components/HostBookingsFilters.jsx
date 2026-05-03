@@ -8,12 +8,14 @@ export default function HostBookingsFilters({ activeTab, stats = {}, onChange })
   }))
 
   return (
-    <div className="overflow-x-auto">
+    <div className="w-full overflow-x-auto px-1 py-1">
       <FilterTabs
         tabs={tabs}
         activeKey={activeTab}
         onChange={onChange}
         showCount
+        className="min-w-max flex-nowrap"
+        buttonClassName="shrink-0"
       />
     </div>
   )
