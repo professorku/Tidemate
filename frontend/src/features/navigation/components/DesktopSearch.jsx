@@ -381,7 +381,7 @@ export default function DesktopSearch({
             closeFilters()
             handleSearch(event)
           }}
-          className={`flex h-12 min-w-0 items-center rounded-full border border-white/15 bg-white/10 p-1 shadow-sm backdrop-blur transition-all duration-500 ease-out focus-within:border-gold/35 focus-within:bg-white/[0.13] ${
+          className={`flex h-12 min-w-0 items-center overflow-hidden rounded-full border border-white/15 bg-white/10 shadow-sm backdrop-blur transition-all duration-500 ease-out focus-within:border-gold/35 focus-within:bg-white/[0.13] ${
             shouldShowFilterButton
               ? 'basis-[calc(100%-8.75rem)]'
               : 'basis-full'
