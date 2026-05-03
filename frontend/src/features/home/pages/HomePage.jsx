@@ -71,6 +71,7 @@ export default function HomePage() {
               onNext={() => setPage(pagination.page + 1)}
               disabled={loading}
               variant="plain"
+              showCount={false}
             />
           </>
         )}

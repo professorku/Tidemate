@@ -7,6 +7,7 @@ export default function PaginationControls({
   onNext,
   disabled = false,
   variant = 'card',
+  showCount = true,
 }) {
   if (count <= 0 || totalPages <= 1) {
     return null
@@ -22,7 +23,12 @@ export default function PaginationControls({
       <p className="text-sm text-white/65">
         Page <span className="font-semibold text-white">{page}</span> of{' '}
         <span className="font-semibold text-white">{totalPages}</span>
-        {' '}· {count} {itemLabel}
+        {showCount ? (
+          <>
+            {' '}
+            · {count} {itemLabel}
+          </>
+        ) : null}
       </p>
 
       <div className="flex items-center gap-3">

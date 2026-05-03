@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 const AUTO_SEARCH_DELAY_MS = 250
@@ -37,7 +37,16 @@ function setParam(params, key, value) {
   params.delete(key)
 }
 
-function buildMarketplaceParams(baseSearch, searchState) {
+function getAutoSearchSignature(searchState) {
+  return JSON.stringify({
+    query: String(searchState.query || '').trim(),
+    boatType: String(searchState.boatType || '').trim(),
+    startDate: String(searchState.startDate || '').trim(),
+    endDate: String(searchState.endDate || '').trim(),
+  })
+}
+
+function buildMarketplaceParams(baseSearch, searchState, { resetPage = true } = {}) {
   const nextParams = new URLSearchParams(baseSearch)
 
   setParam(nextParams, 'q', searchState.query)
@@ -45,7 +54,9 @@ function buildMarketplaceParams(baseSearch, searchState) {
   setParam(nextParams, 'start_date', searchState.startDate)
   setParam(nextParams, 'end_date', searchState.endDate)
 
-  nextParams.delete('page')
+  if (resetPage) {
+    nextParams.delete('page')
+  }
 
   return nextParams
 }
@@ -64,18 +75,44 @@ export function useNavbar() {
     }
   }, [location.search])
 
+  const urlAutoSearchSignature = useMemo(
+    () => getAutoSearchSignature(urlState),
+    [urlState]
+  )
+
   const [query, setQuery] = useState(urlState.query)
   const [boatType, setBoatType] = useState(urlState.boatType)
   const [startDate, setStartDate] = useState(urlState.startDate)
   const [endDate, setEndDate] = useState(urlState.endDate)
   const [filtersOpen, setFiltersOpen] = useState(false)
 
+  const lastSyncedAutoSearchSignatureRef = useRef(urlAutoSearchSignature)
+
+  const currentAutoSearchSignature = useMemo(
+    () =>
+      getAutoSearchSignature({
+        query,
+        boatType,
+        startDate,
+        endDate,
+      }),
+    [boatType, endDate, query, startDate]
+  )
+
   useEffect(() => {
     setQuery(urlState.query)
     setBoatType(urlState.boatType)
     setStartDate(urlState.startDate)
     setEndDate(urlState.endDate)
-  }, [urlState.query, urlState.boatType, urlState.startDate, urlState.endDate])
+
+    lastSyncedAutoSearchSignatureRef.current = urlAutoSearchSignature
+  }, [
+    urlAutoSearchSignature,
+    urlState.boatType,
+    urlState.endDate,
+    urlState.query,
+    urlState.startDate,
+  ])
 
   useEffect(() => {
     setFiltersOpen(false)
@@ -84,20 +121,35 @@ export function useNavbar() {
   useEffect(() => {
     if (!isHomePage) return undefined
 
+    if (
+      currentAutoSearchSignature === lastSyncedAutoSearchSignatureRef.current
+    ) {
+      return undefined
+    }
+
     const timeoutId = window.setTimeout(() => {
-      const nextParams = buildMarketplaceParams(location.search, {
-        query,
-        boatType,
-        startDate,
-        endDate,
-      })
+      const nextParams = buildMarketplaceParams(
+        location.search,
+        {
+          query,
+          boatType,
+          startDate,
+          endDate,
+        },
+        {
+          resetPage: true,
+        }
+      )
 
       const nextSearch = nextParams.toString()
       const currentSearch = new URLSearchParams(location.search).toString()
 
       if (nextSearch === currentSearch) {
+        lastSyncedAutoSearchSignatureRef.current = currentAutoSearchSignature
         return
       }
+
+      lastSyncedAutoSearchSignatureRef.current = currentAutoSearchSignature
 
       navigate(nextSearch ? `/?${nextSearch}` : '/', {
         replace: true,
@@ -109,6 +161,7 @@ export function useNavbar() {
     }
   }, [
     boatType,
+    currentAutoSearchSignature,
     endDate,
     isHomePage,
     location.search,
@@ -117,19 +170,36 @@ export function useNavbar() {
     startDate,
   ])
 
-  const handleSearch = useCallback((event) => {
-    event.preventDefault()
+  const handleSearch = useCallback(
+    (event) => {
+      event.preventDefault()
 
-    const nextParams = buildMarketplaceParams(isHomePage ? location.search : '', {
-      query,
-      boatType,
-      startDate,
-      endDate,
-    })
+      const nextParams = buildMarketplaceParams(
+        isHomePage ? location.search : '',
+        {
+          query,
+          boatType,
+          startDate,
+          endDate,
+        },
+        {
+          resetPage: true,
+        }
+      )
 
-    const nextSearch = nextParams.toString()
-    navigate(nextSearch ? `/?${nextSearch}` : '/')
-  }, [boatType, endDate, isHomePage, location.search, navigate, query, startDate])
+      const nextSearch = nextParams.toString()
+
+      lastSyncedAutoSearchSignatureRef.current = getAutoSearchSignature({
+        query,
+        boatType,
+        startDate,
+        endDate,
+      })
+
+      navigate(nextSearch ? `/?${nextSearch}` : '/')
+    },
+    [boatType, endDate, isHomePage, location.search, navigate, query, startDate]
+  )
 
   const handleQueryChange = useCallback((value) => {
     setQuery(value)
