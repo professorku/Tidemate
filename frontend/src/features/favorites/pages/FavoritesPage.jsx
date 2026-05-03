@@ -1,48 +1,26 @@
-import {
-  ArrowPathIcon,
-  ExclamationTriangleIcon,
-  HeartIcon,
-  SparklesIcon,
-} from '@heroicons/react/24/outline'
+import { ArrowPathIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import PageContainer from '../../../components/layout/PageContainer'
 import PaginationControls from '../../../components/ui/PaginationControls'
 import FavoritesEmptyState from '../../favorites/components/FavoritesEmptyState'
 import FavoritesGrid from '../../favorites/components/FavoritesGrid'
 import useFavoritesPageData from '../../favorites/hooks/useFavoritesPageData'
 
-function FavoritesHero({ count }) {
+function FavoritesHero() {
   return (
     <section className="overflow-hidden rounded-[34px] border border-white/15 bg-navy text-white shadow-soft">
       <div className="relative px-6 py-8 md:px-8 md:py-10">
         <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-gold/10 blur-3xl" />
         <div className="absolute bottom-0 left-1/3 h-32 w-32 rounded-full bg-white/5 blur-3xl" />
 
-        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-gold/25 bg-gold/10 px-4 py-2 text-sm font-extrabold uppercase tracking-[0.18em] text-gold">
-              <HeartIcon className="h-4 w-4" />
-              Saved boats
-            </div>
+        <div className="relative">
+          <h1 className="text-4xl font-black tracking-tight text-white md:text-5xl">
+            My Favorites
+          </h1>
 
-            <h1 className="mt-5 text-4xl font-black tracking-tight text-white md:text-5xl">
-              My Favorites
-            </h1>
-
-            <p className="mt-3 max-w-2xl text-base leading-7 text-white/65 md:text-lg">
-              Keep track of boats you love and come back when you are ready to
-              book your next trip.
-            </p>
-          </div>
-
-          <div className="rounded-[26px] border border-gold/20 bg-[#071d32]/80 p-5 shadow-sm">
-            <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-gold">
-              Saved
-            </p>
-            <p className="mt-2 text-4xl font-black text-white">{count}</p>
-            <p className="mt-1 text-sm text-white/55">
-              {count === 1 ? 'boat in your list' : 'boats in your list'}
-            </p>
-          </div>
+          <p className="mt-3 max-w-2xl text-base leading-7 text-white/65 md:text-lg">
+            Keep track of boats you love and come back when you are ready to
+            book your next trip.
+          </p>
         </div>
       </div>
     </section>
@@ -122,8 +100,6 @@ export default function FavoritesPage() {
     reload,
   } = useFavoritesPageData()
 
-  const favoriteCount = pagination.count || boats.length
-
   return (
     <main className="min-h-screen bg-[#071d32] text-white">
       <PageContainer
@@ -132,7 +108,7 @@ export default function FavoritesPage() {
         className="py-8 md:py-10"
         contentClassName="space-y-7"
       >
-        <FavoritesHero count={favoriteCount} />
+        <FavoritesHero />
 
         {loading ? <FavoritesLoadingState /> : null}
 
@@ -149,26 +125,19 @@ export default function FavoritesPage() {
 
         {!loading && !error && boats.length > 0 ? (
           <section className="rounded-[34px] border border-white/15 bg-navy p-4 shadow-soft md:p-6">
-            <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-              <div>
-                <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-gold">
-                  Favorite fleet
-                </p>
+            <div className="mb-6">
+              <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-gold">
+                Favorite fleet
+              </p>
 
-                <h2 className="mt-2 text-2xl font-black tracking-tight text-white md:text-3xl">
-                  Boats you saved
-                </h2>
+              <h2 className="mt-2 text-2xl font-black tracking-tight text-white md:text-3xl">
+                Boats you saved
+              </h2>
 
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-white/60">
-                  Open a boat to view details, check availability, or remove it
-                  from your favorites.
-                </p>
-              </div>
-
-              <div className="inline-flex w-fit items-center gap-2 rounded-full border border-gold/20 bg-gold/10 px-4 py-2 text-sm font-bold text-gold">
-                <SparklesIcon className="h-4 w-4" />
-                {favoriteCount} saved
-              </div>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-white/60">
+                Open a boat to view details, check availability, or remove it
+                from your favorites.
+              </p>
             </div>
 
             <FavoritesGrid
