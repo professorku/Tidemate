@@ -1,9 +1,7 @@
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 import PageContainer from '../../../components/layout/PageContainer'
-import FiltersBar from '../../../components/FiltersBar'
 import LoadingState from '../../../components/ui/LoadingState'
 import ErrorState from '../../../components/ui/ErrorState'
-import HomeHero from '../../home/components/HomeHero'
 import HomeResults from '../../home/components/HomeResults'
 import PaginationControls from '../../../components/ui/PaginationControls'
 import useHomePageData from '../../home/hooks/useHomePageData'
@@ -13,10 +11,7 @@ export default function HomePage() {
     boats,
     error,
     loading,
-    filters,
-    setFilters,
     handleApply,
-    handleClear,
     pagination,
     setPage,
   } = useHomePageData()
@@ -24,17 +19,6 @@ export default function HomePage() {
   return (
     <main className="min-h-screen overflow-hidden bg-[#071d32] text-white">
       <PageContainer size="wide" as="div" className="py-8 md:py-10">
-        <HomeHero />
-
-        <div className="mb-6">
-          <FiltersBar
-            filters={filters}
-            setFilters={setFilters}
-            onApply={handleApply}
-            onClear={handleClear}
-          />
-        </div>
-
         {loading ? (
           <LoadingState
             title="Loading boats"
@@ -70,13 +54,14 @@ export default function HomePage() {
               </h2>
 
               <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-white/70 md:text-base">
-                Try another search or clear the filters to see more available boats.
+                Try another search or use the filter button in the navbar to adjust the fleet.
               </p>
             </div>
           </section>
         ) : (
           <>
             <HomeResults boats={boats} />
+
             <PaginationControls
               page={pagination.page}
               totalPages={pagination.totalPages}

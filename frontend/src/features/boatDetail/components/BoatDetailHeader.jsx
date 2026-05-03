@@ -87,7 +87,7 @@ export default function BoatDetailHeader({
               )}
             </div>
 
-            <h1 className="mt-5 text-3xl font-extrabold tracking-tight text-white md:text-5xl">
+            <h1 className="mt-5 max-w-4xl break-words text-3xl font-extrabold leading-[1.08] tracking-tight text-white md:text-4xl xl:text-[2.75rem]">
               {boat.title}
             </h1>
 

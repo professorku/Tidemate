@@ -19,8 +19,6 @@ const EMPTY_PAGINATION = {
   previous: null,
 }
 
-const AUTO_SEARCH_DELAY_MS = 350
-
 export default function useHomePageData() {
   const { showToast } = useToast()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -32,11 +30,9 @@ export default function useHomePageData() {
   )
 
   const [filters, setFiltersState] = useState(derivedFilters)
-  const [filtersDirty, setFiltersDirty] = useState(false)
 
   useEffect(() => {
     setFiltersState(derivedFilters)
-    setFiltersDirty(false)
   }, [derivedFilters])
 
   const setFilters = useCallback((nextFilters) => {
@@ -47,21 +43,7 @@ export default function useHomePageData() {
 
       return nextFilters
     })
-
-    setFiltersDirty(true)
   }, [])
-
-  useEffect(() => {
-    if (!filtersDirty) return
-
-    const timeoutId = window.setTimeout(() => {
-      const nextParams = buildSearchParamsFromFilters(filters)
-      setSearchParams(nextParams)
-      setFiltersDirty(false)
-    }, AUTO_SEARCH_DELAY_MS)
-
-    return () => window.clearTimeout(timeoutId)
-  }, [filters, filtersDirty, setSearchParams])
 
   const boatsQuery = useQuery({
     queryKey: queryKeys.listings.page(paramsKey),
@@ -83,12 +65,10 @@ export default function useHomePageData() {
   const handleApply = () => {
     const nextParams = buildSearchParamsFromFilters(filters)
     setSearchParams(nextParams)
-    setFiltersDirty(false)
   }
 
   const handleClear = () => {
     setFiltersState(initialHomeFilters)
-    setFiltersDirty(false)
     setSearchParams({})
   }
 

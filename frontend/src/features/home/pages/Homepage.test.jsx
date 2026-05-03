@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import HomePage from './HomePage'
@@ -82,20 +82,26 @@ describe('HomePage boat search', () => {
       },
     ])
 
-    renderHomePage(['/?q=Oslo&min_guests=4'])
+    renderHomePage([
+      '/?q=Oslo&min_guests=4&start_date=2026-06-01&end_date=2026-06-03',
+    ])
 
     expect(await screen.findByText('Oslofjord RIB')).not.toBeNull()
 
-    expect(listingMocks.listListingsPage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        q: 'Oslo',
-        min_guests: '4',
-        page: 1,
-      })
-    )
+    await waitFor(() => {
+      expect(listingMocks.listListingsPage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          q: 'Oslo',
+          min_guests: '4',
+          start_date: '2026-06-01',
+          end_date: '2026-06-03',
+          page: 1,
+        })
+      )
+    })
   })
 
-  it('applies search filters and triggers a new listing request', async () => {
+  it('passes advanced marketplace filters from the URL to the listings request', async () => {
     mockListings([
       {
         id: 2,
@@ -105,28 +111,20 @@ describe('HomePage boat search', () => {
       },
     ])
 
-    renderHomePage()
+    renderHomePage([
+      '/?q=Bodø&boat_type=sailboat&min_guests=3&min_price=1000&max_price=3000',
+    ])
 
-    fireEvent.change(screen.getByLabelText(/^Search$/i), {
-      target: { value: 'Bodø' },
-    })
-
-    fireEvent.change(screen.getByLabelText(/^Boat type$/i), {
-      target: { value: 'sailboat' },
-    })
-
-    fireEvent.change(screen.getByLabelText(/^Min guests$/i), {
-      target: { value: '3' },
-    })
-
-    fireEvent.click(screen.getByRole('button', { name: /^apply$/i }))
+    expect(await screen.findByText('Bodø Sailboat')).not.toBeNull()
 
     await waitFor(() => {
-      expect(listingMocks.listListingsPage).toHaveBeenLastCalledWith(
+      expect(listingMocks.listListingsPage).toHaveBeenCalledWith(
         expect.objectContaining({
           q: 'Bodø',
           boat_type: 'sailboat',
           min_guests: '3',
+          min_price: '1000',
+          max_price: '3000',
           page: 1,
         })
       )
