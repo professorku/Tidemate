@@ -1,4 +1,5 @@
 from decimal import Decimal
+import secrets
 
 from django.contrib.auth.models import User
 from django.db import models
@@ -9,6 +10,18 @@ from listings.models import BoatListing
 
 MAX_BOOKING_CANCELLATION_REASON_LENGTH = 500
 MIN_BOOKING_TOTAL_PRICE = Decimal('0.01')
+
+BOOKING_PUBLIC_ID_PREFIX = 'TM-'
+BOOKING_PUBLIC_ID_RANDOM_LENGTH = 8
+BOOKING_PUBLIC_ID_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'
+
+
+def generate_booking_public_id():
+    random_part = ''.join(
+        secrets.choice(BOOKING_PUBLIC_ID_ALPHABET)
+        for _ in range(BOOKING_PUBLIC_ID_RANDOM_LENGTH)
+    )
+    return f'{BOOKING_PUBLIC_ID_PREFIX}{random_part}'
 
 
 class Booking(models.Model):
@@ -22,6 +35,13 @@ class Booking(models.Model):
         ('renter', 'Renter'),
         ('host', 'Host'),
     ]
+
+    public_id = models.CharField(
+        max_length=11,
+        unique=True,
+        editable=False,
+        default=generate_booking_public_id,
+    )
 
     boat = models.ForeignKey(
         BoatListing,
@@ -69,4 +89,4 @@ class Booking(models.Model):
         ]
 
     def __str__(self):
-        return f'{self.boat.title} booking by {self.renter.username}'
+        return f'{self.public_id} · {self.boat.title} booking by {self.renter.username}'

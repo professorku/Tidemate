@@ -89,10 +89,20 @@ def get_host_bookings(user, *, status_value=None):
 
     return queryset
 
+def get_booking_lookup_filter(booking_lookup):
+    booking_lookup = str(booking_lookup or '').strip()
+
+    lookup_filter = Q(public_id__iexact=booking_lookup)
+
+    if booking_lookup.isdigit():
+        lookup_filter |= Q(id=int(booking_lookup))
+
+    return lookup_filter
+
 
 def get_visible_booking_for_user(user, booking_id):
     return booking_base_queryset().filter(
-        Q(id=booking_id),
+        get_booking_lookup_filter(booking_id),
         Q(renter=user, archived_by_renter_at__isnull=True)
         | Q(boat__host=user, archived_by_host_at__isnull=True),
     ).first()
@@ -100,7 +110,7 @@ def get_visible_booking_for_user(user, booking_id):
 
 def get_host_booking_for_user(user, booking_id):
     return booking_base_queryset().filter(
-        id=booking_id,
+        get_booking_lookup_filter(booking_id),
         boat__host=user,
         archived_by_host_at__isnull=True,
     ).first()

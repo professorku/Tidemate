@@ -7,8 +7,11 @@ from .serializer_helpers import ConversationRepresentationMixin
 
 class MessageSerializer(serializers.ModelSerializer):
     sender_username = serializers.CharField(source='sender.username', read_only=True)
-    text = serializers.CharField(max_length=MAX_MESSAGE_LENGTH, allow_blank=False, trim_whitespace=True)
-
+    text = serializers.CharField(
+        max_length=MAX_MESSAGE_LENGTH,
+        allow_blank=False,
+        trim_whitespace=True,
+    )
 
     class Meta:
         model = Message
@@ -41,6 +44,8 @@ class MessageSerializer(serializers.ModelSerializer):
 
 class ConversationSerializer(ConversationRepresentationMixin, serializers.ModelSerializer):
     booking_id = serializers.SerializerMethodField()
+    booking_public_id = serializers.SerializerMethodField()
+
     boat = serializers.SerializerMethodField()
     boat_title = serializers.SerializerMethodField()
     boat_image = serializers.SerializerMethodField()
@@ -61,12 +66,17 @@ class ConversationSerializer(ConversationRepresentationMixin, serializers.ModelS
     unread_count = serializers.SerializerMethodField()
     message_count = serializers.SerializerMethodField()
 
+    def get_booking_public_id(self, obj):
+        booking = getattr(obj, 'booking', None)
+        return booking.public_id if booking else None
+
     class Meta:
         model = Conversation
         fields = [
             'id',
             'conversation_type',
             'booking_id',
+            'booking_public_id',
             'boat',
             'boat_title',
             'boat_image',

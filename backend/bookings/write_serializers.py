@@ -8,8 +8,8 @@ from .models import Booking, MAX_BOOKING_CANCELLATION_REASON_LENGTH
 class BookingCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Booking
-        fields = ['id', 'boat', 'start_date', 'end_date', 'total_price']
-        read_only_fields = ['id', 'total_price']
+        fields = ['id', 'public_id', 'boat', 'start_date', 'end_date', 'total_price']
+        read_only_fields = ['id', 'public_id', 'total_price']
 
     def validate(self, attrs):
         boat = attrs.get('boat')

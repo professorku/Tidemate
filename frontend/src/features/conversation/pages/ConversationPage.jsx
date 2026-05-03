@@ -17,6 +17,7 @@ import ConversationSidebar from '../../conversation/components/ConversationSideb
 import ConversationThread from '../../conversation/components/ConversationThread'
 import MessageComposer from '../../conversation/components/MessageComposer'
 import useConversationPageData from '../../conversation/hooks/useConversationPageData'
+import { getConversationBookingReference } from '../../../utils/bookingReference'
 import {
   getConversationTypeLabel,
   getTripStateClass,
@@ -242,7 +243,7 @@ export default function ConversationPage() {
                     {roleInfo.otherUsername || 'the other person'}
                   </span>
                   {conversation.booking_id
-                    ? ` · Booking #${conversation.booking_id}`
+                    ? ` · Booking ${getConversationBookingReference(conversation)}`
                     : ' · Direct inquiry'}
                 </p>
               </div>

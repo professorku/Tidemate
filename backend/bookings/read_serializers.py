@@ -6,6 +6,7 @@ from .representation_helpers import BookingRepresentationMixin
 
 BOOKING_READ_ONLY_FIELDS = [
     'id',
+    'public_id',
     'boat_title',
     'boat_image',
     'boat_location',
@@ -106,6 +107,7 @@ class BookingReadSerializer(BookingRepresentationMixin, serializers.ModelSeriali
         model = Booking
         fields = [
             'id',
+            'public_id',
             'boat',
             'boat_title',
             'boat_image',

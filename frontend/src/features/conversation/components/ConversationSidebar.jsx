@@ -17,8 +17,15 @@ import {
   getTripStateLabel,
 } from '../utils/conversationFormatters'
 
+import {
+  getConversationBookingPath,
+  getConversationBookingReference,
+} from '../../../utils/bookingReference'
+
 export default function ConversationSidebar({ conversation, messages, tripState }) {
   const lastMessage = messages[messages.length - 1]
+  const bookingReference = getConversationBookingReference(conversation)
+  const bookingPath = getConversationBookingPath(conversation)
 
   return (
     <aside className="space-y-4 xl:sticky xl:top-24 xl:self-start">
@@ -63,7 +70,7 @@ export default function ConversationSidebar({ conversation, messages, tripState 
           <p className="text-sm leading-6 text-white/65">
             {conversation.conversation_type === 'direct'
               ? 'This is a direct inquiry conversation.'
-              : `Booking conversation linked to reservation #${conversation.booking_id ?? '—'}.`}
+              : `Booking conversation linked to reservation ${bookingReference}.`}
           </p>
 
           <div className="mt-4 flex flex-wrap gap-2">
@@ -76,9 +83,9 @@ export default function ConversationSidebar({ conversation, messages, tripState 
               </Link>
             ) : null}
 
-            {conversation.booking_id ? (
+            {bookingPath ? (
               <Link
-                to={`/bookings/${conversation.booking_id}`}
+                to={bookingPath}
                 className="rounded-full border border-white/25 bg-navy px-4 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-ocean"
               >
                 Booking details

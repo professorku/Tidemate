@@ -15,6 +15,7 @@ import CancelBookingCard from '../../bookingDetail/components/CancelBookingCard'
 import BookingReviewCard from '../../bookingDetail/components/BookingReviewCard'
 import { useBookingDetail } from '../../bookingDetail/hooks/useBookingDetail'
 import { getBackLinkForViewer } from '../../bookingDetail/utils/bookingFormatters'
+import { getBookingReference } from '../../../utils/bookingReference'
 
 function BookingDetailSkeleton() {
   return (
@@ -110,7 +111,7 @@ export default function BookingDetailPage() {
 
           <div className="inline-flex items-center gap-2 rounded-full border border-gold/20 bg-navy px-4 py-2 text-sm font-semibold text-white/80 shadow-sm">
             <CalendarDaysIcon className="h-4 w-4 text-gold" />
-            Booking #{booking.id}
+            Booking {getBookingReference(booking)}
           </div>
         </div>
 

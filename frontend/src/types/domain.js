@@ -58,6 +58,7 @@
 /**
  * @typedef {Object} Booking
  * @property {number|string|null} id
+ * @property {string|null} public_id
  * @property {string|null} start_date
  * @property {string|null} end_date
  * @property {string} status
@@ -78,6 +79,7 @@
 
 function toNumberOrNull(value) {
   if (value === '' || value == null) return null
+
   const parsed = Number(value)
   return Number.isNaN(parsed) ? null : parsed
 }
@@ -209,6 +211,7 @@ export function normalizeBooking(booking) {
   if (!booking || typeof booking !== 'object') {
     return {
       id: null,
+      public_id: null,
       start_date: null,
       end_date: null,
       status: '',
@@ -231,6 +234,7 @@ export function normalizeBooking(booking) {
   return {
     ...booking,
     id: booking.id ?? null,
+    public_id: booking.public_id ?? null,
     start_date: booking.start_date ?? null,
     end_date: booking.end_date ?? null,
     status: booking.status ?? '',

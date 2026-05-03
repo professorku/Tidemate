@@ -5,6 +5,10 @@ import {
   EyeIcon,
 } from '@heroicons/react/24/outline'
 
+import { getConversationBookingPath } from '../../../../utils/bookingReference'
+
+const bookingPath = getConversationBookingPath(conversation)
+
 export default function ConversationCardActions({ conversation }) {
   return (
     <div className="mt-5 flex flex-wrap gap-2 border-t border-white/15 pt-5">
@@ -26,9 +30,9 @@ export default function ConversationCardActions({ conversation }) {
         </Link>
       ) : null}
 
-      {conversation.booking_id ? (
+      {bookingPath ? (
         <Link
-          to={`/bookings/${conversation.booking_id}`}
+          to={bookingPath}
           className="inline-flex items-center justify-center gap-2 rounded-full border border-white/25 bg-navy px-4 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-ocean"
         >
           <CalendarDaysIcon className="h-4 w-4" />

@@ -30,6 +30,8 @@ import {
   getBoatPublicLocationLabel,
 } from '../../../utils/locationPrivacy'
 
+import { getBookingPath, getBookingReference } from '../../../utils/bookingReference'
+
 function getBoatId(booking) {
   return booking.boat || booking.boat_id || booking.boat_uuid
 }
@@ -153,7 +155,7 @@ export default function HostBookingCard({
 
           <div className="absolute inset-x-0 bottom-0 p-5 text-white">
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-gold">
-              Host booking #{booking.id}
+              Host booking {getBookingReference(booking)}
             </p>
 
             <h2 className="mt-1 line-clamp-2 text-2xl font-extrabold tracking-tight">
@@ -306,7 +308,7 @@ export default function HostBookingCard({
 
           <div className="flex flex-wrap gap-2 border-t border-white/15 pt-5">
             <Link
-              to={`/bookings/${booking.id}`}
+              to={getBookingPath(booking)}
               className="inline-flex items-center justify-center gap-2 rounded-full bg-gold px-4 py-2.5 text-sm font-extrabold text-navy shadow-sm ring-1 ring-gold/40 transition hover:-translate-y-0.5 hover:bg-[#d8b45d]"
             >
               <EyeIcon className="h-4 w-4" />

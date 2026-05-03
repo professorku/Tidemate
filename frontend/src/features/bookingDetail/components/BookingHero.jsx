@@ -14,6 +14,8 @@ import {
   getBoatLocationLabel,
 } from '../../../utils/locationPrivacy'
 
+import { getBookingReference } from '../../../utils/bookingReference'
+
 function DetailPill({ icon, label, value }) {
   return (
     <div className="flex min-w-0 items-center gap-2 rounded-2xl bg-white/10 px-3 py-2 text-sm text-white ring-1 ring-white/15 backdrop-blur">
@@ -63,7 +65,7 @@ export default function BookingHero({ booking, summaryText, viewerRole = 'renter
 
           <div className="max-w-3xl">
             <p className="text-xs font-bold uppercase tracking-[0.22em] text-gold">
-              Booking #{booking.id}
+              Booking {getBookingReference(booking)}
             </p>
 
             <h1 className="mt-3 text-3xl font-extrabold tracking-tight md:text-5xl">
