@@ -70,6 +70,7 @@ export default function HomePage() {
               onPrevious={() => setPage(pagination.page - 1)}
               onNext={() => setPage(pagination.page + 1)}
               disabled={loading}
+              variant="plain"
             />
           </>
         )}

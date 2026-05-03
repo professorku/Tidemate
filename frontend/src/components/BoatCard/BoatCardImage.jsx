@@ -8,7 +8,7 @@ export default function BoatCardImage({ boat, imageCount }) {
   const locationLabel = getBoatLocationLabel(boat)
 
   return (
-    <div className="relative h-44 overflow-hidden rounded-3xl bg-slate-200">
+    <div className="relative h-44 overflow-hidden rounded-3xl bg-[#071d32]">
       {boat.image ? (
         <img
           src={boat.image}

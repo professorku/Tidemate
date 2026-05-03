@@ -6,13 +6,19 @@ export default function PaginationControls({
   onPrevious,
   onNext,
   disabled = false,
+  variant = 'card',
 }) {
   if (count <= 0 || totalPages <= 1) {
     return null
   }
 
+  const wrapperClass =
+    variant === 'plain'
+      ? 'mt-6 flex flex-col gap-3 px-1 py-2 text-white sm:flex-row sm:items-center sm:justify-between'
+      : 'mt-6 flex flex-col gap-3 rounded-[24px] border border-white/15 bg-[#071d32] px-4 py-4 text-white shadow-sm sm:flex-row sm:items-center sm:justify-between'
+
   return (
-    <div className="mt-6 flex flex-col gap-3 rounded-[24px] border border-white/15 bg-[#071d32] px-4 py-4 text-white shadow-sm sm:flex-row sm:items-center sm:justify-between">
+    <div className={wrapperClass}>
       <p className="text-sm text-white/65">
         Page <span className="font-semibold text-white">{page}</span> of{' '}
         <span className="font-semibold text-white">{totalPages}</span>
@@ -24,7 +30,7 @@ export default function PaginationControls({
           type="button"
           onClick={onPrevious}
           disabled={disabled || page <= 1}
-          className="rounded-full border border-white/25 bg-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-ocean disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-full border border-[#173047] bg-[#0b263d] px-4 py-2 text-sm font-semibold text-white transition hover:border-[#214662] hover:bg-[#102f49] disabled:cursor-not-allowed disabled:opacity-50"
         >
           Previous
         </button>

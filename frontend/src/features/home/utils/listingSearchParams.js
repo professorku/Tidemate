@@ -1,5 +1,7 @@
 import { listListingsPage } from '../../../api/domains/listings'
 
+export const HOME_LISTINGS_PAGE_SIZE = 16
+
 export const initialHomeFilters = {
   q: '',
   start_date: '',
@@ -38,6 +40,7 @@ export async function getListingsPage(searchParams, page = 1) {
   const params = {
     ...Object.fromEntries(searchParams.entries()),
     page,
+    page_size: HOME_LISTINGS_PAGE_SIZE,
   }
 
   return listListingsPage(params)
