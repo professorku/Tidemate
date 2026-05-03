@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
+const AUTO_SEARCH_DELAY_MS = 250
+
 const MARKETPLACE_FILTER_KEYS = [
   'q',
   'boat_type',
@@ -35,6 +37,19 @@ function setParam(params, key, value) {
   params.delete(key)
 }
 
+function buildMarketplaceParams(baseSearch, searchState) {
+  const nextParams = new URLSearchParams(baseSearch)
+
+  setParam(nextParams, 'q', searchState.query)
+  setParam(nextParams, 'boat_type', searchState.boatType)
+  setParam(nextParams, 'start_date', searchState.startDate)
+  setParam(nextParams, 'end_date', searchState.endDate)
+
+  nextParams.delete('page')
+
+  return nextParams
+}
+
 export function useNavbar() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -66,17 +81,51 @@ export function useNavbar() {
     setFiltersOpen(false)
   }, [location.pathname])
 
+  useEffect(() => {
+    if (!isHomePage) return undefined
+
+    const timeoutId = window.setTimeout(() => {
+      const nextParams = buildMarketplaceParams(location.search, {
+        query,
+        boatType,
+        startDate,
+        endDate,
+      })
+
+      const nextSearch = nextParams.toString()
+      const currentSearch = new URLSearchParams(location.search).toString()
+
+      if (nextSearch === currentSearch) {
+        return
+      }
+
+      navigate(nextSearch ? `/?${nextSearch}` : '/', {
+        replace: true,
+      })
+    }, AUTO_SEARCH_DELAY_MS)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
+  }, [
+    boatType,
+    endDate,
+    isHomePage,
+    location.search,
+    navigate,
+    query,
+    startDate,
+  ])
+
   const handleSearch = useCallback((event) => {
     event.preventDefault()
 
-    const nextParams = new URLSearchParams(isHomePage ? location.search : '')
-
-    setParam(nextParams, 'q', query)
-    setParam(nextParams, 'boat_type', boatType)
-    setParam(nextParams, 'start_date', startDate)
-    setParam(nextParams, 'end_date', endDate)
-
-    nextParams.delete('page')
+    const nextParams = buildMarketplaceParams(isHomePage ? location.search : '', {
+      query,
+      boatType,
+      startDate,
+      endDate,
+    })
 
     const nextSearch = nextParams.toString()
     navigate(nextSearch ? `/?${nextSearch}` : '/')

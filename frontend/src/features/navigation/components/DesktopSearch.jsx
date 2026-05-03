@@ -381,11 +381,7 @@ export default function DesktopSearch({
             closeFilters()
             handleSearch(event)
           }}
-          className={`flex h-12 min-w-0 items-center rounded-full border border-white/15 bg-white/10 shadow-sm backdrop-blur transition-all duration-500 ease-out focus-within:border-gold/35 focus-within:bg-white/[0.13] ${
-            shouldShowFilterButton
-              ? 'basis-[calc(100%-8.75rem)]'
-              : 'basis-full'
-          }`}
+          className="flex h-12 min-w-0 flex-1 items-center overflow-hidden rounded-full border border-white/15 bg-white/10 shadow-sm backdrop-blur transition-all duration-500 ease-out focus-within:border-gold/35 focus-within:bg-white/[0.13]"
         >
           <div
             className={`grid min-w-0 flex-1 items-center transition-[grid-template-columns] duration-300 ease-out ${
@@ -443,16 +439,16 @@ export default function DesktopSearch({
             </div>
           </div>
 
-          <button
-            type="submit"
-            className="h-11 shrink-0 rounded-full bg-gold px-5 text-sm font-extrabold text-navy shadow-sm ring-1 ring-gold/40 transition hover:bg-[#d8b45d]"
-          >
-            Search
-          </button>
+        <button
+          type="submit"
+          className="h-full shrink-0 rounded-full bg-gold px-7 text-sm font-extrabold text-navy shadow-sm ring-1 ring-gold/40 transition hover:bg-[#d8b45d]"
+        >
+          Search
+        </button>
         </form>
 
         <div
-          className={`overflow-hidden transition-all duration-500 ease-out ${
+          className={`shrink-0 overflow-hidden transition-all duration-500 ease-out ${
             shouldShowFilterButton
               ? 'max-w-[8.25rem] translate-x-0 opacity-100'
               : 'pointer-events-none max-w-0 translate-x-4 opacity-0'
@@ -464,10 +460,10 @@ export default function DesktopSearch({
               closeDates()
               toggleFilters()
             }}
-            className={`flex h-12 min-w-0 items-center rounded-full border border-white/15 bg-white/10 p-1 shadow-sm backdrop-blur transition-all duration-500 ease-out focus-within:border-gold/35 focus-within:bg-white/[0.13] ${
+            className={`flex h-12 min-w-0 items-center gap-1.5 rounded-full border border-transparent bg-transparent px-4 text-sm font-bold text-white shadow-none backdrop-blur transition-all duration-300 ease-out ${
               filtersOpen
-                ? 'border-white/80 bg-transparent'
-                : 'border-transparent bg-transparent hover:bg-white/10'
+                ? 'bg-white/10'
+                : 'hover:bg-white/10'
             }`}
             aria-expanded={filtersOpen}
             tabIndex={shouldShowFilterButton ? 0 : -1}
