@@ -237,7 +237,7 @@ function DateRangeField({
         </div>
 
         <div className="mb-4 grid grid-cols-2 gap-2">
-          <div className="rounded-2xl border border-white/10 bg-[#071d32] px-3 py-2">
+          <div className="rounded-2xl border border-white/20 bg-transparent px-3 py-2">
             <p className="text-[0.65rem] font-extrabold uppercase tracking-[0.16em] text-gold">
               Start
             </p>
@@ -246,7 +246,7 @@ function DateRangeField({
             </p>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-[#071d32] px-3 py-2">
+          <div className="rounded-2xl border border-white/20 bg-transparent px-3 py-2">
             <p className="text-[0.65rem] font-extrabold uppercase tracking-[0.16em] text-gold">
               End
             </p>
@@ -305,7 +305,7 @@ function DateRangeField({
               setStartDate('')
               setEndDate('')
             }}
-            className="flex-1 rounded-xl border border-white/15 bg-[#071d32] px-3 py-2 text-sm font-bold text-white transition hover:border-gold/40 hover:text-gold"
+            className="flex-1 rounded-xl border border-white/20 bg-transparent px-3 py-2 text-sm font-bold text-white transition hover:border-white/40 hover:bg-white/5"
           >
             Clear
           </button>
@@ -450,19 +450,23 @@ export default function DesktopSearch({
               : 'pointer-events-none max-w-0 translate-x-4 opacity-0'
           }`}
         >
-          <button
-            type="button"
-            onClick={() => {
-              closeDates()
-              toggleFilters()
-            }}
-            className="inline-flex h-11 whitespace-nowrap shrink-0 items-center gap-2 rounded-full border border-gold/25 bg-[#071d32] px-4 text-sm font-extrabold text-white shadow-sm transition hover:border-gold/50 hover:bg-ocean"
-            aria-expanded={filtersOpen}
-            tabIndex={shouldShowFilterButton ? 0 : -1}
-          >
-            <AdjustmentsHorizontalIcon className="h-4 w-4 text-gold" />
-            Filters
-          </button>
+        <button
+          type="button"
+          onClick={() => {
+            closeDates()
+            toggleFilters()
+          }}
+          className={`inline-flex h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-4 text-sm font-extrabold text-white shadow-sm transition focus:outline-none focus-visible:outline-none ${
+            filtersOpen
+              ? 'border-white/80 bg-transparent'
+              : 'border-transparent bg-transparent hover:bg-transparent'
+          }`}
+          aria-expanded={filtersOpen}
+          tabIndex={shouldShowFilterButton ? 0 : -1}
+        >
+          <AdjustmentsHorizontalIcon className="h-4 w-4 text-white" />
+          Filters
+        </button>
         </div>
       </div>
 
