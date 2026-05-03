@@ -1,45 +1,97 @@
+import {
+  CalendarDaysIcon,
+  CheckCircleIcon,
+  ClipboardDocumentCheckIcon,
+  PaperAirplaneIcon,
+} from '@heroicons/react/24/outline'
 import PolicyCard from '../../../components/PolicyCard'
 
-const fallbackRentalPolicy = {
+const unavailableRentalPolicy = {
   title: 'Rental rules',
-  short_text: 'Pickup from 15:00 on the first day. Return by 12:00 on the last day.',
-  items: [
-    'Pickup is from 15:00 on your start date.',
-    'Return is by 12:00 on your end date.',
-    'Booked dates become unavailable for other renters.',
-  ],
+  short_text: 'Rental rules are loaded from the booking policy API.',
+  items: [],
 }
 
-const fallbackCancellationPolicy = {
+const unavailableCancellationPolicy = {
   title: 'Cancellation terms',
-  short_text:
-    'Free cancellation within 48 hours if the trip is still at least 7 days away.',
-  items: [
-    'Free cancellation within 48 hours of booking if pickup is still 7+ days away.',
-    '50% refund when cancelled 7 or more days before pickup.',
-    'No refund when cancelled less than 7 days before pickup.',
-  ],
+  short_text: 'Cancellation terms are loaded from the booking policy API.',
+  items: [],
+}
+
+function resolvePolicy(policy, fallbackPolicy) {
+  if (!policy || typeof policy !== 'object') {
+    return fallbackPolicy
+  }
+
+  return policy
+}
+
+function StepItem({ icon, title, text }) {
+  return (
+    <div className="flex gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gold/10 text-gold ring-1 ring-gold/20">
+        {icon}
+      </div>
+
+      <div>
+        <p className="text-sm font-extrabold text-white">{title}</p>
+        <p className="mt-1 text-sm leading-5 text-white/60">{text}</p>
+      </div>
+    </div>
+  )
 }
 
 export default function BookingInfoCard({ boat }) {
-  const rentalPolicy = boat?.rental_policy || fallbackRentalPolicy
-  const cancellationPolicy =
-    boat?.cancellation_policy || fallbackCancellationPolicy
+  const rentalPolicy = resolvePolicy(boat?.rental_policy, unavailableRentalPolicy)
+  const cancellationPolicy = resolvePolicy(
+    boat?.cancellation_policy,
+    unavailableCancellationPolicy
+  )
 
   return (
     <div className="space-y-4">
-      <div className="rounded-[22px] border border-gold/20 bg-navy p-4 shadow-soft md:p-5">
-        <h3 className="text-base font-bold text-white">How booking works</h3>
+      <section className="overflow-hidden rounded-[28px] border border-gold/20 bg-navy p-5 shadow-soft">
+        <div className="flex items-start gap-4">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-gold/25 bg-gold/10 text-gold">
+            <ClipboardDocumentCheckIcon className="h-5 w-5" />
+          </div>
 
-        <div className="mt-3 space-y-2.5 text-sm text-white/65">
-          <p>1. Choose your dates in the calendar.</p>
-          <p>2. Review the rental rules and cancellation terms before sending the request.</p>
-          <p>3. Send a booking request to the host.</p>
-          <p>4. Once confirmed, those dates become unavailable for others.</p>
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-gold">
+              Request flow
+            </p>
+            <h3 className="mt-1 text-lg font-extrabold tracking-tight text-white">
+              How booking works
+            </h3>
+            <p className="mt-2 text-sm leading-6 text-white/65">
+              Choose dates, review the policy from the API, then send a request to the host.
+            </p>
+          </div>
         </div>
-      </div>
+
+        <div className="mt-5 grid gap-3">
+          <StepItem
+            icon={<CalendarDaysIcon className="h-5 w-5" />}
+            title="Choose dates"
+            text="Select the pickup and return dates in the calendar."
+          />
+
+          <StepItem
+            icon={<CheckCircleIcon className="h-5 w-5" />}
+            title="Review terms"
+            text="Rental and cancellation rules come from the backend policy."
+          />
+
+          <StepItem
+            icon={<PaperAirplaneIcon className="h-5 w-5" />}
+            title="Send request"
+            text="The host confirms or rejects the request before the trip is final."
+          />
+        </div>
+      </section>
 
       <PolicyCard
+        policy={rentalPolicy}
         title={rentalPolicy.title}
         subtitle={rentalPolicy.short_text}
         items={rentalPolicy.items}
@@ -47,6 +99,7 @@ export default function BookingInfoCard({ boat }) {
       />
 
       <PolicyCard
+        policy={cancellationPolicy}
         title={cancellationPolicy.title}
         subtitle={cancellationPolicy.short_text}
         items={cancellationPolicy.items}
