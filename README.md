@@ -1,4 +1,4 @@
-# 🌊 TideMate
+# TideMate
 
 **TideMate** is a full-stack Boatbnb-style marketplace where users can list boats, book rentals, save favorites, write reviews, chat in real time, and receive notifications.
 
