@@ -83,13 +83,6 @@ export default function PublicProfilePage() {
           handleToggleBlock={handleToggleBlock}
         />
 
-        <PublicProfileStatsSection
-          joinedText={joinedText}
-          reviewCount={reviewCount}
-          averageRating={averageRating}
-          boatCount={boatCount}
-        />
-
         {!isMe ? (
           <PublicProfileReviewSection
             reviewableBookings={reviewableBookings}

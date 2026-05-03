@@ -5,13 +5,14 @@ import 'leaflet/dist/leaflet.css'
 
 function parseCoordinate(value) {
   if (value === null || value === undefined || value === '') return null
+
   const number = Number(value)
   return Number.isFinite(number) ? number : null
 }
 
-function parseRadiusKm(value) {
+function parseRadiusKm(value, fallback = 5) {
   const number = Number(value)
-  return Number.isFinite(number) && number > 0 ? number : 0
+  return Number.isFinite(number) && number > 0 ? number : fallback
 }
 
 function MapResizer() {
@@ -24,6 +25,18 @@ function MapResizer() {
 
     return () => clearTimeout(timeout)
   }, [map])
+
+  return null
+}
+
+function MapFlyTo({ center, zoom }) {
+  const map = useMap()
+
+  useEffect(() => {
+    if (!center) return
+
+    map.setView(center, zoom, { animate: true })
+  }, [map, center, zoom])
 
   return null
 }
@@ -74,31 +87,31 @@ export default function BookingLocationMap({
   locationPrecision = 'approximate',
   locationRadiusKm = 5,
   exactLocationAvailable = false,
-  disclosureMessage,
 }) {
   const lat = parseCoordinate(latitude)
   const lng = parseCoordinate(longitude)
   const hasCoordinates = lat !== null && lng !== null
 
   const isExact = Boolean(exactLocationAvailable) || locationPrecision === 'exact'
-  const radiusKm = parseRadiusKm(locationRadiusKm)
+  const radiusKm = parseRadiusKm(locationRadiusKm, 5)
   const displayLocation = isExact ? pickupAddress || locationName : locationName
-  const message =
-    disclosureMessage ||
-    (isExact
-      ? 'Exact pickup location is available for this booking.'
-      : 'Exact pickup location is shared after the booking is confirmed.')
 
   if (!hasCoordinates) {
     return (
-      <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-slate-50">
-        <div className="flex h-72 items-center justify-center px-6 text-center text-slate-500">
+      <div className="overflow-hidden rounded-[24px] border border-gold/20 bg-[#071d32]/70">
+        <div className="flex h-80 items-center justify-center px-6 text-center md:h-[360px]">
           <div>
-            <p className="text-lg font-semibold text-slate-700">Map unavailable</p>
-            <p className="mt-2">
+            <p className="text-lg font-extrabold text-white">Map unavailable</p>
+
+            <p className="mt-2 text-sm leading-6 text-white/60">
               This booking does not currently have saved coordinates for the boat location.
             </p>
-            {displayLocation ? <p className="mt-2 font-medium">{displayLocation}</p> : null}
+
+            {displayLocation ? (
+              <p className="mt-3 font-semibold text-gold">
+                {displayLocation}
+              </p>
+            ) : null}
           </div>
         </div>
       </div>
@@ -106,14 +119,14 @@ export default function BookingLocationMap({
   }
 
   const position = [lat, lng]
-  const zoom = isExact ? 13 : 10
-  const openMapHref = isExact
-    ? `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=13/${lat}/${lng}`
-    : `https://www.openstreetmap.org/#map=10/${lat}/${lng}`
+  const zoom = isExact ? 13 : radiusKm <= 3 ? 11 : radiusKm <= 8 ? 10 : 9
+  const tileUrl = isExact
+    ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+    : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
 
   return (
-    <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-white">
-      <div className="h-72 w-full">
+    <div className="overflow-hidden rounded-[24px] bg-white shadow-soft">
+      <div className="relative h-80 w-full md:h-[360px]">
         <MapContainer
           center={position}
           zoom={zoom}
@@ -122,10 +135,11 @@ export default function BookingLocationMap({
           attributionControl={true}
         >
           <MapResizer />
+          <MapFlyTo center={position} zoom={zoom} />
 
           <TileLayer
             attribution="&copy; OpenStreetMap contributors &copy; CARTO"
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+            url={tileUrl}
           />
 
           {isExact ? (
@@ -135,9 +149,11 @@ export default function BookingLocationMap({
                   <p className="text-base font-bold text-slate-900">
                     {displayLocation || 'Boat pickup location'}
                   </p>
+
                   <p className="mt-1 text-sm text-slate-600">
                     Exact pickup point for your trip.
                   </p>
+
                   {pickupInstructions ? (
                     <p className="mt-2 text-sm text-slate-600">
                       {pickupInstructions}
@@ -160,7 +176,10 @@ export default function BookingLocationMap({
             >
               <Popup>
                 <div className="min-w-[180px]">
-                  <p className="text-base font-bold text-slate-900">Approximate area</p>
+                  <p className="text-base font-bold text-slate-900">
+                    Approximate area
+                  </p>
+
                   <p className="mt-1 text-sm text-slate-600">
                     The exact pickup point is shared after confirmation.
                   </p>
@@ -169,31 +188,6 @@ export default function BookingLocationMap({
             </Circle>
           )}
         </MapContainer>
-      </div>
-
-      <div className="flex flex-col gap-3 border-t border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            {isExact ? 'Exact boat location' : 'Approximate boat area'}
-          </p>
-
-          <p className="mt-1 font-semibold text-slate-900">
-            {displayLocation || 'Saved boat location'}
-          </p>
-
-          <p className="mt-1 max-w-xl text-sm text-slate-600">
-            {message}
-          </p>
-        </div>
-
-        <a
-          href={openMapHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex w-fit rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-        >
-          Open larger map
-        </a>
       </div>
     </div>
   )

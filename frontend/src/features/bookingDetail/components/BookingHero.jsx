@@ -1,10 +1,7 @@
 import {
   CalendarDaysIcon,
-  CheckCircleIcon,
   ClockIcon,
   MapPinIcon,
-  ShieldCheckIcon,
-  UserCircleIcon,
 } from '@heroicons/react/24/outline'
 import {
   formatStatusLabel,
@@ -15,7 +12,6 @@ import {
 import {
   canShowExactLocation,
   getBoatLocationLabel,
-  getBoatPublicLocationLabel,
 } from '../../../utils/locationPrivacy'
 
 function DetailPill({ icon, label, value }) {
@@ -31,11 +27,9 @@ function DetailPill({ icon, label, value }) {
 export default function BookingHero({ booking, summaryText, viewerRole = 'renter' }) {
   const hasExactLocation = canShowExactLocation(booking)
   const locationLabel = getBoatLocationLabel(booking, 'Location unavailable')
-  const publicLocationLabel = getBoatPublicLocationLabel(booking, '')
-  const viewerLabel = viewerRole === 'host' ? 'Host view' : 'Renter view'
 
   return (
-    <section className="overflow-hidden rounded-[34px] border border-slate-200 bg-slate-950 shadow-soft">
+    <section className="overflow-hidden rounded-[34px] border border-gold/20 bg-slate-950 shadow-soft">
       <div className="relative min-h-[360px]">
         {booking.boat_image ? (
           <img
@@ -61,15 +55,10 @@ export default function BookingHero({ booking, summaryText, viewerRole = 'renter
                 {formatStatusLabel(booking.status)}
               </span>
 
-              <span className="inline-flex rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold text-white ring-1 ring-white/15 backdrop-blur">
+              <span className="inline-flex rounded-full bg-gold px-3 py-1.5 text-xs font-extrabold text-navy ring-1 ring-gold/40">
                 {getLifecycleLabel(booking)}
               </span>
             </div>
-
-            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold text-white/90 ring-1 ring-white/15 backdrop-blur">
-              <UserCircleIcon className="h-4 w-4" />
-              {viewerLabel}
-            </span>
           </div>
 
           <div className="max-w-3xl">
@@ -104,23 +93,6 @@ export default function BookingHero({ booking, summaryText, viewerRole = 'renter
                 value={formatStatusLabel(booking.status)}
               />
             </div>
-
-            {hasExactLocation ? (
-              <div className="mt-4 inline-flex max-w-full items-start gap-2 rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800 ring-1 ring-emerald-200">
-                <ShieldCheckIcon className="mt-0.5 h-5 w-5 shrink-0" />
-                <span>
-                  Exact pickup details are visible for this booking.
-                  {publicLocationLabel && publicLocationLabel !== locationLabel
-                    ? ` Public area: ${publicLocationLabel}.`
-                    : ''}
-                </span>
-              </div>
-            ) : (
-              <div className="mt-4 inline-flex max-w-full items-start gap-2 rounded-2xl bg-white/10 px-4 py-3 text-sm font-semibold text-white/85 ring-1 ring-white/15 backdrop-blur">
-                <CheckCircleIcon className="mt-0.5 h-5 w-5 shrink-0 text-gold" />
-                <span>Exact pickup details unlock when the booking is confirmed.</span>
-              </div>
-            )}
           </div>
         </div>
       </div>

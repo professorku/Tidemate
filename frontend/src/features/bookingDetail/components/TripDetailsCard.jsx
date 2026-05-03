@@ -50,9 +50,11 @@ export default function TripDetailsCard({ booking }) {
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-gold">
               Trip overview
             </p>
+
             <h2 className="mt-2 text-2xl font-extrabold text-white">
               Dates, boat, and pickup
             </h2>
+
             <p className="mt-2 max-w-2xl text-sm leading-6 text-white/65">
               Keep this page handy before the trip. It contains the rental window,
               pricing, boat capacity, and pickup information.
@@ -72,16 +74,19 @@ export default function TripDetailsCard({ booking }) {
             value={bookingWindow.pickup}
             icon={<CalendarDaysIcon className="h-4 w-4" />}
           />
+
           <InfoCard
             label="Return"
             value={bookingWindow.return}
             icon={<CalendarDaysIcon className="h-4 w-4" />}
           />
+
           <InfoCard
             label="Boat details"
             value={`${formatBoatType(booking.boat_type)} · ${booking.boat_guests} guests`}
             icon={<UserGroupIcon className="h-4 w-4" />}
           />
+
           <InfoCard
             label="Total price"
             value={`${formatMoney(booking.total_price)} total`}
@@ -94,8 +99,10 @@ export default function TripDetailsCard({ booking }) {
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-navy text-gold ring-1 ring-gold/20">
               <SparklesIcon className="h-5 w-5" />
             </div>
+
             <div>
               <p className="text-sm font-bold text-white">Rental period policy</p>
+
               <p className="mt-1 text-sm leading-6 text-white/60">
                 {booking?.rental_policy?.display_text ||
                   'Pickup from 15:00 on the first day. Return by 12:00 on the last day.'}
@@ -114,6 +121,7 @@ export default function TripDetailsCard({ booking }) {
                 text="The booking request was created and saved in your account."
                 active
               />
+
               <TimelineStep
                 title="Host confirmation"
                 text={
@@ -125,6 +133,7 @@ export default function TripDetailsCard({ booking }) {
                 }
                 active={booking.status === 'confirmed'}
               />
+
               <TimelineStep
                 title="Pickup and return"
                 text={`${bookingWindow.pickup} → ${bookingWindow.return}`}
@@ -134,51 +143,27 @@ export default function TripDetailsCard({ booking }) {
             </div>
           </div>
 
-          <div>
+          <div className="flex flex-col">
             <div className="mb-4">
               <div className="flex items-start gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#071d32]/80 text-gold ring-1 ring-gold/20">
                   <MapPinIcon className="h-5 w-5" />
                 </div>
+
                 <div>
                   <h3 className="text-lg font-extrabold text-white">
-                    {hasExactLocation ? 'Exact pickup location' : 'Trip area'}
+                    {hasExactLocation ? 'Pickup location' : 'Trip area'}
                   </h3>
+
                   <p className="mt-1 text-sm leading-6 text-white/60">
                     {booking?.location_disclosure_message ||
                       (hasExactLocation
-                        ? 'See the exact pickup point before your trip starts.'
+                        ? 'See the pickup point before your trip starts.'
                         : 'The exact pickup point is shared after the booking is confirmed.')}
                   </p>
                 </div>
               </div>
             </div>
-
-            {hasExactLocation && (booking?.pickup_address || booking?.pickup_instructions) ? (
-              <div className="mb-4 rounded-2xl border border-emerald-300/25 bg-emerald-400/10 p-4">
-                {booking?.pickup_address ? (
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-emerald-100">
-                      Private pickup address
-                    </p>
-                    <p className="mt-1 font-semibold text-white">
-                      {booking.pickup_address}
-                    </p>
-                  </div>
-                ) : null}
-
-                {booking?.pickup_instructions ? (
-                  <div className={booking?.pickup_address ? 'mt-4' : ''}>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-emerald-100">
-                      Pickup instructions
-                    </p>
-                    <p className="mt-1 whitespace-pre-line text-sm leading-6 text-emerald-50">
-                      {booking.pickup_instructions}
-                    </p>
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
 
             <div className="overflow-hidden rounded-[24px] border border-gold/20">
               <BookingLocationMap
