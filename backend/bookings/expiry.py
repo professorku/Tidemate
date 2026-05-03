@@ -97,3 +97,14 @@ def expire_booking_if_needed(booking, *, now=None):
         ]
     )
     return True
+
+def expire_visible_pending_bookings_for_user(user, *, now=None):
+    if not user or not user.is_authenticated:
+        return 0
+
+    return expire_pending_bookings(
+        now=now,
+        queryset=Booking.objects.filter(
+            Q(renter=user) | Q(boat__host=user)
+        ),
+    )

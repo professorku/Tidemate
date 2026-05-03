@@ -11,7 +11,7 @@ export default function FilterTabs({
   buttonClassName = '',
 }) {
   return (
-    <div className={cn('flex flex-wrap gap-2', className)}>
+    <div className={cn('flex flex-nowrap gap-2 px-1 py-1', className)}>
       {tabs.map((tab) => {
         const isActive = activeKey === tab.key
 
@@ -21,7 +21,7 @@ export default function FilterTabs({
             type="button"
             onClick={() => onChange(tab.key)}
             className={cn(
-              'rounded-full px-4 py-2 text-sm font-semibold transition',
+              'inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-full px-4 py-2 text-center text-sm font-semibold transition',
               isActive
                 ? 'bg-gold text-navy shadow-sm ring-1 ring-gold/40'
                 : 'border border-white/20 bg-navy text-white shadow-sm hover:bg-ocean',

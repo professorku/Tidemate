@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 
 from config.pagination import BookingsPagination
 from config.throttling import BookingWriteRateThrottle
+from .expiry import expire_visible_pending_bookings_for_user
 
 from .read_serializers import BookingReadSerializer
 from .selectors import (
@@ -57,6 +58,8 @@ class MyBookingsView(BookingRequestContextMixin, generics.ListAPIView):
     pagination_class = BookingsPagination
 
     def get_queryset(self):
+        expire_visible_pending_bookings_for_user(self.request.user)
+
         queryset = get_user_bookings(self.request.user)
         timeline = self.request.query_params.get('timeline')
         return apply_timeline_filter(queryset, timeline)
@@ -68,6 +71,8 @@ class HostBookingsView(BookingRequestContextMixin, generics.ListAPIView):
     pagination_class = BookingsPagination
 
     def get_queryset(self):
+        expire_visible_pending_bookings_for_user(self.request.user)
+
         status_param = self.request.query_params.get('status')
         return get_host_bookings(self.request.user, status_value=status_param)
 
@@ -77,8 +82,11 @@ class BookingDetailView(BookingRequestContextMixin, generics.RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
+        expire_visible_pending_bookings_for_user(self.request.user)
+
         booking = get_visible_booking_for_user(self.request.user, self.kwargs['pk'])
         if not booking:
+            
             from django.http import Http404
 
             raise Http404
@@ -142,6 +150,8 @@ class BookingDeleteView(APIView):
     throttle_classes = [BookingWriteRateThrottle]
 
     def delete(self, request, pk):
+        expire_visible_pending_bookings_for_user(request.user)
+
         booking = get_visible_booking_for_user(request.user, pk)
         if not booking:
             return booking_not_found_response()

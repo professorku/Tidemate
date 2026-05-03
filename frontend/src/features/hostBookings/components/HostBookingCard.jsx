@@ -93,11 +93,21 @@ export default function HostBookingCard({
     ? `Up to ${booking.boat_guests} guests`
     : 'Guests not set'
 
-  const isPending = booking.status === 'pending' || timelineStatus === 'pending'
-  const isCancelled = booking.status === 'cancelled' || timelineStatus === 'cancelled'
-  const isActionLoading = actionLoadingId === booking.id
+const isCancelled =
+  timelineStatus === 'cancelled' || booking.status === 'cancelled'
 
-  const canConfirm = Boolean(booking.can_confirm ?? isPending)
+const isPending = timelineStatus === 'pending' && !isCancelled
+
+const displayStatus = isCancelled
+  ? 'cancelled'
+  : isPending
+    ? 'pending'
+    : booking.status
+
+const isActionLoading = actionLoadingId === booking.id
+
+const canConfirm = Boolean(booking.can_confirm ?? isPending)
+
   const canCancel = Boolean(
     booking.can_cancel ?? (!isCancelled && timelineStatus !== 'completed')
   )
@@ -173,10 +183,10 @@ export default function HostBookingCard({
             <div className="flex flex-wrap items-center gap-2">
               <span
                 className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${hostStatusClasses(
-                  booking.status
+                  displayStatus
                 )}`}
-              >
-                {formatStatusLabel(booking.status)}
+                >
+                  {formatStatusLabel(displayStatus)}
               </span>
 
               {hasExactLocation ? (

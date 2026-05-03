@@ -182,3 +182,45 @@ class BookingObjectLevelPermissionRegressionTests(APITestCase):
 
         renter_detail_response = self.client.get(reverse("booking-detail", args=[booking.id]))
         self.assertEqual(renter_detail_response.status_code, 200)
+
+def test_host_bookings_list_expires_overdue_pending_booking_and_hides_confirm(self):
+    booking = self._create_booking(status="pending")
+    booking.expires_at = timezone.now() - timedelta(minutes=1)
+    booking.save(update_fields=["expires_at"])
+
+    self.client.force_authenticate(user=self.host)
+
+    response = self.client.get(reverse("host-bookings"))
+
+    self.assertEqual(response.status_code, 200)
+
+    result = response.json()["results"][0]
+
+    self.assertEqual(result["id"], booking.id)
+    self.assertEqual(result["status"], "cancelled")
+    self.assertEqual(result["lifecycle_stage"], "cancelled")
+    self.assertFalse(result["can_confirm"])
+
+    booking.refresh_from_db()
+
+    self.assertEqual(booking.status, "cancelled")
+    self.assertEqual(
+        booking.cancellation_reason,
+        "Booking request expired because it was not confirmed in time.",
+    )
+
+    def test_host_can_delete_expired_pending_booking(self):
+        booking = self._create_booking(status="pending")
+        booking.expires_at = timezone.now() - timedelta(minutes=1)
+        booking.save(update_fields=["expires_at"])
+
+        self.client.force_authenticate(user=self.host)
+
+        response = self.client.delete(reverse("booking-delete", args=[booking.id]))
+
+        self.assertEqual(response.status_code, 204)
+
+        booking.refresh_from_db()
+
+        self.assertIsNotNone(booking.archived_by_host_at)
+        self.assertIsNone(booking.archived_by_renter_at)

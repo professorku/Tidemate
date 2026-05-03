@@ -5,6 +5,8 @@ from config.booking_policy import build_booking_policy, build_cancellation_polic
 from listings.services.location_privacy import build_location_privacy_payload
 from reviews.models import Review
 
+from .expiry import pending_booking_is_expired
+
 from .lifecycle import (
     booking_pickup_datetime,
     booking_return_datetime,
@@ -242,7 +244,13 @@ class BookingRepresentationMixin(BookingReviewMixin):
 
     def get_can_confirm(self, obj):
         user = self._get_request_user()
-        return bool(user and obj.boat.host == user and obj.status == 'pending')
+
+        return bool(
+            user
+            and obj.boat.host == user
+            and obj.status == 'pending'
+            and not pending_booking_is_expired(obj)
+    )
 
     def get_can_cancel(self, obj):
         user = self._get_request_user()
