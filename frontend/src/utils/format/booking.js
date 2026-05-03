@@ -9,6 +9,14 @@ export function formatBookingDateTime(value, options = {}) {
   return baseFormatDateTime(value, options)
 }
 
+function getPolicyTime(policy, key, fallback) {
+  if (!policy || typeof policy !== 'object') {
+    return fallback
+  }
+
+  return policy[key] || fallback
+}
+
 export function formatBookingWindow(booking, {
   formatDate = formatBookingDate,
   formatDateTime = formatBookingDateTime,
@@ -23,19 +31,43 @@ export function formatBookingWindow(booking, {
     }
   }
 
-  if (booking.pickup_datetime || booking.return_datetime) {
+  const pickupTime = getPolicyTime(
+    booking?.rental_policy,
+    'pickup_time',
+    fallbackTime
+  )
+
+  const resolvedReturnTime = getPolicyTime(
+    booking?.rental_policy,
+    'return_time',
+    returnTime
+  )
+
+  if (booking.start_date || booking.end_date) {
     return {
-      pickup: booking.pickup_datetime ? formatDateTime(booking.pickup_datetime) : fallback,
-      return: booking.return_datetime ? formatDateTime(booking.return_datetime) : fallback,
+      pickup: booking.start_date
+        ? `${formatDate(booking.start_date)} at ${pickupTime}`
+        : fallback,
+      return: booking.end_date
+        ? `${formatDate(booking.end_date)} at ${resolvedReturnTime}`
+        : fallback,
     }
   }
 
-  const pickupTime = booking?.rental_policy?.pickup_time || fallbackTime
-  const resolvedReturnTime = booking?.rental_policy?.return_time || returnTime
+  if (booking.pickup_datetime || booking.return_datetime) {
+    return {
+      pickup: booking.pickup_datetime
+        ? formatDateTime(booking.pickup_datetime)
+        : fallback,
+      return: booking.return_datetime
+        ? formatDateTime(booking.return_datetime)
+        : fallback,
+    }
+  }
 
   return {
-    pickup: `${formatDate(booking.start_date)} at ${pickupTime}`,
-    return: `${formatDate(booking.end_date)} at ${resolvedReturnTime}`,
+    pickup: fallback,
+    return: fallback,
   }
 }
 

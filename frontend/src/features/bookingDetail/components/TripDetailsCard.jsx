@@ -37,8 +37,71 @@ function TimelineStep({ title, text, active = false, last = false }) {
   )
 }
 
+function getTimelineState(booking) {
+  const lifecycleStage = booking?.lifecycle_stage
+
+  const isCancelled = booking?.status === 'cancelled'
+  const isConfirmed = booking?.status === 'confirmed'
+  const isActiveTrip = lifecycleStage === 'active'
+  const isCompletedTrip = lifecycleStage === 'completed' || Boolean(booking?.trip_finished)
+
+  return {
+    requestSent: true,
+    hostConfirmed: isConfirmed || isActiveTrip || isCompletedTrip,
+    pickupReached: isActiveTrip || isCompletedTrip,
+    returnReached: isCompletedTrip,
+    isCancelled,
+  }
+}
+
+function getHostConfirmationText(booking) {
+  if (booking.status === 'pending') {
+    return 'Waiting for the host to confirm this request.'
+  }
+
+  if (booking.status === 'cancelled') {
+    return 'This booking was cancelled before or after confirmation.'
+  }
+
+  return 'The booking has been confirmed.'
+}
+
+function getPickupText(booking, bookingWindow) {
+  if (booking.status === 'cancelled') {
+    return `Pickup was planned for ${bookingWindow.pickup}.`
+  }
+
+  if (booking.lifecycle_stage === 'active') {
+    return `Pickup time has started: ${bookingWindow.pickup}.`
+  }
+
+  if (booking.lifecycle_stage === 'completed' || booking.trip_finished) {
+    return `Pickup was ${bookingWindow.pickup}.`
+  }
+
+  return `Pickup is scheduled for ${bookingWindow.pickup}.`
+}
+
+function getReturnText(booking, bookingWindow) {
+  if (booking.status === 'cancelled') {
+    return `Return was planned for ${bookingWindow.return}.`
+  }
+
+  if (booking.lifecycle_stage === 'completed' || booking.trip_finished) {
+    return `Return was ${bookingWindow.return}.`
+  }
+
+  if (booking.lifecycle_stage === 'active') {
+    return `Return is still due by ${bookingWindow.return}.`
+  }
+
+  return `Return is due by ${bookingWindow.return}.`
+}
+
 export default function TripDetailsCard({ booking }) {
   const bookingWindow = formatBookingWindow(booking)
+  const timelineState = getTimelineState(booking)
+
   const hasExactLocation =
     Boolean(booking?.exact_location_available) || booking?.location_precision === 'exact'
 
@@ -105,7 +168,8 @@ export default function TripDetailsCard({ booking }) {
 
               <p className="mt-1 text-sm leading-6 text-white/60">
                 {booking?.rental_policy?.display_text ||
-                  'Pickup from 15:00 on the first day. Return by 12:00 on the last day.'}
+                  booking?.rental_policy?.short_text ||
+                  'Pickup and return times are loaded from the backend booking policy.'}
               </p>
             </div>
           </div>
@@ -119,25 +183,25 @@ export default function TripDetailsCard({ booking }) {
               <TimelineStep
                 title="Request sent"
                 text="The booking request was created and saved in your account."
-                active
+                active={timelineState.requestSent}
               />
 
               <TimelineStep
                 title="Host confirmation"
-                text={
-                  booking.status === 'pending'
-                    ? 'Waiting for the host to confirm this request.'
-                    : booking.status === 'cancelled'
-                      ? 'This booking was cancelled before or after confirmation.'
-                      : 'The booking has been confirmed.'
-                }
-                active={booking.status === 'confirmed'}
+                text={getHostConfirmationText(booking)}
+                active={timelineState.hostConfirmed}
               />
 
               <TimelineStep
-                title="Pickup and return"
-                text={`${bookingWindow.pickup} → ${bookingWindow.return}`}
-                active={booking.status === 'confirmed'}
+                title="Pickup"
+                text={getPickupText(booking, bookingWindow)}
+                active={timelineState.pickupReached}
+              />
+
+              <TimelineStep
+                title="Return"
+                text={getReturnText(booking, bookingWindow)}
+                active={timelineState.returnReached}
                 last
               />
             </div>
