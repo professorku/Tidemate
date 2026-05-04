@@ -9,6 +9,7 @@ import {
   UserIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline'
+import { useWatch } from 'react-hook-form'
 
 const BIO_MAX_LENGTH = 300
 const LOCATION_MAX_LENGTH = 60
@@ -85,12 +86,22 @@ export default function EditProfileForm({
 }) {
   const {
     register,
-    watch,
     formState: { errors },
   } = formMethods
 
-  const bioValue = watch('bio') || ''
-  const locationValue = watch('location') || ''
+  const bioValue =
+    useWatch({
+      control: formMethods.control,
+      name: 'bio',
+      defaultValue: '',
+    }) || ''
+
+  const locationValue =
+    useWatch({
+      control: formMethods.control,
+      name: 'location',
+      defaultValue: '',
+    }) || ''
 
   return (
     <form onSubmit={onSubmit} className="space-y-8">
@@ -236,7 +247,9 @@ export default function EditProfileForm({
           />
           <div className="mt-2 flex items-center justify-between gap-3 text-xs text-white/50">
             <span>Keep this broad. Do not add exact address details here.</span>
-            <span>{locationValue.length}/{LOCATION_MAX_LENGTH}</span>
+            <span>
+              {locationValue.length}/{LOCATION_MAX_LENGTH}
+            </span>
           </div>
           <FieldError message={errors.location?.message} />
         </Field>
@@ -258,7 +271,9 @@ export default function EditProfileForm({
           />
           <div className="mt-2 flex items-center justify-between gap-3 text-xs text-white/50">
             <span>A short, friendly bio makes your profile feel more trustworthy.</span>
-            <span>{bioValue.length}/{BIO_MAX_LENGTH}</span>
+            <span>
+              {bioValue.length}/{BIO_MAX_LENGTH}
+            </span>
           </div>
           <FieldError message={errors.bio?.message} />
         </Field>

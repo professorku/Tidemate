@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { createListing } from '../../../api/domains/listings'
 import { getErrorMessage } from '../../../utils/errors'
@@ -21,7 +21,11 @@ const INITIAL_FORM = {
 export function useAddBoatPage() {
   const navigate = useNavigate()
   const formMethods = useForm({ defaultValues: INITIAL_FORM, mode: 'onBlur' })
-  const values = formMethods.watch()
+  const values =
+  useWatch({
+    control: formMethods.control,
+    defaultValue: INITIAL_FORM,
+  }) || INITIAL_FORM
 
   const [images, setImages] = useState([])
   const [coverIndex, setCoverIndex] = useState(0)

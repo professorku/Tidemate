@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { useParams } from 'react-router-dom'
 import { createInitialForm } from '../utils/editBoatFormHelpers'
@@ -9,8 +9,10 @@ import { useEditBoatSubmit } from './useEditBoatSubmit'
 export default function useEditBoatPageData() {
   const { id } = useParams()
 
+  const initialForm = useMemo(() => createInitialForm(), [])
+
   const formMethods = useForm({
-    defaultValues: createInitialForm(),
+    defaultValues: initialForm,
     mode: 'onBlur',
   })
 
@@ -51,18 +53,14 @@ export default function useEditBoatPageData() {
     setError,
   })
 
-  const form = useWatch({
-    control: formMethods.control,
-    defaultValue: createInitialForm(),
-  })
+  const form =
+    useWatch({
+      control: formMethods.control,
+      defaultValue: initialForm,
+    }) || initialForm
 
   const handleLocationChange = useCallback(
-    ({
-      latitude,
-      longitude,
-      location_name,
-      pickup_address,
-    }) => {
+    ({ latitude, longitude, location_name, pickup_address }) => {
       formMethods.setValue('latitude', latitude, { shouldDirty: true })
       formMethods.setValue('longitude', longitude, { shouldDirty: true })
 
