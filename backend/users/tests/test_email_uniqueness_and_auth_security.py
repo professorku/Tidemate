@@ -89,6 +89,23 @@ class EmailUniquenessDatabaseTests(TestCase):
         with self.assertRaises(IntegrityError):
             with transaction.atomic():
                 user_two.profile.save(update_fields=["pending_email"])
+    
+    def test_database_rejects_case_insensitive_duplicate_usernames(self):
+        User.objects.create_user(
+            username="CaptainJens",
+            email="captain-jens@example.com",
+            password="strong-pass-123",
+            is_active=True,
+        )
+
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                User.objects.create_user(
+                    username="captainjens",
+                    email="captain-jens-two@example.com",
+                    password="strong-pass-123",
+                    is_active=True,
+                )
 
 
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
