@@ -77,6 +77,12 @@ class Booking(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['renter', 'archived_by_renter_at', '-created_at', '-id'], name='booking_renter_visible_idx'),
+            models.Index(fields=['boat', 'archived_by_host_at', 'status', '-created_at', '-id'], name='booking_boat_host_status_idx'),
+            models.Index(fields=['boat', 'status', 'start_date', 'end_date'], name='booking_boat_status_dates_idx'),
+            models.Index(fields=['status', 'expires_at'], name='booking_status_expires_idx'),
+        ]
         constraints = [
             models.CheckConstraint(
                 condition=Q(end_date__gt=F('start_date')),

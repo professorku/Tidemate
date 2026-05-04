@@ -20,6 +20,10 @@ class DeviceSession(models.Model):
 
     class Meta:
         ordering = ["-last_used_at", "-id"]
+        indexes = [
+            models.Index(fields=["user", "-last_used_at", "-id"], name="device_user_recent_idx"),
+            models.Index(fields=["user", "revoked_at", "expires_at"], name="device_user_active_idx"),
+        ]
 
     def __str__(self):
         return f"{self.user.username} - {self.device_label or 'unknown device'}"

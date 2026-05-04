@@ -23,6 +23,9 @@ class Favorite(models.Model):
     class Meta:
         unique_together = ('user', 'boat')
         ordering = ['-created_at', '-id']
+        indexes = [
+            models.Index(fields=['user', '-created_at', '-id'], name='favorite_user_recent_idx'),
+        ]
 
     def __str__(self):
         return f"{self.user} ❤️ {self.boat.title}"

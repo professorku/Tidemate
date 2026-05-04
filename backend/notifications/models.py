@@ -48,5 +48,12 @@ class Notification(models.Model):
         self.target_url = clean_notification_target_url(self.target_url)
         super().save(*args, **kwargs)
 
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        indexes = [
+            models.Index(fields=["user", "-created_at", "-id"], name="notif_user_recent_idx"),
+            models.Index(fields=["user", "is_read", "-created_at", "-id"], name="notif_user_unread_idx"),
+        ]
+
     def __str__(self):
         return f"{self.user.username} - {self.message[:30]}"

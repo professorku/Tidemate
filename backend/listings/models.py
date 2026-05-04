@@ -89,6 +89,10 @@ class BoatListing(models.Model):
                 fields=['public_latitude', 'public_longitude'],
                 name='boat_public_geo_idx',
             ),
+            models.Index(fields=['host', '-created_at', '-id'], name='boat_host_created_idx'),
+            models.Index(fields=['boat_type', '-created_at', '-id'], name='boat_type_created_idx'),
+            models.Index(fields=['price_per_day', '-created_at', '-id'], name='boat_price_created_idx'),
+            models.Index(fields=['guests', '-created_at', '-id'], name='boat_guests_created_idx'),
         ]
         constraints = [
             models.CheckConstraint(
@@ -190,6 +194,10 @@ class BoatImage(models.Model):
 
     class Meta:
         ordering = ['sort_order', 'id']
+        indexes = [
+            models.Index(fields=['boat', 'sort_order', 'id'], name='boatimage_boat_order_idx'),
+            models.Index(fields=['boat', '-is_cover', 'sort_order', 'id'], name='boatimage_cover_order_idx'),
+        ]
         constraints = [
             models.UniqueConstraint(
                 fields=['boat'],

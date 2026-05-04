@@ -64,6 +64,11 @@ class Conversation(models.Model):
 
     class Meta:
         ordering = ['-created_at', '-id']
+        indexes = [
+            models.Index(fields=['host', 'archived_by_host_at', '-created_at', '-id'], name='conv_host_visible_idx'),
+            models.Index(fields=['renter', 'archived_by_renter_at', '-created_at', '-id'], name='conv_renter_visible_idx'),
+            models.Index(fields=['conversation_type', 'direct_user_low', 'direct_user_high', 'boat'], name='conv_direct_lookup_idx'),
+        ]
         constraints = [
             models.UniqueConstraint(
                 fields=['conversation_type', 'direct_user_low', 'direct_user_high'],
@@ -115,6 +120,13 @@ class Message(models.Model):
     is_read = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        ordering = ['-created_at', '-id']
+        indexes = [
+            models.Index(fields=['conversation', '-created_at', '-id'], name='message_conv_recent_idx'),
+            models.Index(fields=['conversation', 'is_read', 'sender', '-created_at'], name='message_unread_lookup_idx'),
+        ]
 
     def __str__(self):
         if self.is_deleted:

@@ -68,6 +68,12 @@ class Review(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['boat', '-created_at', '-id'], name='review_boat_recent_idx'),
+            models.Index(fields=['reviewed_user', '-created_at', '-id'], name='review_user_recent_idx'),
+            models.Index(fields=['reviewer', '-created_at', '-id'], name='review_reviewer_recent_idx'),
+            models.Index(fields=['booking', 'reviewer', 'review_type'], name='review_booking_reviewer_idx'),
+        ]
 
         constraints = [
             models.UniqueConstraint(
