@@ -43,6 +43,8 @@ export default function PublicProfileReviewSection({ reviewableBookings, reloadP
                 <img
                   src={booking.boat_image}
                   alt={booking.boat_title}
+                  loading="lazy"
+                  decoding="async"
                   className="h-20 w-28 rounded-2xl object-cover ring-1 ring-white/15"
                 />
               ) : null}

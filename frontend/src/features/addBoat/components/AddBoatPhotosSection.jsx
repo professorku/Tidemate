@@ -102,6 +102,7 @@ export default function AddBoatPhotosSection({
                   <img
                     src={item.url}
                     alt={item.file.name}
+                    decoding="async"
                     className="h-full w-full object-cover"
                   />
 

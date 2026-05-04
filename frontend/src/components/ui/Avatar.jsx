@@ -15,6 +15,8 @@ export default function Avatar({ avatar, username, size = 'md', className = '' }
       <img
         src={avatar}
         alt={username || 'User'}
+        loading="lazy"
+        decoding="async"
         className={`${styles.wrapper} rounded-full object-cover ${className}`.trim()}
       />
     )

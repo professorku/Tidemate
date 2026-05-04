@@ -25,6 +25,8 @@ export default function HostCard({ booking, viewerRole = 'renter' }) {
             <img
               src={avatar}
               alt={username}
+              loading="lazy"
+              decoding="async"
               className="h-16 w-16 rounded-full object-cover ring-4 ring-gold/20"
             />
           ) : (

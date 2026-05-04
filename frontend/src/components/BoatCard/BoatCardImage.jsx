@@ -13,6 +13,8 @@ export default function BoatCardImage({ boat, imageCount }) {
         <img
           src={boat.image}
           alt={boat.title}
+          loading="lazy"
+          decoding="async"
           className="h-full w-full object-cover transition group-hover:scale-105"
         />
       ) : (

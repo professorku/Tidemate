@@ -32,6 +32,8 @@ export default function PublicProfileHero({
             <img
               src={profile.avatar}
               alt={profile.username}
+              decoding="async"
+              fetchPriority="high"
               className="h-28 w-28 rounded-full border-4 border-gold object-cover shadow-lg ring-1 ring-gold/40 md:h-32 md:w-32"
             />
           ) : (

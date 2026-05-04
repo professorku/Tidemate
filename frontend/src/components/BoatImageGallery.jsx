@@ -49,6 +49,8 @@ export default function BoatImageGallery({ boat }) {
         <img
           src={selectedImage?.image}
           alt={boat?.title}
+          decoding="async"
+          fetchPriority="high"
           className="h-[260px] w-full object-cover md:h-[420px]"
         />
       </div>
@@ -70,6 +72,8 @@ export default function BoatImageGallery({ boat }) {
                 <img
                   src={img.image}
                   alt={boat?.title}
+                  loading="lazy"
+                  decoding="async"
                   className="h-20 w-full object-cover md:h-24"
                 />
                 {img.is_cover ? (

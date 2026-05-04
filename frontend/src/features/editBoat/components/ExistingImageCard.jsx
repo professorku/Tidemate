@@ -14,7 +14,13 @@ export default function ExistingImageCard({
       }`}
     >
       <div className="relative h-48 bg-[#071d32]">
-        <img src={image.image} alt="Boat" className="h-full w-full object-cover" />
+        <img
+          src={image.image}
+          alt="Boat"
+          loading="lazy"
+          decoding="async"
+          className="h-full w-full object-cover"
+        />
 
         {isCover ? (
           <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-gold px-3 py-1 text-xs font-extrabold text-navy shadow-sm">

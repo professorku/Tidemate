@@ -37,6 +37,8 @@ export default function BookingHero({ booking, summaryText, viewerRole = 'renter
           <img
             src={booking.boat_image}
             alt={booking.boat_title}
+            decoding="async"
+            fetchPriority="high"
             className="absolute inset-0 h-full w-full object-cover"
           />
         ) : (

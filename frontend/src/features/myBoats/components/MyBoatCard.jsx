@@ -33,6 +33,8 @@ export default function BoatCard({ boat, onDelete, deletingId }) {
           <img
             src={boat.image}
             alt={boat.title}
+            loading="lazy"
+            decoding="async"
             className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]"
           />
         ) : (

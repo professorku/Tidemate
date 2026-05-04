@@ -11,7 +11,13 @@ export default function BoatCardMedia({
   return (
     <div className={className}>
       {image ? (
-        <img src={image} alt={imageAlt || title} className={imageClassName} />
+        <img
+          src={image}
+          alt={imageAlt || title}
+          loading="lazy"
+          decoding="async"
+          className={imageClassName}
+        />
       ) : (
         <div className="flex h-full items-center justify-center text-sm text-slate-500">
           {emptyLabel}
