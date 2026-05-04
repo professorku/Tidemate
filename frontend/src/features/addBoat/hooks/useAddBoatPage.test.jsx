@@ -46,18 +46,24 @@ function fillRequiredListingFields(result) {
   })
 }
 
-function addTestImage(result, fileName = 'boat.jpg', type = 'image/jpeg') {
-  const file = new File(['fake-image-content'], fileName, { type })
+function createTestImage(fileName = 'boat.jpg', type = 'image/jpeg', size = 100) {
+  return new File(['x'.repeat(size)], fileName, { type })
+}
 
+function addTestImages(result, files) {
   act(() => {
     result.current.handleImagesChange({
       target: {
-        files: [file],
-        value: fileName,
+        files,
+        value: files[0]?.name || '',
       },
     })
   })
+}
 
+function addTestImage(result, fileName = 'boat.jpg', type = 'image/jpeg', size = 100) {
+  const file = createTestImage(fileName, type, size)
+  addTestImages(result, [file])
   return file
 }
 
@@ -95,6 +101,47 @@ describe('useAddBoatPage image upload handling', () => {
     expect(navigateMock).not.toHaveBeenCalled()
   })
 
+  it('rejects non-image files before calling the listing API', () => {
+    const { result } = renderHook(() => useAddBoatPage())
+
+    addTestImage(result, 'not-really-an-image.txt', 'text/plain')
+
+    expect(result.current.error).toBe(
+      'not-really-an-image.txt must be a JPG, PNG, WEBP, or GIF image.'
+    )
+    expect(result.current.images).toHaveLength(0)
+    expect(createListing).not.toHaveBeenCalled()
+  })
+
+  it('rejects images larger than 5 MB before calling the listing API', () => {
+    const { result } = renderHook(() => useAddBoatPage())
+    const sixMegabytes = 6 * 1024 * 1024
+
+    addTestImage(result, 'huge-boat.jpg', 'image/jpeg', sixMegabytes)
+
+    expect(result.current.error).toBe(
+      'huge-boat.jpg is too large. Maximum file size is 5.0 MB.'
+    )
+    expect(result.current.images).toHaveLength(0)
+    expect(createListing).not.toHaveBeenCalled()
+  })
+
+  it('rejects more than 10 total images before calling the listing API', () => {
+    const { result } = renderHook(() => useAddBoatPage())
+
+    const files = Array.from({ length: 11 }, (_, index) =>
+      createTestImage(`boat-${index + 1}.jpg`)
+    )
+
+    addTestImages(result, files)
+
+    expect(result.current.error).toBe(
+      'A boat listing can have at most 10 images. You can add 10 more photos.'
+    )
+    expect(result.current.images).toHaveLength(0)
+    expect(createListing).not.toHaveBeenCalled()
+  })
+
   it('shows backend image validation errors from the listing API', async () => {
     createListing.mockRejectedValue({
       data: {
@@ -105,7 +152,7 @@ describe('useAddBoatPage image upload handling', () => {
     const { result } = renderHook(() => useAddBoatPage())
 
     fillRequiredListingFields(result)
-    addTestImage(result, 'not-really-an-image.txt', 'text/plain')
+    addTestImage(result, 'boat.jpg', 'image/jpeg')
 
     await act(async () => {
       await result.current.handleSubmit(submitEvent())

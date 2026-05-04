@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { createListing } from '../../../api/domains/listings'
 import { getErrorMessage } from '../../../utils/errors'
+import { validateBoatImageFiles } from '../../../utils/imageUploadValidation'
 
 const INITIAL_FORM = {
   title: '',
@@ -60,24 +61,36 @@ export function useAddBoatPage() {
     if (error) setError('')
   }
 
-  const handleImagesChange = (e) => {
-    const files = Array.from(e.target.files || [])
-    if (!files.length) return
+  const handleImagesChange = (event) => {
+    const validation = validateBoatImageFiles(event.target.files, {
+      currentCount: images.length,
+    })
+
+    event.target.value = ''
+
+    if (!validation.valid) {
+      setError(validation.error)
+      return
+    }
+
+    if (!validation.files.length) return
 
     setImages((prev) => {
-      const next = [...prev, ...files]
+      const next = [...prev, ...validation.files]
+
       if (prev.length === 0) {
         setCoverIndex(0)
       }
+
       return next
     })
 
-    e.target.value = ''
     if (error) setError('')
   }
 
   const removeImageAt = (indexToRemove) => {
     setImages((prev) => prev.filter((_, index) => index !== indexToRemove))
+
     setCoverIndex((prev) => {
       if (indexToRemove === prev) return 0
       if (indexToRemove < prev) return prev - 1

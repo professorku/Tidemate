@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { validateBoatImageFiles } from '../../../utils/imageUploadValidation'
 import {
   getCoverAfterExistingImageRemoval,
   getCoverAfterNewImageRemoval,
   getInitialCoverSelection,
 } from '../utils/editBoatImageHelpers'
 
-export function useEditBoatImages({ clearError }) {
+export function useEditBoatImages({ clearError, setError }) {
   const [existingImages, setExistingImages] = useState([])
   const [removedImageIds, setRemovedImageIds] = useState([])
   const [newImages, setNewImages] = useState([])
@@ -33,12 +34,23 @@ export function useEditBoatImages({ clearError }) {
 
   const handleNewImagesChange = useCallback(
     (event) => {
-      const files = Array.from(event.target.files || [])
+      const selectedFiles = event.target.files
 
-      if (!files.length) return
+      const validation = validateBoatImageFiles(selectedFiles, {
+        currentCount: existingImages.length + newImages.length,
+      })
+
+      event.target.value = ''
+
+      if (!validation.valid) {
+        setError(validation.error)
+        return
+      }
+
+      if (!validation.files.length) return
 
       setNewImages((currentImages) => {
-        const nextImages = [...currentImages, ...files]
+        const nextImages = [...currentImages, ...validation.files]
 
         if (!coverSelection && existingImages.length === 0) {
           setCoverSelection({
@@ -50,10 +62,15 @@ export function useEditBoatImages({ clearError }) {
         return nextImages
       })
 
-      event.target.value = ''
       clearError()
     },
-    [clearError, coverSelection, existingImages.length]
+    [
+      clearError,
+      coverSelection,
+      existingImages.length,
+      newImages.length,
+      setError,
+    ]
   )
 
   const setExistingImageAsCover = useCallback((imageId) => {
@@ -127,6 +144,10 @@ export function useEditBoatImages({ clearError }) {
     newImages,
     newPreviews,
     coverSelection,
+    setExistingImages,
+    setRemovedImageIds,
+    setNewImages,
+    setCoverSelection,
     resetImages,
     handleNewImagesChange,
     removeExistingImage,

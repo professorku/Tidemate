@@ -32,7 +32,7 @@ export default function useEditBoatPageData() {
     removeNewImage,
     setExistingImageAsCover,
     setNewImageAsCover,
-  } = useEditBoatImages({ clearError })
+  } = useEditBoatImages({ clearError, setError })
 
   const { boat, loading, reload } = useEditBoatLoader({
     id,
