@@ -8,6 +8,10 @@ export function signupUser(payload) {
   return apiPost('/users/signup/', payload)
 }
 
+export function loginWithGoogle(credential) {
+  return apiPost('/users/google-login/', { credential })
+}
+
 export function verifyEmailToken(token) {
   return apiPost('/users/verify-email/', { token })
 }

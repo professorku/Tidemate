@@ -9,6 +9,7 @@ const authMocks = vi.hoisted(() => ({
 
 const serviceMocks = vi.hoisted(() => ({
   loginUser: vi.fn(),
+  loginWithGoogle: vi.fn(),
   resendVerificationEmail: vi.fn(),
 }))
 
@@ -20,6 +21,7 @@ vi.mock('../../../context/useAuth', () => ({
 
 vi.mock('../services/authService', () => ({
   loginUser: serviceMocks.loginUser,
+  loginWithGoogle: serviceMocks.loginWithGoogle,
   resendVerificationEmail: serviceMocks.resendVerificationEmail,
 }))
 

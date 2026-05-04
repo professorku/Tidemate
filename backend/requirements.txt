@@ -12,3 +12,4 @@ PyJWT==2.12.1
 python-dotenv==1.2.2
 sqlparse==0.5.5
 daphne>=4.2.1
+google-auth[requests]>=2.40,<3

@@ -485,3 +485,89 @@ class RelationshipActionCsrfTests(TestCase):
         response = client.post(f'/api/users/{target.id}/block/')
 
         self.assertEqual(response.status_code, 403)
+
+
+class GoogleLoginTests(TestCase):
+    def setUp(self):
+        self.csrf_client = Client(enforce_csrf_checks=True)
+
+    def _prime_csrf(self):
+        response = self.csrf_client.get('/api/users/csrf/')
+        self.assertEqual(response.status_code, 200)
+        return response.cookies['csrftoken'].value
+
+    @override_settings(GOOGLE_OAUTH_CLIENT_ID='test-client-id.apps.googleusercontent.com')
+    def test_google_login_requires_csrf_token(self):
+        response = self.csrf_client.post(
+            '/api/users/google-login/',
+            {'credential': 'fake-google-jwt'},
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+    @override_settings(GOOGLE_OAUTH_CLIENT_ID='test-client-id.apps.googleusercontent.com')
+    @patch('users.google_auth.verify_google_id_token')
+    def test_google_login_creates_user_and_sets_auth_cookies(self, verify_google_id_token):
+        from users.models import GoogleAccount
+
+        verify_google_id_token.return_value = {
+            'sub': 'google-user-123',
+            'email': 'jens@example.com',
+            'email_verified': True,
+            'name': 'Jens Smaby',
+            'picture': 'https://example.com/avatar.jpg',
+        }
+
+        csrf_token = self._prime_csrf()
+        response = self.csrf_client.post(
+            '/api/users/google-login/',
+            {'credential': 'fake-google-jwt'},
+            content_type='application/json',
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['detail'], 'Logged in with Google.')
+        self.assertTrue(response.json()['created'])
+        self.assertIn(settings.JWT_ACCESS_COOKIE_NAME, response.cookies)
+        self.assertIn(settings.JWT_REFRESH_COOKIE_NAME, response.cookies)
+
+        user = User.objects.get(email='jens@example.com')
+        self.assertTrue(user.is_active)
+        self.assertFalse(user.has_usable_password())
+        self.assertTrue(GoogleAccount.objects.filter(user=user, google_sub='google-user-123').exists())
+
+    @override_settings(GOOGLE_OAUTH_CLIENT_ID='test-client-id.apps.googleusercontent.com')
+    @patch('users.google_auth.verify_google_id_token')
+    def test_google_login_links_existing_user_by_verified_email(self, verify_google_id_token):
+        from users.models import GoogleAccount
+
+        existing_user = User.objects.create_user(
+            username='captainjens',
+            email='jens@example.com',
+            password='strong-pass-123',
+            is_active=True,
+        )
+
+        verify_google_id_token.return_value = {
+            'sub': 'google-user-456',
+            'email': 'JENS@example.com',
+            'email_verified': True,
+            'name': 'Jens Smaby',
+        }
+
+        csrf_token = self._prime_csrf()
+        response = self.csrf_client.post(
+            '/api/users/google-login/',
+            {'credential': 'fake-google-jwt'},
+            content_type='application/json',
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.json()['created'])
+        self.assertEqual(User.objects.filter(email__iexact='jens@example.com').count(), 1)
+        self.assertTrue(
+            GoogleAccount.objects.filter(user=existing_user, google_sub='google-user-456').exists()
+        )

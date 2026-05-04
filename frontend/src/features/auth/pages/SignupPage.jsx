@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import PageContainer from '../../../components/layout/PageContainer'
 import { Link, useNavigate } from 'react-router-dom'
-import { signupUser } from '../services/authService'
+import { loginWithGoogle, signupUser } from '../services/authService'
 import { getErrorMessage } from '../../../utils/errors'
+import { useAuth } from '../../../context/useAuth'
+import GoogleLoginButton from '../components/GoogleLoginButton'
 
 const inputClassName =
   'w-full rounded-xl border border-gold/25 bg-[#071d32]/80 px-3.5 py-2.5 text-sm text-white placeholder:text-white/40 outline-none transition focus:border-gold focus:bg-[#071d32] focus:ring-2 focus:ring-gold/25'
@@ -11,6 +13,7 @@ const labelClassName = 'mb-1.5 block text-sm font-medium text-white/80'
 
 export default function SignupPage() {
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [form, setForm] = useState({
     username: '',
     email: '',
@@ -19,6 +22,26 @@ export default function SignupPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
+
+  const handleGoogleSuccess = async (credential) => {
+    setError('')
+    setSuccess('')
+    setLoading(true)
+
+    try {
+      await loginWithGoogle(credential)
+      await login()
+      navigate('/', { replace: true })
+    } catch (err) {
+      setError(getErrorMessage(err, 'Could not sign up with Google.'))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleGoogleError = (err) => {
+    setError(err?.message || 'Could not start Google login.')
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -102,6 +125,19 @@ export default function SignupPage() {
               {loading ? 'Creating account...' : 'Sign up'}
             </button>
           </form>
+
+
+          <div className="my-5 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.24em] text-white/35">
+            <span className="h-px flex-1 bg-gold/15" />
+            or
+            <span className="h-px flex-1 bg-gold/15" />
+          </div>
+
+          <GoogleLoginButton
+            disabled={loading}
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
+          />
 
           <p className="mt-5 text-sm text-white/70">
             Already have an account?{' '}

@@ -2,8 +2,9 @@ import { useState } from 'react'
 import PageContainer from '../../../components/layout/PageContainer'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../context/useAuth'
-import { loginUser, resendVerificationEmail } from '../services/authService'
+import { loginUser, loginWithGoogle, resendVerificationEmail } from '../services/authService'
 import { getErrorMessage } from '../../../utils/errors'
+import GoogleLoginButton from '../components/GoogleLoginButton'
 
 const inputClassName =
   'w-full rounded-xl border border-gold/25 bg-[#071d32]/80 px-3.5 py-2.5 text-sm text-white placeholder:text-white/40 outline-none transition focus:border-gold focus:bg-[#071d32] focus:ring-2 focus:ring-gold/25'
@@ -44,6 +45,26 @@ export default function LoginPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleGoogleSuccess = async (credential) => {
+    setError('')
+    setInfo('')
+    setLoading(true)
+
+    try {
+      await loginWithGoogle(credential)
+      await login()
+      navigate(from, { replace: true })
+    } catch (err) {
+      setError(getErrorMessage(err, 'Could not log in with Google.'))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleGoogleError = (err) => {
+    setError(err?.message || 'Could not start Google login.')
   }
 
   const handleResendVerification = async () => {
@@ -114,6 +135,19 @@ export default function LoginPage() {
               {loading ? 'Logging in...' : 'Log in'}
             </button>
           </form>
+
+
+          <div className="my-5 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.24em] text-white/35">
+            <span className="h-px flex-1 bg-gold/15" />
+            or
+            <span className="h-px flex-1 bg-gold/15" />
+          </div>
+
+          <GoogleLoginButton
+            disabled={loading}
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
+          />
 
           {initialEmail ? (
             <button

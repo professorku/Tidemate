@@ -49,6 +49,7 @@ from .auth_helpers import (
 )
 from .device_tracking import is_device_session_active, revoke_device_session_for_token, upsert_device_session
 from .email_verification import send_verification_email, verify_email_change_token, verify_email_token
+from .google_auth import GoogleAuthError, get_or_create_user_from_google_credential
 from .password_reset import send_password_reset_email
 from .profile_serializers import MyProfileSerializer, PublicProfileSerializer
 from .selectors import build_profile_payload, get_user_by_id
@@ -112,6 +113,11 @@ def _get_user_from_refresh_token(token):
         raise InvalidToken("User for refresh token was not found.")
 
     return user
+
+
+def _get_token_pair_for_user(user):
+    refresh = TideMateTokenObtainPairSerializer.get_token(user)
+    return str(refresh.access_token), str(refresh)
 
 
 def _database_healthcheck():
@@ -219,6 +225,36 @@ def login(request):
     set_access_cookie(response, serializer.validated_data["access"])
     set_refresh_cookie(response, serializer.validated_data["refresh"])
     upsert_device_session(user=serializer.user, refresh_token=serializer.validated_data["refresh"], request=request)
+    return response
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+@throttle_classes([AuthAnonRateThrottle, AuthUserRateThrottle, LoginIdentityRateThrottle, LoginIpRateThrottle])
+def google_login(request):
+    csrf_error = enforce_csrf(request)
+    if csrf_error is not None:
+        return csrf_error
+
+    credential = request.data.get("credential", "")
+
+    try:
+        user, created = get_or_create_user_from_google_credential(credential)
+    except GoogleAuthError as exc:
+        return Response(exc.detail, status=status.HTTP_400_BAD_REQUEST)
+
+    access_token, refresh_token = _get_token_pair_for_user(user)
+
+    response = Response(
+        {
+            "detail": "Logged in with Google.",
+            "created": created,
+        },
+        status=status.HTTP_200_OK,
+    )
+    set_access_cookie(response, access_token)
+    set_refresh_cookie(response, refresh_token)
+    upsert_device_session(user=user, refresh_token=refresh_token, request=request)
     return response
 
 

@@ -25,6 +25,22 @@ class DeviceSession(models.Model):
         return f"{self.user.username} - {self.device_label or 'unknown device'}"
 
 
+class GoogleAccount(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='google_account')
+    google_sub = models.CharField(max_length=255, unique=True, db_index=True)
+    email = models.EmailField(db_index=True)
+    name = models.CharField(max_length=255, blank=True)
+    picture_url = models.URLField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-updated_at', '-id']
+
+    def __str__(self):
+        return f'{self.user.username} - Google'
+
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     bio = models.CharField(max_length=MAX_PROFILE_BIO_LENGTH, blank=True)
