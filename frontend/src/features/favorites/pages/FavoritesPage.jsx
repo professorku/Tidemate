@@ -1,6 +1,7 @@
-import { ArrowPathIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import PageContainer from '../../../components/layout/PageContainer'
 import PaginationControls from '../../../components/ui/PaginationControls'
+import { BoatCardSkeletonGrid, SkeletonBlock } from '../../../components/ui/Skeleton'
 import FavoritesEmptyState from '../../favorites/components/FavoritesEmptyState'
 import FavoritesGrid from '../../favorites/components/FavoritesGrid'
 import useFavoritesPageData from '../../favorites/hooks/useFavoritesPageData'
@@ -29,36 +30,14 @@ function FavoritesHero() {
 
 function FavoritesLoadingState() {
   return (
-    <section className="rounded-[34px] border border-white/15 bg-navy p-6 text-white shadow-soft md:p-8">
-      <div className="mx-auto flex max-w-lg flex-col items-center text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gold/10 text-gold ring-1 ring-gold/25">
-          <ArrowPathIcon className="h-8 w-8 animate-spin" />
-        </div>
-
-        <h2 className="mt-5 text-2xl font-black tracking-tight text-white">
-          Loading favorites
-        </h2>
-
-        <p className="mt-2 text-sm leading-6 text-white/60">
-          We are fetching the boats you saved for later.
-        </p>
+    <section className="rounded-[34px] border border-white/15 bg-navy p-4 text-white shadow-soft md:p-6">
+      <div className="mb-6">
+        <SkeletonBlock className="h-4 w-36 bg-gold/30" />
+        <SkeletonBlock className="mt-3 h-8 w-56" />
+        <SkeletonBlock className="mt-3 h-4 w-full max-w-xl" />
       </div>
 
-      <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {[1, 2, 3].map((item) => (
-          <div
-            key={item}
-            className="overflow-hidden rounded-[28px] border border-gold/15 bg-[#071d32]/70"
-          >
-            <div className="h-52 animate-pulse bg-white/10" />
-            <div className="space-y-3 p-5">
-              <div className="h-4 w-2/3 animate-pulse rounded-full bg-white/10" />
-              <div className="h-4 w-1/2 animate-pulse rounded-full bg-white/10" />
-              <div className="h-10 w-full animate-pulse rounded-full bg-white/10" />
-            </div>
-          </div>
-        ))}
-      </div>
+      <BoatCardSkeletonGrid count={4} />
     </section>
   )
 }

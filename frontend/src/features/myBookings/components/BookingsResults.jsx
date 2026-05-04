@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom'
 import {
-  ArrowPathIcon,
   CalendarDaysIcon,
   ExclamationTriangleIcon,
   MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline'
 import BookingCard from './MyBookingCard'
+import { BookingCardSkeletonList } from '../../../components/ui/Skeleton'
 
 const EMPTY_STATE_CONTENT = {
   all: {
@@ -67,13 +67,7 @@ export default function BookingsResults({
   onRefresh,
 }) {
   if (loading) {
-    return (
-      <PanelState
-        icon={<ArrowPathIcon className="h-8 w-8 animate-spin" />}
-        title="Loading your bookings"
-        text="We are sorting your trips, pending requests, and past bookings."
-      />
-    )
+    return <BookingCardSkeletonList count={3} />
   }
 
   if (error) {

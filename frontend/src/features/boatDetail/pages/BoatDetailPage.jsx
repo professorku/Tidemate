@@ -7,7 +7,7 @@ import PageContainer from '../../../components/layout/PageContainer'
 import BoatImageGallery from '../../../components/BoatImageGallery'
 import BookingForm from '../../bookingForm/components/BookingForm'
 import ErrorState from '../../../components/ui/ErrorState'
-import LoadingState from '../../../components/ui/LoadingState'
+import { DetailPageSkeleton } from '../../../components/ui/Skeleton'
 import MarineConditionsCard from '../../../components/marineConditions/MarineConditionsCard'
 import NearbyBoats from '../../../components/NearbyBoats'
 
@@ -23,11 +23,7 @@ function BoatDetailSkeleton() {
   return (
     <main className="min-h-screen bg-[#071d32]">
       <PageContainer size="wide" as="div" className="py-8 md:py-10">
-        <LoadingState
-          title="Loading boat details"
-          text="Preparing photos, availability, location, reviews, and booking details."
-          compact={false}
-        />
+        <DetailPageSkeleton />
       </PageContainer>
     </main>
   )

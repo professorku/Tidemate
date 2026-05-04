@@ -1,6 +1,6 @@
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 import PageContainer from '../../../components/layout/PageContainer'
-import LoadingState from '../../../components/ui/LoadingState'
+import { BoatCardSkeletonGrid } from '../../../components/ui/Skeleton'
 import ErrorState from '../../../components/ui/ErrorState'
 import HomeResults from '../../home/components/HomeResults'
 import PaginationControls from '../../../components/ui/PaginationControls'
@@ -20,10 +20,7 @@ export default function HomePage() {
     <main className="min-h-screen overflow-hidden bg-[#071d32] text-white">
       <PageContainer size="wide" as="div" className="py-8 md:py-10">
         {loading ? (
-          <LoadingState
-            title="Loading boats"
-            text="We are fetching the latest boats for your search."
-          />
+          <BoatCardSkeletonGrid count={8} />
         ) : error ? (
           <ErrorState
             title="Could not load boats"

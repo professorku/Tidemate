@@ -1,10 +1,10 @@
 import {
-  CalendarDaysIcon,
   ExclamationTriangleIcon,
   LifebuoyIcon,
 } from '@heroicons/react/24/outline'
 import { Link } from 'react-router-dom'
 import HostBookingCard from './HostBookingCard'
+import { BookingCardSkeletonList } from '../../../components/ui/Skeleton'
 
 const EMPTY_STATE_CONTENT = {
   all: {
@@ -60,13 +60,7 @@ export default function HostBookingsResults({
   onRetry,
 }) {
   if (loading) {
-    return (
-      <PanelState
-        icon={<CalendarDaysIcon className="h-8 w-8 animate-pulse" />}
-        title="Loading host bookings"
-        text="We are fetching booking requests, confirmed trips, and cancellations."
-      />
-    )
+    return <BookingCardSkeletonList count={3} />
   }
 
   if (error) {

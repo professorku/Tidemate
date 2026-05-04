@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom'
 import PageContainer from '../../../components/layout/PageContainer'
 import ConfirmModal from '../../../components/ui/ConfirmModal'
 import PaginationControls from '../../../components/ui/PaginationControls'
+import { BoatCardSkeletonGrid } from '../../../components/ui/Skeleton'
 import MyBoatsGrid from '../../myBoats/components/MyBoatsGrid'
 import MyBoatsHero from '../../myBoats/components/MyBoatsHero'
 import useMyBoatsPageData from '../../myBoats/hooks/useMyBoatsPageData'
@@ -105,13 +106,7 @@ export default function MyBoatsPage() {
               </Link>
             </div>
 
-            {loading ? (
-              <PanelState
-                icon={<Squares2X2Icon className="h-8 w-8 animate-pulse" />}
-                title="Loading your boats"
-                text="We are pulling in your listings and preparing the management view."
-              />
-            ) : null}
+            {loading ? <BoatCardSkeletonGrid count={4} /> : null}
 
             {error ? (
               <PanelState

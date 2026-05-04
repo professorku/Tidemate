@@ -5,6 +5,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { Link } from 'react-router-dom'
 import ConversationCard from './ConversationCard'
+import { ConversationCardSkeletonList } from '../../../components/ui/Skeleton'
 
 function PanelState({ icon, title, text, children }) {
   return (
@@ -39,13 +40,7 @@ export default function MessagesResults({
   canDeleteConversation,
 }) {
   if (loading) {
-    return (
-      <PanelState
-        icon={<ChatBubbleLeftRightIcon className="h-8 w-8 animate-pulse" />}
-        title="Loading conversations"
-        text="We are fetching your latest booking chats and direct messages."
-      />
-    )
+    return <ConversationCardSkeletonList count={4} />
   }
 
   if (error) {
