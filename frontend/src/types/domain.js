@@ -34,7 +34,8 @@
  * @property {string|null} thumbnail
  * @property {ListingImage[]} images
  * @property {number|string|null} host_id
- * @property {boolean} is_favorite
+ * @property {boolean} is_favorited
+ * @property {number|string|null} favorite_id
  */
 
 /**
@@ -108,6 +109,18 @@ function normalizeLocationPrecision(value) {
   return 'unavailable'
 }
 
+function getFavoriteId(listing) {
+  return listing?.favorite_id ?? listing?.favorite?.id ?? null
+}
+
+function getIsFavorited(listing) {
+  return Boolean(
+    listing?.is_favorited ??
+    listing?.is_favorite ??
+    getFavoriteId(listing)
+  )
+}
+
 /** @returns {Listing} */
 export function normalizeListing(listing) {
   if (!listing || typeof listing !== 'object') {
@@ -133,12 +146,18 @@ export function normalizeListing(listing) {
       thumbnail: null,
       images: [],
       host_id: null,
-      is_favorite: false,
+      is_favorited: false,
+      favorite_id: null,
     }
   }
 
+  const {
+    is_favorite: _legacyIsFavorite,
+    ...restListing
+  } = listing
+
   return {
-    ...listing,
+    ...restListing,
     id: listing.id ?? null,
     title: listing.title ?? '',
     description: listing.description ?? '',
@@ -160,7 +179,8 @@ export function normalizeListing(listing) {
     thumbnail: listing.thumbnail ?? listing.image ?? null,
     images: Array.isArray(listing.images) ? listing.images.map(normalizeImage) : [],
     host_id: listing.host_id ?? listing.host?.id ?? null,
-    is_favorite: Boolean(listing.is_favorite),
+    favorite_id: getFavoriteId(listing),
+    is_favorited: getIsFavorited(listing),
   }
 }
 

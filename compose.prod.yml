@@ -36,6 +36,7 @@ services:
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:-tidemate}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-tidemate}
       REDIS_URL: redis://redis:6379/0
+      ENABLE_PLAIN_HTTP_HEALTHCHECK: "True"
     volumes:
       - backend-static:/app/staticfiles
       - backend-media:/app/media
