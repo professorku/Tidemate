@@ -7,19 +7,27 @@ import { useAuth } from '../../context/useAuth'
 import { createFavorite, deleteFavorite } from '../../api/domains/favorites'
 import { getErrorMessage } from '../../utils/errors'
 
+function getBoatFavoriteId(boat) {
+  return boat?.favorite_id ?? boat?.favorite?.id ?? null
+}
+
+function getBoatFavoriteState(boat) {
+  return Boolean(boat?.is_favorited || boat?.is_favorite || getBoatFavoriteId(boat))
+}
+
 export default function FavoriteButton({ boat, onFavoriteChange, className = '' }) {
   const navigate = useNavigate()
   const { showToast } = useToast()
   const { isAuthenticated, isAuthReady } = useAuth()
 
-  const [favorited, setFavorited] = useState(Boolean(boat.is_favorited))
-  const [favoriteId, setFavoriteId] = useState(boat.favorite_id ?? null)
+  const [favorited, setFavorited] = useState(getBoatFavoriteState(boat))
+  const [favoriteId, setFavoriteId] = useState(getBoatFavoriteId(boat))
   const [submitting, setSubmitting] = useState(false)
   const [animate, setAnimate] = useState(false)
 
   useEffect(() => {
-    setFavorited(Boolean(boat.is_favorited))
-    setFavoriteId(boat.favorite_id ?? null)
+    setFavorited(getBoatFavoriteState(boat))
+    setFavoriteId(getBoatFavoriteId(boat))
   }, [boat])
 
   const toggleFavorite = async (e) => {
@@ -49,23 +57,26 @@ export default function FavoriteButton({ boat, onFavoriteChange, className = '' 
 
     try {
       if (favorited) {
-        await deleteFavorite(favoriteId)
+        const removedFavoriteId = favoriteId
+
+        await deleteFavorite(removedFavoriteId)
 
         setFavorited(false)
         setFavoriteId(null)
 
         // Callback format:
-        // onFavoriteChange(boatId, isFavorite)
-        onFavoriteChange?.(boat.id, false)
+        // onFavoriteChange(boatId, isFavorite, favoriteId, favorite)
+        onFavoriteChange?.(boat.id, false, null, { id: removedFavoriteId })
       } else {
         const favorite = await createFavorite(boat.id)
+        const nextFavoriteId = favorite?.id ?? favorite?.favorite_id ?? null
 
         setFavorited(true)
-        setFavoriteId(favorite.id)
+        setFavoriteId(nextFavoriteId)
 
         // Callback format:
-        // onFavoriteChange(boatId, isFavorite)
-        onFavoriteChange?.(boat.id, true)
+        // onFavoriteChange(boatId, isFavorite, favoriteId, favorite)
+        onFavoriteChange?.(boat.id, true, nextFavoriteId, favorite)
       }
 
       setAnimate(true)

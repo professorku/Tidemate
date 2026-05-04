@@ -58,7 +58,7 @@ export default function useBoatDetailPage(id) {
     }
   }, [isAuthenticated, refreshReviewableBookings])
 
-  const handleFavoriteChange = useCallback((boatId, isFavorite) => {
+  const handleFavoriteChange = useCallback((boatId, isFavorite, favoriteId = null) => {
     setBoat((currentBoat) => {
       if (!currentBoat || Number(currentBoat.id) !== Number(boatId)) {
         return currentBoat
@@ -67,7 +67,8 @@ export default function useBoatDetailPage(id) {
       return {
         ...currentBoat,
         is_favorited: isFavorite,
-        favorite_id: isFavorite ? currentBoat.favorite_id : null,
+        is_favorite: isFavorite,
+        favorite_id: isFavorite ? favoriteId ?? currentBoat.favorite_id ?? null : null,
       }
     })
   }, [])
