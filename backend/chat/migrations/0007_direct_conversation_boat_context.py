@@ -30,16 +30,16 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name='conversation',
             constraint=models.UniqueConstraint(
-                condition=Q(('conversation_type', 'direct'), ('boat__isnull', True)),
-                fields=('conversation_type', 'direct_user_low', 'direct_user_high'),
+                fields=['conversation_type', 'direct_user_low', 'direct_user_high'],
+                condition=Q(conversation_type='direct', boat__isnull=True),
                 name='unique_direct_conversation_participants_no_boat',
             ),
         ),
         migrations.AddConstraint(
             model_name='conversation',
             constraint=models.UniqueConstraint(
-                condition=Q(('conversation_type', 'direct'), ('boat__isnull', False)),
-                fields=('conversation_type', 'direct_user_low', 'direct_user_high', 'boat'),
+                fields=['conversation_type', 'direct_user_low', 'direct_user_high', 'boat'],
+                condition=Q(conversation_type='direct', boat__isnull=False),
                 name='unique_direct_conversation_participants_boat',
             ),
         ),
