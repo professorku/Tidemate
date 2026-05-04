@@ -11,6 +11,7 @@ import NotificationBell from './NotificationBell'
 import UserMenu from './UserMenu'
 import { useNavbar } from '../hooks/useNavbar'
 import { useAuth } from '../../../context/useAuth'
+import { preloadRoute } from '../../../routes/lazyPages'
 
 function NavbarMarketplaceFilters({ onClose }) {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -74,6 +75,8 @@ export default function Navbar() {
         <Link
           to="/"
           className="flex shrink-0 items-center gap-2.5 text-xl font-bold text-white"
+          onMouseEnter={() => preloadRoute('home')}
+          onFocus={() => preloadRoute('home')}
         >
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gold text-base text-navy">
             ⚓
@@ -107,6 +110,8 @@ export default function Navbar() {
               <Link
                 to="/add-boat"
                 className="hidden rounded-full bg-gold px-4 py-2 text-sm font-semibold text-navy transition hover:brightness-95 md:inline-flex"
+                onMouseEnter={() => preloadRoute('addBoat')}
+                onFocus={() => preloadRoute('addBoat')}
               >
                 Add boat
               </Link>
@@ -118,6 +123,8 @@ export default function Navbar() {
               <Link
                 to="/login"
                 className="rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+                onMouseEnter={() => preloadRoute('login')}
+                onFocus={() => preloadRoute('login')}
               >
                 Log in
               </Link>
@@ -125,6 +132,8 @@ export default function Navbar() {
               <Link
                 to="/signup"
                 className="rounded-full bg-gold px-4 py-2 text-sm font-semibold text-navy transition hover:brightness-95"
+                onMouseEnter={() => preloadRoute('signup')}
+                onFocus={() => preloadRoute('signup')}
               >
                 Sign up
               </Link>

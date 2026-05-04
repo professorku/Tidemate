@@ -6,6 +6,7 @@ import {
   UserCircleIcon,
 } from '@heroicons/react/24/outline'
 import { useAuth } from '../../../context/useAuth'
+import { preloadRoute } from '../../../routes/lazyPages'
 
 export default function UserMenu() {
   const { user, logout } = useAuth()
@@ -57,6 +58,8 @@ export default function UserMenu() {
             to="/profile"
             className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-white transition hover:bg-white/10"
             onClick={() => setOpen(false)}
+            onMouseEnter={() => preloadRoute('profile')}
+            onFocus={() => preloadRoute('profile')}
           >
             <UserCircleIcon className="h-5 w-5 text-gold" />
             {user?.username ? `${user.username}'s profile` : 'My profile'}
@@ -68,6 +71,8 @@ export default function UserMenu() {
             to="/my-bookings"
             className={navLinkClass}
             onClick={() => setOpen(false)}
+            onMouseEnter={() => preloadRoute('myBookings')}
+            onFocus={() => preloadRoute('myBookings')}
           >
             My bookings
           </Link>
@@ -77,6 +82,8 @@ export default function UserMenu() {
               to="/host-bookings"
               className={navLinkClass}
               onClick={() => setOpen(false)}
+              onMouseEnter={() => preloadRoute('hostBookings')}
+              onFocus={() => preloadRoute('hostBookings')}
             >
               Host bookings
             </Link>
@@ -88,6 +95,8 @@ export default function UserMenu() {
             to="/messages"
             className={navLinkClass}
             onClick={() => setOpen(false)}
+            onMouseEnter={() => preloadRoute('messages')}
+            onFocus={() => preloadRoute('messages')}
           >
             Messages
           </Link>
@@ -96,6 +105,8 @@ export default function UserMenu() {
             to="/favorites"
             className={navLinkClass}
             onClick={() => setOpen(false)}
+            onMouseEnter={() => preloadRoute('favorites')}
+            onFocus={() => preloadRoute('favorites')}
           >
             Favorites
           </Link>
@@ -104,6 +115,8 @@ export default function UserMenu() {
             to="/my-boats"
             className={navLinkClass}
             onClick={() => setOpen(false)}
+            onMouseEnter={() => preloadRoute('myBoats')}
+            onFocus={() => preloadRoute('myBoats')}
           >
             My boats
           </Link>
@@ -112,6 +125,8 @@ export default function UserMenu() {
             to="/add-boat"
             className="block rounded-lg px-3 py-2.5 text-sm font-medium text-gold transition hover:bg-white/10 md:hidden"
             onClick={() => setOpen(false)}
+            onMouseEnter={() => preloadRoute('addBoat')}
+            onFocus={() => preloadRoute('addBoat')}
           >
             Add boat
           </Link>
