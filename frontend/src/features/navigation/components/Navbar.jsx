@@ -7,6 +7,7 @@ import {
   initialHomeFilters,
 } from '../../home/utils/listingSearchParams'
 import DesktopSearch from './DesktopSearch'
+import MobileSearch from './MobileSearch'
 import NotificationBell from './NotificationBell'
 import UserMenu from './UserMenu'
 import { useNavbar } from '../hooks/useNavbar'
@@ -71,17 +72,17 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-[2000] border-b border-navy/60 bg-navy text-white shadow-md">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 md:px-6">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3 md:gap-3 md:px-6">
         <Link
           to="/"
-          className="flex shrink-0 items-center gap-2.5 text-xl font-bold text-white"
+          className="flex min-w-0 shrink-0 items-center gap-2.5 text-xl font-bold text-white"
           onMouseEnter={() => preloadRoute('home')}
           onFocus={() => preloadRoute('home')}
         >
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gold text-base text-navy">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold text-base text-navy">
             ⚓
           </div>
-          TideMate
+          <span className="truncate">TideMate</span>
         </Link>
 
         <DesktopSearch
@@ -102,7 +103,9 @@ export default function Navbar() {
           <NavbarMarketplaceFilters onClose={closeFilters} />
         </DesktopSearch>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
+          <MobileSearch />
+
           {!loading && isAuthenticated ? (
             <>
               <NotificationBell />
@@ -122,7 +125,7 @@ export default function Navbar() {
             <>
               <Link
                 to="/login"
-                className="rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+                className="rounded-full border border-white/20 px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/10 sm:px-4"
                 onMouseEnter={() => preloadRoute('login')}
                 onFocus={() => preloadRoute('login')}
               >
@@ -131,7 +134,7 @@ export default function Navbar() {
 
               <Link
                 to="/signup"
-                className="rounded-full bg-gold px-4 py-2 text-sm font-semibold text-navy transition hover:brightness-95"
+                className="rounded-full bg-gold px-3 py-2 text-sm font-semibold text-navy transition hover:brightness-95 sm:px-4"
                 onMouseEnter={() => preloadRoute('signup')}
                 onFocus={() => preloadRoute('signup')}
               >

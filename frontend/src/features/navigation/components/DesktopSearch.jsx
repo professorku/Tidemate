@@ -27,7 +27,7 @@ export default function DesktopSearch({
   const shouldShowExtraFields =
     searchExpanded || Boolean(boatType || startDate || endDate)
 
-  const shouldShowFilterButton = hasMarketplaceSearch || filtersOpen
+  const shouldShowFilterButton = searchExpanded || hasMarketplaceSearch || filtersOpen
 
   const closeDates = () => {
     setDatesOpen(false)
