@@ -7,6 +7,24 @@ from django.dispatch import receiver
 MAX_PROFILE_BIO_LENGTH = 1000
 
 
+class DeviceSession(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="device_sessions")
+    refresh_token_hash = models.CharField(max_length=64, unique=True, db_index=True)
+    device_label = models.CharField(max_length=255, blank=True)
+    user_agent = models.TextField(blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_used_at = models.DateTimeField(auto_now=True)
+    expires_at = models.DateTimeField()
+    revoked_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-last_used_at", "-id"]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.device_label or 'unknown device'}"
+
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     bio = models.CharField(max_length=MAX_PROFILE_BIO_LENGTH, blank=True)
@@ -36,6 +54,3 @@ class Profile(models.Model):
 @receiver(post_save, sender=User)
 def create_or_update_user_profile(sender, instance, created, **kwargs):
     Profile.objects.get_or_create(user=instance)
-
-
-from .device_tracking import DeviceSession

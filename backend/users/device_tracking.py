@@ -3,28 +3,10 @@ import hmac
 from datetime import timedelta
 
 from django.conf import settings
-from django.contrib.auth.models import User
-from django.db import models
 from django.db.models import Q
 from django.utils import timezone
 
-
-class DeviceSession(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="device_sessions")
-    refresh_token_hash = models.CharField(max_length=64, unique=True, db_index=True)
-    device_label = models.CharField(max_length=255, blank=True)
-    user_agent = models.TextField(blank=True)
-    ip_address = models.GenericIPAddressField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    last_used_at = models.DateTimeField(auto_now=True)
-    expires_at = models.DateTimeField()
-    revoked_at = models.DateTimeField(null=True, blank=True)
-
-    class Meta:
-        ordering = ["-last_used_at", "-id"]
-
-    def __str__(self):
-        return f"{self.user.username} - {self.device_label or 'unknown device'}"
+from .models import DeviceSession
 
 
 def hash_token(token: str) -> str:

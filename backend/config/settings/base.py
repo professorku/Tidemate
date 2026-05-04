@@ -286,25 +286,6 @@ WEBSOCKET_ALLOWED_ORIGINS = env_list(
 )
 
 CSP_ENABLED = env_bool("CSP_ENABLED", IS_PRODUCTION_SETTINGS)
-CSP_REPORT_ONLY = env_bool("CSP_REPORT_ONLY", False)
-CSP_CONNECT_SRC_EXTRA = env_list("CSP_CONNECT_SRC_EXTRA", "")
-CSP_IMG_SRC_EXTRA = env_list("CSP_IMG_SRC_EXTRA", "")
-CSP_FRAME_SRC_EXTRA = env_list("CSP_FRAME_SRC_EXTRA", "")
-
-CSP_ENABLED = env_bool("CSP_ENABLED", IS_PRODUCTION_SETTINGS)
-
-# Useful when testing CSP changes in production:
-# True  = browser reports violations but does not block them
-# False = browser blocks violations
-CSP_REPORT_ONLY = env_bool("CSP_REPORT_ONLY", False)
-
-CSP_SCRIPT_SRC_EXTRA = env_list("CSP_SCRIPT_SRC_EXTRA", "")
-CSP_STYLE_SRC_EXTRA = env_list("CSP_STYLE_SRC_EXTRA", "")
-CSP_CONNECT_SRC_EXTRA = env_list("CSP_CONNECT_SRC_EXTRA", "")
-CSP_IMG_SRC_EXTRA = env_list("CSP_IMG_SRC_EXTRA", "")
-CSP_FRAME_SRC_EXTRA = env_list("CSP_FRAME_SRC_EXTRA", "")
-
-CSP_ENABLED = env_bool("CSP_ENABLED", IS_PRODUCTION_SETTINGS)
 
 # Useful when testing CSP changes in production:
 # True  = browser reports violations but does not block them
