@@ -1,7 +1,11 @@
 from decimal import Decimal, InvalidOperation
 
 from django.conf import settings
+from django.utils import timezone
+from django.utils.dateparse import parse_date
 from rest_framework.exceptions import ValidationError
+
+from config.booking_policy import MAX_BOOKING_DURATION_DAYS
 
 
 MAX_LISTING_SEARCH_QUERY_LENGTH = 100
@@ -121,6 +125,74 @@ def parse_search_query_param(params):
     return q
 
 
+def parse_date_param(params, key):
+    raw_value = _clean_raw_value(params.get(key))
+    if raw_value is None:
+        return None
+
+    value = parse_date(str(raw_value))
+
+    if value is None:
+        raise ValidationError({
+            key: "Enter a valid date in YYYY-MM-DD format."
+        })
+
+    return value
+
+
+def parse_availability_date_range_params(params):
+    """
+    Parse listing availability search dates.
+
+    Dates use the same half-open range as bookings:
+
+        [start_date, end_date)
+
+    This means a booking ending on June 10 does not block a new search that starts
+    on June 10.
+    """
+    start_date = parse_date_param(params, "start_date")
+    end_date = parse_date_param(params, "end_date")
+
+    if start_date is None and end_date is None:
+        return {
+            "start_date": None,
+            "end_date": None,
+        }
+
+    if start_date is None:
+        raise ValidationError({
+            "start_date": "This parameter is required when using end_date."
+        })
+
+    if end_date is None:
+        raise ValidationError({
+            "end_date": "This parameter is required when using start_date."
+        })
+
+    if end_date <= start_date:
+        raise ValidationError({
+            "end_date": "Return date must be after the pickup date."
+        })
+
+    if start_date < timezone.localdate():
+        raise ValidationError({
+            "start_date": "Pickup date cannot be in the past."
+        })
+
+    duration_days = (end_date - start_date).days
+
+    if duration_days > MAX_BOOKING_DURATION_DAYS:
+        raise ValidationError({
+            "end_date": f"Bookings cannot be longer than {MAX_BOOKING_DURATION_DAYS} days."
+        })
+
+    return {
+        "start_date": start_date,
+        "end_date": end_date,
+    }
+
+
 def parse_basic_search_params(params, allowed_boat_types):
     min_guests = parse_positive_int_param(params, "min_guests")
     min_price = parse_non_negative_decimal_param(params, "min_price")
@@ -128,6 +200,7 @@ def parse_basic_search_params(params, allowed_boat_types):
     exclude_id = parse_positive_int_param(params, "exclude_id")
     host_id = parse_positive_int_param(params, "host_id")
     boat_type = parse_choice_param(params, "boat_type", allowed_boat_types)
+    availability_dates = parse_availability_date_range_params(params)
 
     if min_price is not None and max_price is not None and max_price < min_price:
         raise ValidationError({
@@ -144,6 +217,8 @@ def parse_basic_search_params(params, allowed_boat_types):
         "max_price": max_price,
         "exclude_id": exclude_id,
         "host_id": host_id,
+        "start_date": availability_dates["start_date"],
+        "end_date": availability_dates["end_date"],
     }
 
 

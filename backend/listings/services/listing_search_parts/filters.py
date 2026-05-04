@@ -1,9 +1,30 @@
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q
 
+from bookings.expiry import active_booking_filter
+from bookings.models import Booking
 from listings.models import BoatListing
 
 from .geometry import get_bounding_box
 from .parsing import parse_basic_search_params
+
+
+def apply_availability_filter(queryset, start_date, end_date):
+  
+    if start_date is None or end_date is None:
+        return queryset
+
+    overlapping_bookings = Booking.objects.filter(
+        active_booking_filter(),
+        boat=OuterRef("pk"),
+        start_date__lt=end_date,
+        end_date__gt=start_date,
+    )
+
+    return queryset.annotate(
+        has_overlapping_booking=Exists(overlapping_bookings),
+    ).filter(
+        has_overlapping_booking=False,
+    )
 
 
 def apply_basic_filters(queryset, params):
@@ -17,6 +38,8 @@ def apply_basic_filters(queryset, params):
     max_price = parsed_params["max_price"]
     exclude_id = parsed_params["exclude_id"]
     host_id = parsed_params["host_id"]
+    start_date = parsed_params["start_date"]
+    end_date = parsed_params["end_date"]
 
     if q:
         queryset = queryset.filter(
@@ -40,6 +63,12 @@ def apply_basic_filters(queryset, params):
 
     if host_id is not None:
         queryset = queryset.filter(host_id=host_id)
+
+    queryset = apply_availability_filter(
+        queryset=queryset,
+        start_date=start_date,
+        end_date=end_date,
+    )
 
     return queryset
 
