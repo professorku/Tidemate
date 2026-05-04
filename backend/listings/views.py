@@ -37,7 +37,15 @@ logger = logging.getLogger(__name__)
 class BoatListCreateView(generics.ListCreateAPIView):
     pagination_class = ListingsPagination
     parser_classes = [MultiPartParser, FormParser, JSONParser]
-    throttle_classes = [ListingWriteRateThrottle, PublicListingsAnonRateThrottle]
+
+    def get_throttles(self):
+        if self.request.method == "POST":
+            return [ListingWriteRateThrottle()]
+
+        if self.request.method in ("GET", "HEAD", "OPTIONS"):
+            return [PublicListingsAnonRateThrottle()]
+
+        return super().get_throttles()
 
     def get_serializer_class(self):
         if self.request.method == "POST":
