@@ -24,6 +24,10 @@ The project was built as a **personal portfolio project** with a focus on practi
   - [WebSocket Setup](#websocket-setup)
 - [Environment Files](#environment-files)
 - [Running Checks and Tests](#running-checks-and-tests)
+- [Production Deployment Notes](#production-deployment-notes)
+  - [HTTPS and Reverse Proxy Assumptions](#https-and-reverse-proxy-assumptions)
+  - [Production Docker Compose Assumptions](#production-docker-compose-assumptions)
+  - [Example HTTPS Reverse Proxy Shape](#example-https-reverse-proxy-shape)
 - [Production Checklist](#production-checklist)
 - [Known Limitations](#known-limitations)
 - [What This Project Demonstrates](#what-this-project-demonstrates)
@@ -115,6 +119,7 @@ The goal is not only to show that the app works, but also to demonstrate how a f
 - Client-side image validation before upload
 - Server-side image validation and sanitization
 - Search and filtering
+- Availability-aware listing search with `start_date` and `end_date`
 - Map/location support
 - Public listing pages
 - Host-only listing management
@@ -127,6 +132,7 @@ The goal is not only to show that the app works, but also to demonstrate how a f
 - Booking detail pages
 - Protection against invalid booking actions
 - Host and renter booking views
+- Overlap protection for active booking states
 
 ### Marketplace UX
 
@@ -137,6 +143,8 @@ The goal is not only to show that the app works, but also to demonstrate how a f
 - Booking-related conversations
 - Real-time notifications
 - Responsive UI
+- Mobile search and filter drawer
+- Desktop and mobile end-to-end smoke coverage
 
 ### Location Features
 
@@ -424,6 +432,12 @@ cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
 ```
 
+For production Compose deployments, use the root production example:
+
+```bash
+cp .env.production.example .env.production
+```
+
 Real secrets should never be committed.
 
 Before sharing or submitting the project, check that private/local files are not included:
@@ -480,6 +494,7 @@ npm install
 npm run lint
 npm test
 npm run build
+npm run e2e
 ```
 
 Optional dependency/security checks:
@@ -488,6 +503,179 @@ Optional dependency/security checks:
 pip-audit
 npm audit
 ```
+
+---
+
+## Production Deployment Notes
+
+This repository includes production-oriented settings and Docker files, but it does **not** include a complete public HTTPS edge deployment by itself.
+
+The production setup assumes that TideMate is deployed behind a proper HTTPS reverse proxy, load balancer, platform router, or CDN edge.
+
+Examples include:
+
+- Nginx with Certbot/Let’s Encrypt
+- Caddy
+- Traefik
+- Cloudflare Tunnel or Cloudflare proxy
+- Render/Fly.io/Railway/Heroku-style platform routing
+- AWS/GCP/Azure load balancer with TLS termination
+
+### HTTPS and Reverse Proxy Assumptions
+
+In production, browser traffic should use:
+
+```text
+https://your-domain.com
+wss://your-domain.com/ws/...
+```
+
+The Django production settings assume HTTPS is active at the public edge.
+
+Important production security settings include:
+
+```text
+SECURE_SSL_REDIRECT=True
+SESSION_COOKIE_SECURE=True
+CSRF_COOKIE_SECURE=True
+SECURE_HSTS_SECONDS=31536000
+SECURE_PROXY_SSL_HEADER=("HTTP_X_FORWARDED_PROTO", "https")
+```
+
+Because `SECURE_PROXY_SSL_HEADER` is enabled, the HTTPS reverse proxy must forward this header to Django:
+
+```text
+X-Forwarded-Proto: https
+```
+
+If this header is missing or incorrect, Django may think the request is plain HTTP and repeatedly redirect, reject secure-cookie flows, or behave incorrectly behind the proxy.
+
+The reverse proxy should also preserve the host and client forwarding headers:
+
+```text
+Host
+X-Forwarded-For
+X-Forwarded-Proto
+X-Real-IP
+```
+
+For WebSockets, the reverse proxy must also support protocol upgrades:
+
+```text
+Upgrade
+Connection
+```
+
+The public production environment values should use HTTPS origins:
+
+```env
+ALLOWED_HOSTS=your-domain.com,www.your-domain.com
+CORS_ALLOWED_ORIGINS=https://your-domain.com,https://www.your-domain.com
+CSRF_TRUSTED_ORIGINS=https://your-domain.com,https://www.your-domain.com
+WEBSOCKET_ALLOWED_ORIGINS=https://your-domain.com,https://www.your-domain.com
+FRONTEND_URL=https://your-domain.com
+BACKEND_URL=https://your-domain.com
+JWT_ACCESS_COOKIE_SECURE=True
+JWT_REFRESH_COOKIE_SECURE=True
+```
+
+Do **not** use plain `http://` origins for a real production deployment.
+
+### Production Docker Compose Assumptions
+
+`compose.prod.yml` is production-oriented, but it should not be understood as a complete public TLS setup.
+
+The included frontend container listens on port `80`:
+
+```text
+host:80 -> frontend nginx container
+```
+
+That is acceptable only when one of these is true:
+
+1. the host/container is behind a separate HTTPS-terminating reverse proxy or load balancer, or
+2. the compose file is being used for internal testing, staging, or private network deployment.
+
+For a real public deployment, do not expose TideMate as plain HTTP. Put an HTTPS layer in front of it.
+
+The internal backend healthcheck uses plain HTTP against the local container:
+
+```text
+http://127.0.0.1:8000/api/users/health/
+```
+
+This is intentional. The healthcheck is internal to Docker and does not mean the public app should accept plain HTTP traffic.
+
+The production compose file sets:
+
+```env
+ENABLE_PLAIN_HTTP_HEALTHCHECK=True
+```
+
+so Django can allow that internal healthcheck without fighting the production `SECURE_SSL_REDIRECT` setting.
+
+### Example HTTPS Reverse Proxy Shape
+
+A typical production request path should look like this:
+
+```text
+Browser
+  |
+  | HTTPS / WSS
+  v
+Public reverse proxy or platform load balancer
+  |
+  | HTTP inside private network
+  | X-Forwarded-Proto: https
+  v
+frontend nginx container
+  |
+  | /api/* and /ws/* proxied internally
+  v
+Django ASGI backend container
+```
+
+A simplified Nginx-style HTTPS edge would need to do roughly this:
+
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name your-domain.com www.your-domain.com;
+
+    ssl_certificate /etc/letsencrypt/live/your-domain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
+
+    location / {
+        proxy_pass http://127.0.0.1:80;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+}
+
+server {
+    listen 80;
+    server_name your-domain.com www.your-domain.com;
+    return 301 https://$host$request_uri;
+}
+```
+
+If the HTTPS edge proxies `/ws/` directly to the Django ASGI server instead of through the frontend nginx container, it must include WebSocket upgrade headers:
+
+```nginx
+location /ws/ {
+    proxy_pass http://127.0.0.1:8000;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+```
+
+The exact production configuration depends on the hosting provider, but the important assumption is the same: external users should reach TideMate over HTTPS, and Django must receive the forwarded HTTPS information from the proxy.
 
 ---
 
@@ -504,6 +692,9 @@ TideMate should not be treated as a real public marketplace until the production
 - Configure CORS allowed origins.
 - Configure CSRF trusted origins.
 - Use HTTPS only.
+- Place the app behind a reverse proxy or platform router that terminates TLS.
+- Forward `X-Forwarded-Proto: https` to Django.
+- Ensure WebSocket traffic uses `wss://` publicly.
 - Enable secure cookies.
 - Enable HSTS only after HTTPS is confirmed working.
 - Use Redis for Django Channels.
