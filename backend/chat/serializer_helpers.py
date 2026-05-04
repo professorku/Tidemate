@@ -50,6 +50,14 @@ class ConversationRepresentationMixin:
 
         return None
 
+    def get_boat_thumbnail(self, obj):
+        boat = self._get_boat(obj)
+
+        if boat and boat.thumbnail:
+            return self._build_media_url(boat.thumbnail)
+
+        return self.get_boat_image(obj)
+
     def get_host_avatar(self, obj):
         return self._build_avatar_url(obj.host)
 

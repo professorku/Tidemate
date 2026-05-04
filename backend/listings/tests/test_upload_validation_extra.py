@@ -223,6 +223,7 @@ class BoatListingApiUploadValidationRegressionTests(APITestCase):
         image = boat.images.get()
 
         self.assertTrue(image.image.name.endswith("_optimized.webp"))
+        self.assertTrue(image.thumbnail.name.endswith("_optimized_thumb.webp"))
         self.assertTrue(image.is_cover)
         self.assertEqual(BoatImage.objects.count(), 1)
 

@@ -11,7 +11,7 @@ export default function BoatCardImage({ boat, imageCount }) {
     <div className="relative h-44 overflow-hidden rounded-3xl bg-[#071d32]">
       {boat.image ? (
         <img
-          src={boat.image}
+          src={boat.thumbnail || boat.image}
           alt={boat.title}
           loading="lazy"
           decoding="async"

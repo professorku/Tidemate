@@ -9,6 +9,7 @@ BOOKING_READ_ONLY_FIELDS = [
     'public_id',
     'boat_title',
     'boat_image',
+    'boat_thumbnail',
     'boat_location',
     'boat_type',
     'boat_guests',
@@ -62,6 +63,7 @@ class BookingReadSerializer(BookingRepresentationMixin, serializers.ModelSeriali
 
     boat_title = serializers.CharField(source='boat.title', read_only=True)
     boat_image = serializers.SerializerMethodField()
+    boat_thumbnail = serializers.SerializerMethodField()
     boat_location = serializers.CharField(source='boat.location_name', read_only=True)
     boat_type = serializers.CharField(source='boat.boat_type', read_only=True)
     boat_guests = serializers.IntegerField(source='boat.guests', read_only=True)
@@ -111,6 +113,7 @@ class BookingReadSerializer(BookingRepresentationMixin, serializers.ModelSeriali
             'boat',
             'boat_title',
             'boat_image',
+            'boat_thumbnail',
             'boat_location',
             'boat_type',
             'boat_guests',

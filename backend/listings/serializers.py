@@ -5,6 +5,7 @@ from config.booking_policy import build_booking_policy, build_cancellation_polic
 from config.uploads import (
     MAX_BOAT_IMAGE_COUNT,
     MAX_BOAT_IMAGE_SIZE_BYTES,
+    create_image_thumbnail,
     validate_image_upload_list,
 )
 
@@ -40,10 +41,11 @@ from .services.location_privacy import (
 
 class BoatImageSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
+    thumbnail = serializers.SerializerMethodField()
 
     class Meta:
         model = BoatImage
-        fields = ['id', 'image', 'is_cover', 'sort_order']
+        fields = ['id', 'image', 'thumbnail', 'is_cover', 'sort_order']
         read_only_fields = ['id']
 
     def get_image(self, obj):
@@ -51,6 +53,15 @@ class BoatImageSerializer(serializers.ModelSerializer):
             return None
 
         return obj.image.url
+
+    def get_thumbnail(self, obj):
+        if obj.thumbnail:
+            return obj.thumbnail.url
+
+        if obj.image:
+            return obj.image.url
+
+        return None
 
 
 class BoatListingReadMethodsMixin:
@@ -107,6 +118,17 @@ class BoatListingReadMethodsMixin:
 
         return image.url
 
+    def get_thumbnail(self, obj):
+        thumbnail = obj.thumbnail
+        if thumbnail:
+            return thumbnail.url
+
+        image = obj.image
+        if image:
+            return image.url
+
+        return None
+
     def get_rental_policy(self, obj):
         return build_booking_policy()
 
@@ -131,6 +153,7 @@ class BoatListingReadMixin(BoatListingReadMethodsMixin, serializers.Serializer):
     host_id = serializers.IntegerField(source='host.id', read_only=True)
 
     image = serializers.SerializerMethodField()
+    thumbnail = serializers.SerializerMethodField()
     images = BoatImageSerializer(many=True, read_only=True)
 
     blocked_ranges = serializers.SerializerMethodField()
@@ -177,6 +200,7 @@ class BoatListingPublicSerializer(BoatListingReadMixin, serializers.ModelSeriali
             'guests',
             'price_per_day',
             'image',
+            'thumbnail',
             'images',
             'host_id',
             'host_name',
@@ -214,6 +238,7 @@ class BoatListingOwnerSerializer(BoatListingReadMixin, serializers.ModelSerializ
             'guests',
             'price_per_day',
             'image',
+            'thumbnail',
             'images',
             'host_id',
             'host_name',
@@ -487,6 +512,7 @@ class BoatListingWriteMixin(serializers.Serializer):
             image = BoatImage.objects.create(
                 boat=boat,
                 image=image_file,
+                thumbnail=create_image_thumbnail(image_file),
                 is_cover=False,
                 sort_order=idx,
             )
@@ -530,6 +556,7 @@ class BoatListingWriteMixin(serializers.Serializer):
             image = BoatImage.objects.create(
                 boat=instance,
                 image=image_file,
+                thumbnail=create_image_thumbnail(image_file),
                 is_cover=False,
                 sort_order=next_sort,
             )
@@ -585,6 +612,7 @@ class BoatListingOwnerWriteSerializer(
     host_id = serializers.IntegerField(source='host.id', read_only=True)
 
     image = serializers.SerializerMethodField()
+    thumbnail = serializers.SerializerMethodField()
     images = BoatImageSerializer(many=True, read_only=True)
 
     blocked_ranges = serializers.SerializerMethodField()
@@ -623,6 +651,7 @@ class BoatListingOwnerWriteSerializer(
             'guests',
             'price_per_day',
             'image',
+            'thumbnail',
             'images',
             'host_id',
             'host_name',
@@ -641,6 +670,7 @@ class BoatListingOwnerWriteSerializer(
         read_only_fields = [
             'id',
             'image',
+            'thumbnail',
             'images',
             'host_id',
             'host_name',

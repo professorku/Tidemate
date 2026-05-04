@@ -48,9 +48,9 @@ export default function PublicProfileBoats({ boats, profile }) {
                 className="group overflow-hidden rounded-[26px] border border-white/15 bg-white/10 shadow-sm transition hover:-translate-y-1 hover:border-gold/30 hover:bg-white/15 hover:shadow-lg"
               >
                 <div className="h-48 overflow-hidden bg-[#071d32]">
-                  {boat.image ? (
+                  {(boat.thumbnail || boat.image) ? (
                     <img
-                      src={boat.image}
+                      src={boat.thumbnail || boat.image}
                       alt={boat.title}
                       className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
                     />

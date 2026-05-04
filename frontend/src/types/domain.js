@@ -7,6 +7,7 @@
  * @typedef {Object} ListingImage
  * @property {number|string|null} id
  * @property {string|null} image
+ * @property {string|null} thumbnail
  * @property {boolean} is_cover
  */
 
@@ -29,6 +30,8 @@
  * @property {string} location_disclosure_message
  * @property {number|null} guests
  * @property {number|null} price_per_day
+ * @property {string|null} image
+ * @property {string|null} thumbnail
  * @property {ListingImage[]} images
  * @property {number|string|null} host_id
  * @property {boolean} is_favorite
@@ -86,12 +89,13 @@ function toNumberOrNull(value) {
 
 function normalizeImage(image) {
   if (!image || typeof image !== 'object') {
-    return { id: null, image: null, is_cover: false }
+    return { id: null, image: null, thumbnail: null, is_cover: false }
   }
 
   return {
     id: image.id ?? null,
     image: image.image ?? image.url ?? null,
+    thumbnail: image.thumbnail ?? image.image ?? image.url ?? null,
     is_cover: Boolean(image.is_cover),
   }
 }
@@ -125,6 +129,8 @@ export function normalizeListing(listing) {
       location_disclosure_message: '',
       guests: null,
       price_per_day: null,
+      image: null,
+      thumbnail: null,
       images: [],
       host_id: null,
       is_favorite: false,
@@ -150,6 +156,8 @@ export function normalizeListing(listing) {
     location_disclosure_message: listing.location_disclosure_message ?? '',
     guests: toNumberOrNull(listing.guests),
     price_per_day: toNumberOrNull(listing.price_per_day),
+    image: listing.image ?? null,
+    thumbnail: listing.thumbnail ?? listing.image ?? null,
     images: Array.isArray(listing.images) ? listing.images.map(normalizeImage) : [],
     host_id: listing.host_id ?? listing.host?.id ?? null,
     is_favorite: Boolean(listing.is_favorite),

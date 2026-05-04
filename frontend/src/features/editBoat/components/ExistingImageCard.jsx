@@ -15,7 +15,7 @@ export default function ExistingImageCard({
     >
       <div className="relative h-48 bg-[#071d32]">
         <img
-          src={image.image}
+          src={image.thumbnail || image.image}
           alt="Boat"
           loading="lazy"
           decoding="async"

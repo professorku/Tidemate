@@ -179,6 +179,11 @@ class BookingRepresentationMixin(BookingReviewMixin):
             return self._build_media_url(obj.boat.image)
         return None
 
+    def get_boat_thumbnail(self, obj):
+        if obj.boat and obj.boat.thumbnail:
+            return self._build_media_url(obj.boat.thumbnail)
+        return self.get_boat_image(obj)
+
     def get_renter_avatar(self, obj):
         profile = getattr(obj.renter, 'profile', None)
         if profile and profile.avatar:

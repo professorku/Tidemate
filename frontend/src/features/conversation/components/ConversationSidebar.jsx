@@ -31,9 +31,9 @@ export default function ConversationSidebar({ conversation, messages, tripState 
     <aside className="space-y-4 xl:sticky xl:top-24 xl:self-start">
       <div className="overflow-hidden rounded-[28px] border border-white/15 bg-navy text-white shadow-soft">
         <div className="relative h-52 overflow-hidden bg-[#071d32]">
-          {conversation.boat_image ? (
+          {(conversation.boat_thumbnail || conversation.boat_image) ? (
             <img
-              src={conversation.boat_image}
+              src={conversation.boat_thumbnail || conversation.boat_image}
               alt={conversation.boat_title || 'Boat'}
               className="h-full w-full object-cover"
             />

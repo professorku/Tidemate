@@ -174,10 +174,16 @@ class BoatListing(models.Model):
         cover_image = self.get_cover_image_obj()
         return cover_image.image if cover_image else None
 
+    @property
+    def thumbnail(self):
+        cover_image = self.get_cover_image_obj()
+        return cover_image.thumbnail if cover_image and cover_image.thumbnail else None
+
 
 class BoatImage(models.Model):
     boat = models.ForeignKey(BoatListing, on_delete=models.CASCADE, related_name='images')
     image = models.ImageField(upload_to='boats/gallery/')
+    thumbnail = models.ImageField(upload_to='boats/gallery/thumbnails/', blank=True)
     is_cover = models.BooleanField(default=False)
     sort_order = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
@@ -208,7 +214,9 @@ def _delete_boat_image_file_after_commit(file_field):
 
     def delete_file():
         try:
-            still_used = BoatImage.objects.filter(image=file_name).exists()
+            still_used = BoatImage.objects.filter(
+                Q(image=file_name) | Q(thumbnail=file_name)
+            ).exists()
 
             if still_used:
                 return
@@ -225,6 +233,7 @@ def _delete_boat_image_file_after_commit(file_field):
 @receiver(post_delete, sender=BoatImage)
 def delete_boat_image_file_on_row_delete(sender, instance, **kwargs):
     _delete_boat_image_file_after_commit(instance.image)
+    _delete_boat_image_file_after_commit(instance.thumbnail)
 
 
 @receiver(pre_save, sender=BoatImage)
@@ -233,7 +242,7 @@ def delete_old_boat_image_file_on_replacement(sender, instance, **kwargs):
         return
 
     try:
-        old_instance = BoatImage.objects.only('image').get(pk=instance.pk)
+        old_instance = BoatImage.objects.only('image', 'thumbnail').get(pk=instance.pk)
     except BoatImage.DoesNotExist:
         return
 

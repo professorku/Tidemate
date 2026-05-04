@@ -9,9 +9,9 @@ import { getBookingReference } from '../../../../utils/bookingReference'
 export default function HostBookingImagePanel({ booking, timelineStatus }) {
   return (
     <div className="relative min-h-[250px] bg-navy">
-      {booking.boat_image ? (
+      {(booking.boat_thumbnail || booking.boat_image) ? (
         <img
-          src={booking.boat_image}
+          src={booking.boat_thumbnail || booking.boat_image}
           alt={booking.boat_title || 'Boat'}
           className="h-full w-full object-cover"
         />

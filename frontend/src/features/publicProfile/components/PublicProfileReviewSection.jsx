@@ -39,9 +39,9 @@ export default function PublicProfileReviewSection({ reviewableBookings, reloadP
                 </p>
               </div>
 
-              {booking.boat_image ? (
+              {(booking.boat_thumbnail || booking.boat_image) ? (
                 <img
-                  src={booking.boat_image}
+                  src={booking.boat_thumbnail || booking.boat_image}
                   alt={booking.boat_title}
                   loading="lazy"
                   decoding="async"

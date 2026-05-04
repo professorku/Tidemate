@@ -43,6 +43,13 @@ SANITIZED_WEBP_QUALITY = 82
 SANITIZED_WEBP_METHOD = 6
 SANITIZED_IMAGE_SUFFIX = "optimized"
 
+# Smaller image generated for listing cards/search results.
+# This avoids downloading the larger detail image in card grids.
+MAX_THUMBNAIL_IMAGE_WIDTH_PX = 640
+MAX_THUMBNAIL_IMAGE_HEIGHT_PX = 640
+THUMBNAIL_WEBP_QUALITY = 72
+THUMBNAIL_IMAGE_SUFFIX = "thumb"
+
 
 class ImageUploadInfo:
     def __init__(self, image_format, width, height):
@@ -189,6 +196,17 @@ def _resize_for_storage(image):
     return image
 
 
+def _resize_for_thumbnail(image):
+    """Return a small copy suitable for card/list/search images."""
+    thumbnail = image.copy()
+    thumbnail.thumbnail(
+        (MAX_THUMBNAIL_IMAGE_WIDTH_PX, MAX_THUMBNAIL_IMAGE_HEIGHT_PX),
+        Image.Resampling.LANCZOS,
+    )
+
+    return thumbnail
+
+
 def _prepare_image_for_saving(image):
     """
     Normalize and optimize the image before storing it:
@@ -217,6 +235,73 @@ def _prepare_image_for_saving(image):
     image = _resize_for_storage(image)
 
     return image, "WEBP", "webp", "image/webp"
+
+
+def create_image_thumbnail(upload, *, field_label="Image thumbnail"):
+    """Create a small sanitized WebP thumbnail from an already-validated image.
+
+    The upload is expected to be the sanitized WebP copy returned by
+    validate_image_upload(), but this function still opens and re-encodes the
+    image so thumbnails never reuse user-supplied bytes directly.
+    """
+    if upload is None:
+        return None
+
+    current_position = _remember_position(upload)
+
+    try:
+        if hasattr(upload, "seek"):
+            upload.seek(0)
+
+        with catch_warnings():
+            simplefilter("error", DecompressionBombWarning)
+
+            with Image.open(upload) as image:
+                image = ImageOps.exif_transpose(image)
+                image.load()
+
+                has_alpha = _image_has_alpha(image)
+
+                if has_alpha:
+                    if image.mode != "RGBA":
+                        image = image.convert("RGBA")
+                else:
+                    if image.mode != "RGB":
+                        image = image.convert("RGB")
+
+                thumbnail = _resize_for_thumbnail(image)
+
+                output = BytesIO()
+                thumbnail.save(
+                    output,
+                    format="WEBP",
+                    quality=THUMBNAIL_WEBP_QUALITY,
+                    method=SANITIZED_WEBP_METHOD,
+                )
+
+        original_name = getattr(upload, "name", None)
+        stem = Path(original_name or "upload").stem or "upload"
+        safe_stem = get_valid_filename(stem) or "upload"
+        thumbnail_name = f"{safe_stem}_{THUMBNAIL_IMAGE_SUFFIX}.webp"
+
+        return SimpleUploadedFile(
+            thumbnail_name,
+            output.getvalue(),
+            content_type="image/webp",
+        )
+
+    except (DecompressionBombWarning, DecompressionBombError):
+        raise serializers.ValidationError(
+            f"{field_label} is too large or complex to be processed safely."
+        )
+
+    except (UnidentifiedImageError, OSError, ValueError):
+        raise serializers.ValidationError(
+            f"{field_label} could not be generated. Please upload a valid image file."
+        )
+
+    finally:
+        _restore_position(upload, current_position)
 
 
 def sanitize_image_upload(upload, *, field_label, max_size_bytes):

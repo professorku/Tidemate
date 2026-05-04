@@ -70,7 +70,7 @@ export default function BoatImageGallery({ boat }) {
                 }`}
               >
                 <img
-                  src={img.image}
+                  src={img.thumbnail || img.image}
                   alt={boat?.title}
                   loading="lazy"
                   decoding="async"

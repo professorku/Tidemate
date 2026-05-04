@@ -17,9 +17,9 @@ export default function ConversationCardMedia({
 }) {
   return (
     <div className="relative h-56 w-full shrink-0 overflow-hidden bg-navy lg:h-auto lg:w-72">
-      {conversation.boat_image ? (
+      {(conversation.boat_thumbnail || conversation.boat_image) ? (
         <img
-          src={conversation.boat_image}
+          src={conversation.boat_thumbnail || conversation.boat_image}
           alt={conversation.boat_title || 'Boat'}
           className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
         />

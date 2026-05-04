@@ -29,9 +29,9 @@ export default function BoatCard({ boat, onDelete, deletingId }) {
       className="group relative overflow-hidden rounded-[28px] border border-transparent bg-[#071d32] text-white shadow-soft transition duration-300 hover:-translate-y-0.5"
       >
       <div className="relative h-52 overflow-hidden bg-navy">
-        {boat.image ? (
+        {(boat.thumbnail || boat.image) ? (
           <img
-            src={boat.image}
+            src={boat.thumbnail || boat.image}
             alt={boat.title}
             loading="lazy"
             decoding="async"

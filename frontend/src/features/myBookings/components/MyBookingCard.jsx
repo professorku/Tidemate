@@ -68,9 +68,9 @@ export default function BookingCard({
 
       <div className="grid gap-0 lg:grid-cols-[300px_minmax(0,1fr)]">
         <div className="relative min-h-[240px] bg-navy">
-          {booking.boat_image ? (
+          {(booking.boat_thumbnail || booking.boat_image) ? (
             <img
-              src={booking.boat_image}
+              src={booking.boat_thumbnail || booking.boat_image}
               alt={booking.boat_title || 'Boat'}
               className="h-full w-full object-cover"
             />

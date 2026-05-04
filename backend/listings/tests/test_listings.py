@@ -355,7 +355,9 @@ class BoatCoverImageSourceOfTruthTests(TestCase):
         serializer = BoatListingSerializer(instance=self.boat, context={})
 
         self.assertEqual(serializer.data['image'], cover.image.url)
+        self.assertEqual(serializer.data['thumbnail'], cover.image.url)
         self.assertEqual(serializer.data['images'][0]['image'], cover.image.url)
+        self.assertEqual(serializer.data['images'][0]['thumbnail'], cover.image.url)
 
 
 class ListingSearchValidationTests(APITestCase):

@@ -54,9 +54,9 @@ export default function BoatsSection({ boats }) {
                 className="group overflow-hidden rounded-[24px] border border-white/15 bg-white/10 shadow-sm transition hover:-translate-y-0.5 hover:bg-white/15"
               >
                 <div className="h-44 overflow-hidden bg-white/10">
-                  {boat.image ? (
+                  {(boat.thumbnail || boat.image) ? (
                     <img
-                      src={boat.image}
+                      src={boat.thumbnail || boat.image}
                       alt={boat.title}
                       className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
                     />

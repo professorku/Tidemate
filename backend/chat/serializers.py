@@ -49,6 +49,7 @@ class ConversationSerializer(ConversationRepresentationMixin, serializers.ModelS
     boat = serializers.SerializerMethodField()
     boat_title = serializers.SerializerMethodField()
     boat_image = serializers.SerializerMethodField()
+    boat_thumbnail = serializers.SerializerMethodField()
 
     host_username = serializers.CharField(source='host.username', read_only=True)
     renter_username = serializers.CharField(source='renter.username', read_only=True)
@@ -80,6 +81,7 @@ class ConversationSerializer(ConversationRepresentationMixin, serializers.ModelS
             'boat',
             'boat_title',
             'boat_image',
+            'boat_thumbnail',
             'host',
             'host_username',
             'host_avatar',

@@ -23,7 +23,7 @@ export default function BoatPreviewCard({
       media={(
         <BoatCardMedia
           className={`${imageClassName} overflow-hidden bg-slate-200`}
-          image={boat.image}
+          image={boat.thumbnail || boat.image}
           title={boat.title}
           emptyLabel={<UserCircleIcon className="h-10 w-10" />}
           imageClassName="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"

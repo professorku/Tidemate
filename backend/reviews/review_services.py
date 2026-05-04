@@ -61,6 +61,7 @@ def build_reviewable_booking_payload(booking, user):
         'boat_id': booking.boat.id,
         'boat_title': booking.boat.title,
         'boat_image': booking.boat.image.url if booking.boat.image else None,
+        'boat_thumbnail': booking.boat.thumbnail.url if booking.boat.thumbnail else (booking.boat.image.url if booking.boat.image else None),
         'target_user_id': target_user.id,
         'target_username': target_user.username,
         'target_role': target_role,
