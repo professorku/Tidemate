@@ -11,6 +11,7 @@ def conversation_base_queryset():
     return Conversation.objects.select_related(
         'booking',
         'booking__boat',
+        'boat',
         'host',
         'host__profile',
         'renter',
@@ -98,18 +99,21 @@ def get_user_conversation_counts(user):
     )
 
 
-def get_direct_conversation_between_users(user_a, user_b):
+def get_direct_conversation_between_users(user_a, user_b, *, boat=None):
     low_id, high_id = sorted([user_a.id, user_b.id])
 
-    return (
-        conversation_base_queryset()
-        .filter(
-            conversation_type='direct',
-            direct_user_low_id=low_id,
-            direct_user_high_id=high_id,
-        )
-        .first()
+    queryset = conversation_base_queryset().filter(
+        conversation_type='direct',
+        direct_user_low_id=low_id,
+        direct_user_high_id=high_id,
     )
+
+    if boat is None:
+        queryset = queryset.filter(boat__isnull=True)
+    else:
+        queryset = queryset.filter(boat=boat)
+
+    return queryset.first()
 
 
 def get_visible_conversation_for_user(user, conversation_id):
@@ -184,6 +188,8 @@ def get_message_with_conversation(message_id):
         Message.objects.select_related(
             'conversation',
             'conversation__booking',
+            'conversation__booking__boat',
+            'conversation__boat',
             'conversation__host',
             'conversation__renter',
             'sender',

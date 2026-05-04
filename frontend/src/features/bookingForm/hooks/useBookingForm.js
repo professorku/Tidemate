@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createBooking } from '../../../api/domains/bookings'
+import { startDirectConversation } from '../../../api/domains/chat'
 import { useAuth } from '../../../context/useAuth'
 import { getErrorMessage } from '../../../utils/errors'
 import {
@@ -19,6 +20,7 @@ export function useBookingForm({ boat, onBookingCreated }) {
   })
 
   const [loading, setLoading] = useState(false)
+  const [messageLoading, setMessageLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
@@ -121,6 +123,39 @@ export function useBookingForm({ boat, onBookingCreated }) {
     setSuccess('')
   }
 
+  const startHostConversation = async () => {
+    if (!isAuthReady) {
+      setError('Please wait while we check your session.')
+      return
+    }
+
+    if (!isAuthenticated) {
+      navigate('/login')
+      return
+    }
+
+    if (!boat?.host_id || !boat?.id) {
+      setError('Could not find the host for this listing.')
+      return
+    }
+
+    setMessageLoading(true)
+    setError('')
+    setSuccess('')
+
+    try {
+      const response = await startDirectConversation(boat.host_id, {
+        boatId: boat.id,
+      })
+
+      navigate(`/messages/${response.conversation.id}`)
+    } catch (err) {
+      setError(getErrorMessage(err, 'Could not start conversation with the host.'))
+    } finally {
+      setMessageLoading(false)
+    }
+  }
+
   const submitBooking = async () => {
     if (!isAuthReady) {
       setError('Please wait while we check your session.')
@@ -168,11 +203,13 @@ export function useBookingForm({ boat, onBookingCreated }) {
     form,
     preview,
     loading,
+    messageLoading,
     error,
     success,
     selectionError,
     handleDateClick,
     clearDates,
+    startHostConversation,
     submitBooking,
   }
 }

@@ -1,3 +1,4 @@
+import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline'
 import AvailabilityCalendar from '../../availabilityCalendar/components/AvailabilityCalendar'
 import { formatDateWithTime } from '../utils/bookingDateUtils'
 import { useBookingForm } from '../hooks/useBookingForm'
@@ -10,11 +11,13 @@ export default function BookingForm(props) {
     form,
     preview,
     loading,
+    messageLoading,
     error,
     success,
     selectionError,
     handleDateClick,
     clearDates,
+    startHostConversation,
     submitBooking,
   } = useBookingForm(props)
 
@@ -103,6 +106,16 @@ export default function BookingForm(props) {
               {loading ? 'Sending request...' : 'Request booking'}
             </button>
           </div>
+
+          <button
+            type="button"
+            onClick={startHostConversation}
+            disabled={messageLoading || loading}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-gold/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <ChatBubbleLeftRightIcon className="h-4 w-4 text-gold" />
+            {messageLoading ? 'Opening chat...' : 'Message host about this boat'}
+          </button>
         </form>
       </BookingPriceCard>
 

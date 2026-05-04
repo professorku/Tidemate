@@ -15,12 +15,18 @@ class ConversationRepresentationMixin:
         profile = getattr(user, 'profile', None)
         if not profile or not profile.avatar:
             return None
+
         return self._build_media_url(profile.avatar)
 
     def _get_booking(self, obj):
         return getattr(obj, 'booking', None)
 
     def _get_boat(self, obj):
+        direct_boat = getattr(obj, 'boat', None)
+
+        if direct_boat is not None:
+            return direct_boat
+
         booking = self._get_booking(obj)
         return getattr(booking, 'boat', None) if booking else None
 
@@ -38,8 +44,10 @@ class ConversationRepresentationMixin:
 
     def get_boat_image(self, obj):
         boat = self._get_boat(obj)
+
         if boat and boat.image:
             return self._build_media_url(boat.image)
+
         return None
 
     def get_host_avatar(self, obj):

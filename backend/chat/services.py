@@ -138,6 +138,7 @@ def start_direct_conversation(
         existing_conversation = get_direct_conversation_between_users(
             actor,
             target_user,
+            boat=boat,
         )
 
     ensure_users_can_start_direct_conversation(
@@ -158,23 +159,35 @@ def start_direct_conversation(
         conversation = Conversation.objects.create(
             host=target_user,
             renter=actor,
+            boat=boat,
             conversation_type='direct',
         )
     except IntegrityError:
-        conversation = Conversation.objects.get(
-            conversation_type='direct',
-            direct_user_low_id=min(actor.id, target_user.id),
-            direct_user_high_id=max(actor.id, target_user.id),
+        conversation = get_direct_conversation_between_users(
+            actor,
+            target_user,
+            boat=boat,
         )
+
+        if conversation is None:
+            raise
+
         unarchive_conversation_for_user(
             conversation=conversation,
             user=actor,
         )
         return conversation, False
 
+    if boat is not None:
+        notification_message = (
+            f'{actor.username} started a conversation about "{boat.title}" with you.'
+        )
+    else:
+        notification_message = f'{actor.username} started a direct conversation with you.'
+
     create_and_push_notification(
         user=target_user,
-        message=f'{actor.username} started a direct conversation with you.',
+        message=notification_message,
         target_url=f'/messages/{conversation.id}',
     )
 
@@ -205,9 +218,15 @@ def send_message(*, conversation, sender, serializer):
     if len(preview_text) > 80:
         preview_text = preview_text[:80].rstrip() + '…'
 
-    if conversation.booking and conversation.booking.boat:
+    conversation_boat = conversation.boat or (
+        conversation.booking.boat
+        if conversation.booking and conversation.booking.boat
+        else None
+    )
+
+    if conversation_boat:
         notification_text = (
-            f'New message about "{conversation.booking.boat.title}" '
+            f'New message about "{conversation_boat.title}" '
             f'from {sender.username}: {preview_text}'
         )
     else:

@@ -165,6 +165,7 @@ class StartDirectConversationView(APIView):
         existing_conversation = get_direct_conversation_between_users(
             request.user,
             target_user,
+            boat=boat,
         )
 
         try:
