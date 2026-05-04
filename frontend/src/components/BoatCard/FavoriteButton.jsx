@@ -37,6 +37,14 @@ export default function FavoriteButton({ boat, onFavoriteChange, className = '' 
 
     if (submitting) return
 
+    if (favorited && !favoriteId) {
+      showToast({
+        tone: 'error',
+        message: 'Could not remove favorite. Please refresh and try again.',
+      })
+      return
+    }
+
     setSubmitting(true)
 
     try {
