@@ -1,7 +1,13 @@
 import asyncio
 import json
+
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.utils import timezone
+
+from config.websocket_limits import (
+    WEBSOCKET_CLOSE_MESSAGE_TOO_BIG,
+    websocket_payload_too_large,
+)
 
 
 class NotificationConsumer(AsyncWebsocketConsumer):
@@ -71,6 +77,17 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         user_auth_group_name = getattr(self, "user_auth_group_name", None)
         if user_auth_group_name:
             await self.channel_layer.group_discard(user_auth_group_name, self.channel_name)
+
+    async def receive(self, text_data=None, bytes_data=None):
+        if websocket_payload_too_large(text_data=text_data, bytes_data=bytes_data):
+            await self.close(code=WEBSOCKET_CLOSE_MESSAGE_TOO_BIG)
+            return
+
+        if text_data is not None or bytes_data is not None:
+            await self.send(text_data=json.dumps({
+                "type": "notification.error",
+                "detail": "Client notification messages are not supported.",
+            }))
 
     async def notification_message(self, event):
         await self.send(text_data=json.dumps({

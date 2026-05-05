@@ -8,6 +8,11 @@ from django.core.cache import cache
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
+from config.websocket_limits import (
+    WEBSOCKET_CLOSE_MESSAGE_TOO_BIG,
+    websocket_payload_too_large,
+)
+
 from .constants import (
     WEBSOCKET_SEND_RATE_LIMIT_COUNT,
     WEBSOCKET_SEND_RATE_LIMIT_WINDOW_SECONDS,
@@ -192,6 +197,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.channel_layer.group_discard(self.user_auth_group_name, self.channel_name)
 
     async def receive(self, text_data=None, bytes_data=None):
+        if websocket_payload_too_large(text_data=text_data, bytes_data=bytes_data):
+            await self.close(code=WEBSOCKET_CLOSE_MESSAGE_TOO_BIG)
+            return
+
+        if bytes_data is not None:
+            await self._send_error('Binary chat payloads are not supported.')
+            return
+
         if not text_data:
             return
 
