@@ -52,25 +52,28 @@ const REASON_OPTIONS = [
 ]
 
 const STATUS_CLASSES = {
-  pending: 'border-amber-300 bg-amber-50 text-amber-800',
-  reviewing: 'border-sky-300 bg-sky-50 text-sky-800',
-  resolved: 'border-emerald-300 bg-emerald-50 text-emerald-800',
-  dismissed: 'border-slate-300 bg-slate-100 text-slate-700',
+  pending: 'border-amber-300/40 bg-amber-400/15 text-amber-100',
+  reviewing: 'border-sky-300/40 bg-sky-400/15 text-sky-100',
+  resolved: 'border-emerald-300/40 bg-emerald-400/15 text-emerald-100',
+  dismissed: 'border-slate-300/30 bg-white/10 text-white/70',
 }
 
 
 function StatCard({ label, value, icon }) {
   return (
-    <div className="rounded-[24px] border border-gold/15 bg-[#071d32]/70 p-5 text-white shadow-sm">
+    <div className="rounded-[24px] border border-gold/20 bg-navy p-5 text-white shadow-soft">
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-gold">
             {label}
           </p>
-          <p className="mt-2 text-3xl font-black">{value ?? 0}</p>
+
+          <p className="mt-2 text-3xl font-black">
+            {value ?? 0}
+          </p>
         </div>
 
-        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gold/15 text-gold">
+        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gold/15 text-gold ring-1 ring-gold/20">
           {icon}
         </div>
       </div>
@@ -88,24 +91,30 @@ function Filters({ filters, setFilters, onRefresh }) {
     }))
   }
 
+  const inputClass =
+    'w-full rounded-2xl border border-gold/20 bg-[#071d32] px-4 py-3 text-sm font-bold text-white shadow-sm outline-none transition placeholder:text-white/35 focus:border-gold focus:ring-4 focus:ring-gold/15'
+
+  const selectClass =
+    'rounded-2xl border border-gold/20 bg-[#071d32] px-4 py-3 text-sm font-bold text-white shadow-sm outline-none transition focus:border-gold focus:ring-4 focus:ring-gold/15'
+
   return (
-    <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-soft">
+    <div className="rounded-[28px] border border-gold/20 bg-navy p-5 shadow-soft">
       <div className="grid gap-3 md:grid-cols-[1fr_auto_auto_auto_auto] md:items-center">
         <div className="relative">
-          <MagnifyingGlassIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+          <MagnifyingGlassIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gold/80" />
 
           <input
             value={filters.q}
             onChange={(event) => updateFilter('q', event.target.value)}
             placeholder="Search reports, users, messages..."
-            className="w-full rounded-2xl border border-slate-300 bg-white py-3 pl-11 pr-4 text-sm font-medium text-slate-800 outline-none transition focus:border-gold focus:ring-4 focus:ring-gold/15"
+            className={`${inputClass} pl-11`}
           />
         </div>
 
         <select
           value={filters.status}
           onChange={(event) => updateFilter('status', event.target.value)}
-          className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-800 outline-none transition focus:border-gold focus:ring-4 focus:ring-gold/15"
+          className={selectClass}
         >
           {STATUS_OPTIONS.map((option) => (
             <option key={option.value || 'all-statuses'} value={option.value}>
@@ -117,7 +126,7 @@ function Filters({ filters, setFilters, onRefresh }) {
         <select
           value={filters.target_type}
           onChange={(event) => updateFilter('target_type', event.target.value)}
-          className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-800 outline-none transition focus:border-gold focus:ring-4 focus:ring-gold/15"
+          className={selectClass}
         >
           {TARGET_OPTIONS.map((option) => (
             <option key={option.value || 'all-targets'} value={option.value}>
@@ -129,7 +138,7 @@ function Filters({ filters, setFilters, onRefresh }) {
         <select
           value={filters.reason}
           onChange={(event) => updateFilter('reason', event.target.value)}
-          className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-800 outline-none transition focus:border-gold focus:ring-4 focus:ring-gold/15"
+          className={selectClass}
         >
           {REASON_OPTIONS.map((option) => (
             <option key={option.value || 'all-reasons'} value={option.value}>
@@ -141,9 +150,9 @@ function Filters({ filters, setFilters, onRefresh }) {
         <button
           type="button"
           onClick={onRefresh}
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-navy px-5 py-3 text-sm font-extrabold text-white shadow-sm transition hover:bg-ocean"
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-gold px-5 py-3 text-sm font-extrabold text-navy shadow-sm ring-1 ring-gold/40 transition hover:-translate-y-0.5 hover:bg-[#d8b45d]"
         >
-          <ArrowPathIcon className="h-5 w-5 text-gold" />
+          <ArrowPathIcon className="h-5 w-5" />
           Refresh
         </button>
       </div>
@@ -171,27 +180,27 @@ function ReportCard({ report, updatingId, noteValue, onNoteChange, onUpdateStatu
   const isUpdating = updatingId === report.id
 
   return (
-    <article className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-soft">
-      <div className="border-b border-slate-200 bg-slate-50 px-5 py-4">
+    <article className="overflow-hidden rounded-[28px] border border-gold/20 bg-navy text-white shadow-soft">
+      <div className="border-b border-gold/10 bg-[#071d32]/80 px-5 py-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <ReportStatusBadge status={report.status} label={report.status_display} />
 
-              <span className="rounded-full bg-navy px-3 py-1 text-xs font-extrabold uppercase tracking-wide text-gold">
+              <span className="rounded-full bg-gold/15 px-3 py-1 text-xs font-extrabold uppercase tracking-wide text-gold ring-1 ring-gold/20">
                 {report.target_type}
               </span>
 
-              <span className="rounded-full bg-slate-200 px-3 py-1 text-xs font-bold text-slate-700">
+              <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white/75 ring-1 ring-white/10">
                 {report.reason_display || report.reason}
               </span>
             </div>
 
-            <h2 className="mt-3 text-xl font-black tracking-tight text-slate-950">
+            <h2 className="mt-3 text-xl font-black tracking-tight text-white">
               {target.label || 'Unknown target'}
             </h2>
 
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-white/50">
               Report #{report.id} · Created{' '}
               {formatDate(report.created_at, {
                 dateOptions: {
@@ -208,9 +217,9 @@ function ReportCard({ report, updatingId, noteValue, onNoteChange, onUpdateStatu
           {target.url ? (
             <Link
               to={target.url}
-              className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-100"
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-gold/20 bg-[#071d32] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-ocean"
             >
-              <EyeIcon className="h-5 w-5" />
+              <EyeIcon className="h-5 w-5 text-gold" />
               Open target
             </Link>
           ) : null}
@@ -220,33 +229,38 @@ function ReportCard({ report, updatingId, noteValue, onNoteChange, onUpdateStatu
       <div className="grid gap-5 px-5 py-5 lg:grid-cols-[1.15fr_0.85fr]">
         <div className="space-y-4">
           <div>
-            <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-slate-500">
+            <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-gold">
               Reporter
             </p>
-            <p className="mt-1 text-sm font-bold text-slate-900">
+
+            <p className="mt-1 text-sm font-bold text-white">
               {reporter.username || 'Unknown'}{' '}
               {reporter.email ? (
-                <span className="font-medium text-slate-500">({reporter.email})</span>
+                <span className="font-medium text-white/50">
+                  ({reporter.email})
+                </span>
               ) : null}
             </p>
           </div>
 
           {target.summary ? (
             <div>
-              <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-slate-500">
+              <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-gold">
                 Target content
               </p>
-              <p className="mt-2 whitespace-pre-wrap rounded-2xl bg-slate-100 px-4 py-3 text-sm leading-6 text-slate-700">
+
+              <p className="mt-2 whitespace-pre-wrap rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm leading-6 text-white/75">
                 {target.summary}
               </p>
             </div>
           ) : null}
 
           <div>
-            <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-slate-500">
+            <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-gold">
               Report details
             </p>
-            <p className="mt-2 whitespace-pre-wrap rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-950">
+
+            <p className="mt-2 whitespace-pre-wrap rounded-2xl border border-amber-300/25 bg-amber-400/10 px-4 py-3 text-sm leading-6 text-amber-50">
               {report.details || 'No extra details provided.'}
             </p>
           </div>
@@ -256,7 +270,7 @@ function ReportCard({ report, updatingId, noteValue, onNoteChange, onUpdateStatu
           <div>
             <label
               htmlFor={`admin-notes-${report.id}`}
-              className="text-xs font-extrabold uppercase tracking-[0.16em] text-slate-500"
+              className="text-xs font-extrabold uppercase tracking-[0.16em] text-gold"
             >
               Admin notes
             </label>
@@ -266,7 +280,7 @@ function ReportCard({ report, updatingId, noteValue, onNoteChange, onUpdateStatu
               value={noteValue}
               onChange={(event) => onNoteChange(report.id, event.target.value)}
               rows={5}
-              className="mt-2 w-full resize-none rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm leading-6 text-slate-800 outline-none transition focus:border-gold focus:ring-4 focus:ring-gold/15"
+              className="mt-2 w-full resize-none rounded-2xl border border-gold/20 bg-[#071d32] px-4 py-3 text-sm leading-6 text-white outline-none transition placeholder:text-white/35 focus:border-gold focus:ring-4 focus:ring-gold/15"
               placeholder="Write what you checked and what action was taken..."
             />
           </div>
@@ -276,7 +290,7 @@ function ReportCard({ report, updatingId, noteValue, onNoteChange, onUpdateStatu
               type="button"
               disabled={isUpdating}
               onClick={() => onUpdateStatus(report, 'reviewing')}
-              className="inline-flex items-center justify-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-4 py-2.5 text-sm font-extrabold text-sky-800 transition hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-sky-300/25 bg-sky-400/10 px-4 py-2.5 text-sm font-extrabold text-sky-100 transition hover:bg-sky-400/20 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <ShieldCheckIcon className="h-5 w-5" />
               Reviewing
@@ -286,7 +300,7 @@ function ReportCard({ report, updatingId, noteValue, onNoteChange, onUpdateStatu
               type="button"
               disabled={isUpdating}
               onClick={() => onUpdateStatus(report, 'resolved')}
-              className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-extrabold text-emerald-800 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-300/25 bg-emerald-400/10 px-4 py-2.5 text-sm font-extrabold text-emerald-100 transition hover:bg-emerald-400/20 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <CheckCircleIcon className="h-5 w-5" />
               Resolve
@@ -296,7 +310,7 @@ function ReportCard({ report, updatingId, noteValue, onNoteChange, onUpdateStatu
               type="button"
               disabled={isUpdating}
               onClick={() => onUpdateStatus(report, 'dismissed')}
-              className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-300 bg-slate-100 px-4 py-2.5 text-sm font-extrabold text-slate-700 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-extrabold text-white/75 transition hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <XCircleIcon className="h-5 w-5" />
               Dismiss
@@ -304,7 +318,9 @@ function ReportCard({ report, updatingId, noteValue, onNoteChange, onUpdateStatu
           </div>
 
           {isUpdating ? (
-            <p className="text-sm font-semibold text-slate-500">Updating report...</p>
+            <p className="text-sm font-semibold text-white/50">
+              Updating report...
+            </p>
           ) : null}
         </div>
       </div>
@@ -436,6 +452,7 @@ export default function ModerationPage() {
               <h1 className="text-3xl font-black tracking-tight md:text-4xl">
                 Moderation panel
               </h1>
+
               <p className="mt-3 max-w-2xl text-white/65">
                 Review user reports for listings, profiles, reviews, and chat messages.
               </p>
@@ -454,21 +471,25 @@ export default function ModerationPage() {
           value={stats?.pending}
           icon={<ExclamationTriangleIcon className="h-6 w-6" />}
         />
+
         <StatCard
           label="Reviewing"
           value={stats?.reviewing}
           icon={<ShieldCheckIcon className="h-6 w-6" />}
         />
+
         <StatCard
           label="Resolved"
           value={stats?.resolved}
           icon={<CheckCircleIcon className="h-6 w-6" />}
         />
+
         <StatCard
           label="Dismissed"
           value={stats?.dismissed}
           icon={<XCircleIcon className="h-6 w-6" />}
         />
+
         <StatCard
           label="Total"
           value={stats?.total}
@@ -483,18 +504,23 @@ export default function ModerationPage() {
       />
 
       {loading ? (
-        <LoadingState
-          title="Loading reports"
-          text="Fetching moderation queue..."
-        />
+        <div className="rounded-[28px] border border-gold/20 bg-navy px-6 py-10 shadow-soft">
+          <LoadingState
+            title="Loading reports"
+            text="Fetching moderation queue..."
+          />
+        </div>
       ) : error ? (
-        <div className="rounded-[28px] border border-red-200 bg-red-50 px-6 py-5 text-red-800">
+        <div className="rounded-[28px] border border-red-300/30 bg-red-500/10 px-6 py-5 text-red-100 shadow-soft">
           {error}
         </div>
       ) : reportsData.results.length === 0 ? (
-        <div className="rounded-[28px] border border-slate-200 bg-white px-6 py-10 text-center shadow-soft">
-          <p className="text-xl font-black text-slate-900">No reports found</p>
-          <p className="mt-2 text-slate-600">
+        <div className="rounded-[28px] border border-gold/20 bg-navy px-6 py-10 text-center text-white shadow-soft">
+          <p className="text-xl font-black text-white">
+            No reports found
+          </p>
+
+          <p className="mt-2 text-white/60">
             Try changing the filters or search query.
           </p>
         </div>
