@@ -2,6 +2,7 @@ import PublicProfileHero from '../PublicProfileHero'
 import PublicProfileStatusBanners from '../PublicProfileStatusBanners'
 import PublicProfileActionButtons from './PublicProfileActionButtons'
 
+
 export default function PublicProfileHeaderCard({
   profile,
   initials,
@@ -22,6 +23,7 @@ export default function PublicProfileHeaderCard({
 }) {
   const actions = (
     <PublicProfileActionButtons
+      profile={profile}
       isMe={isMe}
       canMessage={canMessage}
       actionLoading={actionLoading}

@@ -69,6 +69,10 @@ class ReviewRateThrottle(UserRateThrottle):
     scope = "reviews"
 
 
+class ReportRateThrottle(UserRateThrottle):
+    scope = "reports"
+
+
 class WriteOnlyUserRateThrottle(UserRateThrottle):
     write_methods = {"POST", "PUT", "PATCH", "DELETE"}
 

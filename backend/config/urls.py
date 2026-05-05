@@ -13,6 +13,7 @@ urlpatterns = [
     path('api/reviews/', include('reviews.urls')),
     path('api/favorites/', include('favorites.urls')),
     path('api/geocoding/', include('geocoding.urls')),
+    path('api/reports/', include('reports.urls')),
 ]
 
 if settings.DEBUG:

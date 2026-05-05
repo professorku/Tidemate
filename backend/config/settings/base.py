@@ -87,6 +87,7 @@ INSTALLED_APPS = [
     "favorites",
     "geocoding",
     "audit",
+    "reports",
 ]
 
 MIDDLEWARE = [
@@ -255,6 +256,7 @@ REST_FRAMEWORK = {
         "profile_write": "20/hour",
         "public_listings_anon": "120/hour",
         "public_profile_anon": "120/hour",
+        "reports": os.getenv("REPORT_RATE", "10/hour"),
         "boat_conditions_anon": os.getenv("BOAT_CONDITIONS_ANON_RATE", "30/hour"),
         "boat_conditions_user": os.getenv("BOAT_CONDITIONS_USER_RATE", "120/hour"),
         "boat_conditions_global": os.getenv("BOAT_CONDITIONS_GLOBAL_RATE", "300/hour"),
