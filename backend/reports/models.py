@@ -2,7 +2,9 @@ from django.conf import settings
 from django.db import models
 from django.db.models import Q
 
+from chat.models import Message
 from listings.models import BoatListing
+from reviews.models import Review
 
 
 MAX_REPORT_DETAILS_LENGTH = 1000
@@ -12,6 +14,8 @@ class Report(models.Model):
     class TargetType(models.TextChoices):
         LISTING = 'listing', 'Listing'
         USER = 'user', 'User'
+        REVIEW = 'review', 'Review'
+        MESSAGE = 'message', 'Chat message'
 
     class Reason(models.TextChoices):
         SCAM = 'scam', 'Scam or fraud'
@@ -52,6 +56,22 @@ class Report(models.Model):
         related_name='reports_received',
     )
 
+    review = models.ForeignKey(
+        Review,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name='reports',
+    )
+
+    message = models.ForeignKey(
+        Message,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name='reports',
+    )
+
     reason = models.CharField(max_length=40, choices=Reason.choices)
     details = models.CharField(max_length=MAX_REPORT_DETAILS_LENGTH, blank=True)
 
@@ -74,12 +94,40 @@ class Report(models.Model):
             models.Index(fields=['reporter', '-created_at'], name='report_reporter_recent_idx'),
             models.Index(fields=['listing', '-created_at'], name='report_listing_recent_idx'),
             models.Index(fields=['reported_user', '-created_at'], name='report_user_recent_idx'),
+            models.Index(fields=['review', '-created_at'], name='report_review_recent_idx'),
+            models.Index(fields=['message', '-created_at'], name='report_message_recent_idx'),
         ]
         constraints = [
             models.CheckConstraint(
                 condition=(
-                    Q(target_type='listing', listing__isnull=False, reported_user__isnull=True) |
-                    Q(target_type='user', listing__isnull=True, reported_user__isnull=False)
+                    Q(
+                        target_type='listing',
+                        listing__isnull=False,
+                        reported_user__isnull=True,
+                        review__isnull=True,
+                        message__isnull=True,
+                    ) |
+                    Q(
+                        target_type='user',
+                        listing__isnull=True,
+                        reported_user__isnull=False,
+                        review__isnull=True,
+                        message__isnull=True,
+                    ) |
+                    Q(
+                        target_type='review',
+                        listing__isnull=True,
+                        reported_user__isnull=True,
+                        review__isnull=False,
+                        message__isnull=True,
+                    ) |
+                    Q(
+                        target_type='message',
+                        listing__isnull=True,
+                        reported_user__isnull=True,
+                        review__isnull=True,
+                        message__isnull=False,
+                    )
                 ),
                 name='report_exactly_one_matching_target',
             ),
@@ -93,8 +141,33 @@ class Report(models.Model):
                 condition=Q(reported_user__isnull=False),
                 name='unique_user_report_per_reporter',
             ),
+            models.UniqueConstraint(
+                fields=['reporter', 'review'],
+                condition=Q(review__isnull=False),
+                name='unique_review_report_per_reporter',
+            ),
+            models.UniqueConstraint(
+                fields=['reporter', 'message'],
+                condition=Q(message__isnull=False),
+                name='unique_message_report_per_reporter',
+            ),
         ]
 
     def __str__(self):
-        target = self.listing_id if self.target_type == self.TargetType.LISTING else self.reported_user_id
-        return f'{self.reporter_id} reported {self.target_type}:{target} ({self.status})'
+        return f'{self.reporter_id} reported {self.target_type}:{self.target_object_id} ({self.status})'
+
+    @property
+    def target_object_id(self):
+        if self.target_type == self.TargetType.LISTING:
+            return self.listing_id
+
+        if self.target_type == self.TargetType.USER:
+            return self.reported_user_id
+
+        if self.target_type == self.TargetType.REVIEW:
+            return self.review_id
+
+        if self.target_type == self.TargetType.MESSAGE:
+            return self.message_id
+
+        return None

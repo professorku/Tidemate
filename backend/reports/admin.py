@@ -44,6 +44,10 @@ class ReportAdmin(admin.ModelAdmin):
         'listing__title',
         'reported_user__username',
         'reported_user__email',
+        'review__comment',
+        'review__reviewer__username',
+        'message__text',
+        'message__sender__username',
         'details',
         'admin_notes',
     )
@@ -66,6 +70,8 @@ class ReportAdmin(admin.ModelAdmin):
                 'target_type',
                 'listing',
                 'reported_user',
+                'review',
+                'message',
                 'reason',
                 'details',
             ),
@@ -91,6 +97,12 @@ class ReportAdmin(admin.ModelAdmin):
 
         if obj.target_type == Report.TargetType.USER and obj.reported_user_id:
             return obj.reported_user.username
+
+        if obj.target_type == Report.TargetType.REVIEW and obj.review_id:
+            return f'Review by {obj.review.reviewer.username}'
+
+        if obj.target_type == Report.TargetType.MESSAGE and obj.message_id:
+            return f'Message from {obj.message.sender.username}'
 
         return '-'
 

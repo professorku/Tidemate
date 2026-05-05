@@ -21,6 +21,29 @@ const REPORT_REASONS = [
 
 const MAX_DETAILS_LENGTH = 1000
 
+const TARGET_COPY = {
+  listing: {
+    title: 'Report listing',
+    fallbackLabel: 'this listing',
+    prompt: 'Tell us what is wrong with',
+  },
+  user: {
+    title: 'Report user',
+    fallbackLabel: 'this user',
+    prompt: 'Tell us what is wrong with',
+  },
+  review: {
+    title: 'Report review',
+    fallbackLabel: 'this review',
+    prompt: 'Tell us what is wrong with',
+  },
+  message: {
+    title: 'Report message',
+    fallbackLabel: 'this message',
+    prompt: 'Tell us what is wrong with',
+  },
+}
+
 
 export default function ReportModal({
   isOpen,
@@ -36,11 +59,10 @@ export default function ReportModal({
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
-  const targetName = targetLabel || (targetType === 'listing' ? 'this listing' : 'this user')
+  const copy = TARGET_COPY[targetType] || TARGET_COPY.listing
+  const targetName = targetLabel || copy.fallbackLabel
 
-  const title = useMemo(() => {
-    return targetType === 'listing' ? 'Report listing' : 'Report user'
-  }, [targetType])
+  const title = useMemo(() => copy.title, [copy.title])
 
   useEffect(() => {
     if (!isOpen) return undefined
@@ -133,7 +155,7 @@ export default function ReportModal({
                 </h2>
 
                 <p className="mt-1 text-sm leading-6 text-slate-600">
-                  Tell us what is wrong with{' '}
+                  {copy.prompt}{' '}
                   <span className="font-semibold text-slate-800">
                     {targetName}
                   </span>.
