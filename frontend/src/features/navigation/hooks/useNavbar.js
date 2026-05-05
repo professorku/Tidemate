@@ -13,12 +13,35 @@ const MARKETPLACE_FILTER_KEYS = [
   'max_price',
 ]
 
+function isCompleteDateRange(startDate, endDate) {
+  return Boolean(startDate && endDate && endDate > startDate)
+}
+
+function getValidDateRange(startDate, endDate) {
+  if (!isCompleteDateRange(startDate, endDate)) {
+    return {
+      startDate: '',
+      endDate: '',
+    }
+  }
+
+  return {
+    startDate,
+    endDate,
+  }
+}
+
 function getSearchStateFromParams(searchParams) {
+  const dateRange = getValidDateRange(
+    searchParams.get('start_date') || '',
+    searchParams.get('end_date') || ''
+  )
+
   return {
     query: searchParams.get('q') || '',
     boatType: searchParams.get('boat_type') || '',
-    startDate: searchParams.get('start_date') || '',
-    endDate: searchParams.get('end_date') || '',
+    startDate: dateRange.startDate,
+    endDate: dateRange.endDate,
   }
 }
 
@@ -48,11 +71,18 @@ function getAutoSearchSignature(searchState) {
 
 function buildMarketplaceParams(baseSearch, searchState, { resetPage = true } = {}) {
   const nextParams = new URLSearchParams(baseSearch)
+  const dateRange = getValidDateRange(searchState.startDate, searchState.endDate)
 
   setParam(nextParams, 'q', searchState.query)
   setParam(nextParams, 'boat_type', searchState.boatType)
-  setParam(nextParams, 'start_date', searchState.startDate)
-  setParam(nextParams, 'end_date', searchState.endDate)
+
+  if (dateRange.startDate && dateRange.endDate) {
+    setParam(nextParams, 'start_date', dateRange.startDate)
+    setParam(nextParams, 'end_date', dateRange.endDate)
+  } else {
+    nextParams.delete('start_date')
+    nextParams.delete('end_date')
+  }
 
   if (resetPage) {
     nextParams.delete('page')

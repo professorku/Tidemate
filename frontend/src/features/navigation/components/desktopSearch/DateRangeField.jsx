@@ -52,7 +52,7 @@ export default function DateRangeField({
       return
     }
 
-    if (startDate && endDate && endDate < startDate) {
+    if (startDate && endDate && endDate <= startDate) {
       setEndDate('')
     }
   }, [endDate, setEndDate, setStartDate, startDate])
@@ -81,8 +81,9 @@ export default function DateRangeField({
       return
     }
 
-    if (dateValue < startDate) {
+    if (dateValue <= startDate) {
       setStartDate(dateValue)
+      setEndDate('')
       return
     }
 
