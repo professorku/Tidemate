@@ -122,3 +122,8 @@ class NotificationsPagination(BasePageNumberPagination):
     page_size = 12
     max_page_size = 50
     ordering = ("-created_at", "-id")
+
+class ModerationReportsPagination(BasePageNumberPagination):
+    page_size = 12
+    max_page_size = 50
+    ordering = ("-created_at", "-id")

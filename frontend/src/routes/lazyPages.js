@@ -1,5 +1,6 @@
 import { lazy } from 'react'
 
+
 export const pageLoaders = {
   home: () => import('../features/home/pages/HomePage'),
   boatDetail: () => import('../features/boatDetail/pages/BoatDetailPage'),
@@ -16,6 +17,7 @@ export const pageLoaders = {
   notifications: () => import('../features/notifications/pages/NotificationsPage'),
   profile: () => import('../features/profile/pages/ProfilePage'),
   editProfile: () => import('../features/editProfile/pages/EditProfilePage'),
+  moderation: () => import('../features/moderation/pages/ModerationPage'),
   login: () => import('../features/auth/pages/LoginPage'),
   signup: () => import('../features/auth/pages/SignupPage'),
   forgotPassword: () => import('../features/auth/pages/ForgotPasswordPage'),
@@ -25,6 +27,7 @@ export const pageLoaders = {
   notFound: () => import('../features/auth/pages/NotFoundPage'),
 }
 
+
 export function preloadRoute(routeName) {
   const loader = pageLoaders[routeName]
 
@@ -32,6 +35,7 @@ export function preloadRoute(routeName) {
 
   void loader()
 }
+
 
 export const HomePage = lazy(pageLoaders.home)
 export const BoatDetailPage = lazy(pageLoaders.boatDetail)
@@ -48,6 +52,7 @@ export const HostBookingsPage = lazy(pageLoaders.hostBookings)
 export const NotificationsPage = lazy(pageLoaders.notifications)
 export const ProfilePage = lazy(pageLoaders.profile)
 export const EditProfilePage = lazy(pageLoaders.editProfile)
+export const ModerationPage = lazy(pageLoaders.moderation)
 export const LoginPage = lazy(pageLoaders.login)
 export const SignupPage = lazy(pageLoaders.signup)
 export const ForgotPasswordPage = lazy(pageLoaders.forgotPassword)

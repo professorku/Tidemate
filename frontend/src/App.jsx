@@ -1,7 +1,8 @@
 import { Suspense } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
 import Navbar from './features/navigation/components/Navbar'
 import ProtectedRoute from './features/auth/components/ProtectedRoute'
+import AdminRoute from './features/auth/components/AdminRoute'
 import RouteLoadingFallback from './components/ui/RouteLoadingFallback'
 
 import {
@@ -18,6 +19,7 @@ import {
   HostBookingsPage,
   LoginPage,
   MessagesPage,
+  ModerationPage,
   MyBookingsPage,
   MyBoatsPage,
   NotFoundPage,
@@ -28,6 +30,7 @@ import {
   SignupPage,
   VerifyEmailPage,
 } from './routes/lazyPages'
+
 
 export default function App() {
   return (
@@ -145,6 +148,15 @@ export default function App() {
               <ProtectedRoute>
                 <EditProfilePage />
               </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/moderation"
+            element={
+              <AdminRoute>
+                <ModerationPage />
+              </AdminRoute>
             }
           />
 

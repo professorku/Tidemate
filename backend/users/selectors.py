@@ -5,6 +5,7 @@ from listings.models import BoatListing
 
 from .models import Profile
 
+
 PUBLIC_PROFILE_STAT_KEYS = ("boats_listed",)
 PRIVATE_PROFILE_STAT_KEYS = ("boats_listed", "bookings_made", "host_bookings", "confirmed_trips")
 
@@ -82,4 +83,9 @@ def build_profile_payload(*, user, request, serializer_class, include_private_st
         target_user=user,
         target_profile=profile,
     )
+
+    if include_private_stats:
+        data['is_staff'] = bool(user.is_staff)
+        data['is_superuser'] = bool(user.is_superuser)
+
     return data

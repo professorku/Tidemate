@@ -64,6 +64,8 @@ class AuthUserRateThrottle(EndpointScopedThrottleMixin, UserRateThrottle):
 class ChatRateThrottle(UserRateThrottle):
     scope = "chat"
 
+class ModerationRateThrottle(UserRateThrottle):
+    scope = "moderation"
 
 class ReviewRateThrottle(UserRateThrottle):
     scope = "reviews"

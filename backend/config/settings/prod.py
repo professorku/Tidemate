@@ -54,6 +54,9 @@ REDIS_URL = os.getenv("REDIS_URL", "").strip()
 if not REDIS_URL:
     raise ImproperlyConfigured("REDIS_URL must be configured in production for Channels/Redis.")
 
+if ADMIN_URL == "admin/":
+    raise ImproperlyConfigured("DJANGO_ADMIN_URL must be changed from the default admin/ path in production.")
+
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",

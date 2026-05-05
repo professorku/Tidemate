@@ -210,7 +210,6 @@ export function normalizeReview(review) {
   }
 }
 
-/** @returns {User} */
 export function normalizeUser(user) {
   if (!user || typeof user !== 'object') {
     return {
@@ -220,6 +219,8 @@ export function normalizeUser(user) {
       location: '',
       bio: '',
       avatar: null,
+      is_staff: false,
+      is_superuser: false,
     }
   }
 
@@ -231,6 +232,8 @@ export function normalizeUser(user) {
     location: user.location ?? '',
     bio: user.bio ?? '',
     avatar: user.avatar ?? null,
+    is_staff: Boolean(user.is_staff),
+    is_superuser: Boolean(user.is_superuser),
   }
 }
 

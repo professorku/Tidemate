@@ -88,6 +88,7 @@ INSTALLED_APPS = [
     "geocoding",
     "audit",
     "reports",
+    "moderation",
 ]
 
 MIDDLEWARE = [
@@ -186,6 +187,13 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 DEBUG_LINKS_ENABLED = env_bool("DEBUG_LINKS_ENABLED", False)
 
+ADMIN_URL = os.getenv("DJANGO_ADMIN_URL", "admin/").strip().strip("/")
+
+if not ADMIN_URL:
+    ADMIN_URL = "admin"
+
+ADMIN_URL = f"{ADMIN_URL}/"
+
 LISTING_SEARCH_MAX_LIMIT = env_int("LISTING_SEARCH_MAX_LIMIT", 48)
 LISTING_SEARCH_MAX_RADIUS_KM = env_float("LISTING_SEARCH_MAX_RADIUS_KM", 500.0)
 LISTING_SEARCH_FALLBACK_MIN_CANDIDATES = env_int(
@@ -215,6 +223,8 @@ GEOCODING_PROVIDER_USER_AGENT = os.getenv(
     "GEOCODING_PROVIDER_USER_AGENT",
     "Tidemate/1.0 (private project)",
 )
+
+
 
 GEOCODING_COUNTRY_CODES = env_list("GEOCODING_COUNTRY_CODES", "no")
 GEOCODING_SEARCH_LIMIT = env_int("GEOCODING_SEARCH_LIMIT", 5)
@@ -256,6 +266,7 @@ REST_FRAMEWORK = {
         "profile_write": "20/hour",
         "public_listings_anon": "120/hour",
         "public_profile_anon": "120/hour",
+        "moderation": os.getenv("MODERATION_RATE", "120/hour"),
         "reports": os.getenv("REPORT_RATE", "10/hour"),
         "boat_conditions_anon": os.getenv("BOAT_CONDITIONS_ANON_RATE", "30/hour"),
         "boat_conditions_user": os.getenv("BOAT_CONDITIONS_USER_RATE", "120/hour"),
