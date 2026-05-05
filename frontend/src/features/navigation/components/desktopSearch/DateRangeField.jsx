@@ -8,12 +8,15 @@ import {
 import {
   WEEKDAYS,
   addMonths,
+  clampMonthToCurrentMonth,
   formatDateRangeLabel,
   formatDateValue,
   formatShortDate,
   getCalendarDays,
   getMonthLabel,
+  isDateBeforeToday,
   isDateWithinRange,
+  isMonthSameOrBeforeCurrentMonth,
   parseDateValue,
 } from './dateUtils'
 
@@ -27,23 +30,49 @@ export default function DateRangeField({
   onClose,
   onFocus,
 }) {
-  const initialMonth = parseDateValue(startDate) || new Date()
+  const getInitialVisibleMonth = () =>
+    clampMonthToCurrentMonth(parseDateValue(startDate) || new Date())
 
-  const [visibleMonth, setVisibleMonth] = useState(
-    new Date(initialMonth.getFullYear(), initialMonth.getMonth(), 1)
-  )
+  const [visibleMonth, setVisibleMonth] = useState(getInitialVisibleMonth)
 
   useEffect(() => {
     const nextDate = parseDateValue(startDate) || new Date()
-    setVisibleMonth(new Date(nextDate.getFullYear(), nextDate.getMonth(), 1))
+    setVisibleMonth(clampMonthToCurrentMonth(nextDate))
   }, [startDate])
+
+  useEffect(() => {
+    if (startDate && isDateBeforeToday(startDate)) {
+      setStartDate('')
+      setEndDate('')
+      return
+    }
+
+    if (endDate && isDateBeforeToday(endDate)) {
+      setEndDate('')
+      return
+    }
+
+    if (startDate && endDate && endDate < startDate) {
+      setEndDate('')
+    }
+  }, [endDate, setEndDate, setStartDate, startDate])
 
   const calendarDays = useMemo(
     () => getCalendarDays(visibleMonth),
     [visibleMonth]
   )
 
+  const canGoPreviousMonth = !isMonthSameOrBeforeCurrentMonth(visibleMonth)
+
+  const handlePreviousMonth = () => {
+    if (!canGoPreviousMonth) return
+
+    setVisibleMonth((date) => clampMonthToCurrentMonth(addMonths(date, -1)))
+  }
+
   const handleSelectDate = (dateValue) => {
+    if (isDateBeforeToday(dateValue)) return
+
     onFocus()
 
     if (!startDate || (startDate && endDate)) {
@@ -99,8 +128,9 @@ export default function DateRangeField({
         <div className="mb-4 flex items-center justify-between gap-3">
           <button
             type="button"
-            onClick={() => setVisibleMonth((date) => addMonths(date, -1))}
-            className="rounded-full border border-white/15 bg-[#071d32] p-2 text-white transition hover:border-gold/50 hover:text-gold"
+            onClick={handlePreviousMonth}
+            disabled={!canGoPreviousMonth}
+            className="rounded-full border border-white/15 bg-[#071d32] p-2 text-white transition hover:border-gold/50 hover:text-gold disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-white/15 disabled:hover:text-white"
             aria-label="Previous month"
           >
             <ChevronLeftIcon className="h-4 w-4" />
@@ -158,27 +188,32 @@ export default function DateRangeField({
           {calendarDays.map((date) => {
             const dateValue = formatDateValue(date)
             const isCurrentMonth = date.getMonth() === visibleMonth.getMonth()
-            const isStart = dateValue === startDate
-            const isEnd = dateValue === endDate
+            const isPast = isDateBeforeToday(dateValue)
+            const isStart = !isPast && dateValue === startDate
+            const isEnd = !isPast && dateValue === endDate
             const isSelected = isStart || isEnd
-            const isInRange = isDateWithinRange(dateValue, startDate, endDate)
+            const isInRange =
+              !isPast && isDateWithinRange(dateValue, startDate, endDate)
             const isToday = dateValue === formatDateValue(new Date())
 
             return (
               <button
                 key={dateValue}
                 type="button"
+                disabled={isPast}
                 onClick={() => handleSelectDate(dateValue)}
                 className={`aspect-square rounded-2xl text-sm font-bold transition ${
                   isSelected
                     ? 'bg-gold text-navy shadow-sm ring-1 ring-gold/40'
                     : isInRange
                       ? 'bg-gold/15 text-gold'
-                      : isToday
-                        ? 'border border-gold/40 bg-gold/10 text-gold hover:bg-gold hover:text-navy'
-                        : isCurrentMonth
-                          ? 'text-white hover:bg-white/10 hover:text-gold'
-                          : 'text-white/25 hover:bg-white/5 hover:text-white/60'
+                      : isPast
+                        ? 'cursor-not-allowed bg-white/[0.02] text-white/20'
+                        : isToday
+                          ? 'border border-gold/40 bg-gold/10 text-gold hover:bg-gold hover:text-navy'
+                          : isCurrentMonth
+                            ? 'text-white hover:bg-white/10 hover:text-gold'
+                            : 'text-white/35 hover:bg-white/5 hover:text-white/70'
                 }`}
               >
                 {date.getDate()}

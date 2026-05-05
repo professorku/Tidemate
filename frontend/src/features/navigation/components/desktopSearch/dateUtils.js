@@ -1,13 +1,23 @@
 export const WEEKDAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
 
 export function parseDateValue(value) {
-  if (!value) return null
+  if (!value || typeof value !== 'string') return null
 
   const [year, month, day] = value.split('-').map(Number)
 
   if (!year || !month || !day) return null
 
-  return new Date(year, month - 1, day)
+  const date = new Date(year, month - 1, day)
+
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return null
+  }
+
+  return date
 }
 
 export function formatDateValue(date) {
@@ -16,6 +26,10 @@ export function formatDateValue(date) {
   const day = String(date.getDate()).padStart(2, '0')
 
   return `${year}-${month}-${day}`
+}
+
+export function getTodayDateValue() {
+  return formatDateValue(new Date())
 }
 
 export function formatShortDate(value) {
@@ -52,8 +66,31 @@ export function getMonthLabel(date) {
   })
 }
 
+export function getMonthStart(date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1)
+}
+
+export function getCurrentMonthStart() {
+  return getMonthStart(new Date())
+}
+
 export function addMonths(date, amount) {
   return new Date(date.getFullYear(), date.getMonth() + amount, 1)
+}
+
+export function clampMonthToCurrentMonth(date) {
+  const monthStart = getMonthStart(date || new Date())
+  const currentMonthStart = getCurrentMonthStart()
+
+  if (monthStart < currentMonthStart) {
+    return currentMonthStart
+  }
+
+  return monthStart
+}
+
+export function isMonthSameOrBeforeCurrentMonth(date) {
+  return getMonthStart(date).getTime() <= getCurrentMonthStart().getTime()
 }
 
 export function getCalendarDays(monthDate) {
@@ -73,6 +110,14 @@ export function getCalendarDays(monthDate) {
     date.setDate(calendarStart.getDate() + index)
     return date
   })
+}
+
+export function isDateBeforeToday(dateValue) {
+  const date = parseDateValue(dateValue)
+
+  if (!date) return false
+
+  return formatDateValue(date) < getTodayDateValue()
 }
 
 export function isDateWithinRange(dateValue, startDate, endDate) {
