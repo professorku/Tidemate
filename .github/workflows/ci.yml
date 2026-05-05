@@ -78,6 +78,7 @@ jobs:
       REDIS_URL: redis://localhost:6379/0
       JWT_ACCESS_COOKIE_SECURE: "True"
       JWT_REFRESH_COOKIE_SECURE: "True"
+      DJANGO_ADMIN_URL: tidemate-admin-ci-only/
 
     steps:
       - name: Checkout repository
