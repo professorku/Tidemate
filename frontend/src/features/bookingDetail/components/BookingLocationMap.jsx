@@ -3,6 +3,11 @@ import { Circle, MapContainer, Marker, Popup, TileLayer, useMap } from 'react-le
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
+const POSITRON_TILE_URL =
+  'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+
+const CARTO_ATTRIBUTION = '&copy; OpenStreetMap contributors &copy; CARTO'
+
 function parseCoordinate(value) {
   if (value === null || value === undefined || value === '') return null
 
@@ -120,9 +125,6 @@ export default function BookingLocationMap({
 
   const position = [lat, lng]
   const zoom = isExact ? 13 : radiusKm <= 3 ? 11 : radiusKm <= 8 ? 10 : 9
-  const tileUrl = isExact
-    ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
-    : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
 
   return (
     <div className="overflow-hidden rounded-[24px] bg-white shadow-soft">
@@ -138,8 +140,8 @@ export default function BookingLocationMap({
           <MapFlyTo center={position} zoom={zoom} />
 
           <TileLayer
-            attribution="&copy; OpenStreetMap contributors &copy; CARTO"
-            url={tileUrl}
+            attribution={CARTO_ATTRIBUTION}
+            url={POSITRON_TILE_URL}
           />
 
           {isExact ? (

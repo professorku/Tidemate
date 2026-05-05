@@ -15,6 +15,11 @@ import {
   getBoatLocationSubtitle,
 } from '../utils/locationPrivacy'
 
+const POSITRON_TILE_URL =
+  'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+
+const CARTO_ATTRIBUTION = '&copy; OpenStreetMap contributors &copy; CARTO'
+
 function parseCoordinate(value) {
   if (value === null || value === undefined || value === '') return null
 
@@ -159,8 +164,8 @@ export default function BoatMap({ boat }) {
           <MapFlyTo center={position} zoom={zoom} />
 
           <TileLayer
-            attribution="&copy; OpenStreetMap contributors &copy; CARTO"
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+            attribution={CARTO_ATTRIBUTION}
+            url={POSITRON_TILE_URL}
           />
 
           <Circle
@@ -194,8 +199,8 @@ export default function BoatMap({ boat }) {
         <MapFlyTo center={position} zoom={zoom} />
 
         <TileLayer
-          attribution="&copy; OpenStreetMap contributors &copy; CARTO"
-          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+          attribution={CARTO_ATTRIBUTION}
+          url={POSITRON_TILE_URL}
         />
 
         <Marker position={position} icon={exactMarkerIcon}>

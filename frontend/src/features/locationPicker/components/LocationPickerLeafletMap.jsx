@@ -10,6 +10,11 @@ import {
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
+const POSITRON_TILE_URL =
+  'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+
+const CARTO_ATTRIBUTION = '&copy; OpenStreetMap contributors &copy; CARTO'
+
 function FlyToLocation({ center, zoom = 12 }) {
   const map = useMap()
 
@@ -98,15 +103,17 @@ export default function LocationPickerLeafletMap({
           className="h-full w-full"
         >
           <InvalidateMapSize />
+
           <FlyToLocation
             center={markerPosition || initialCenter}
             zoom={markerPosition ? 12 : 6}
           />
+
           <LocationEvents onMapPick={onPickCoordinates} />
 
           <TileLayer
-            attribution="&copy; OpenStreetMap contributors &copy; CARTO"
-            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+            attribution={CARTO_ATTRIBUTION}
+            url={POSITRON_TILE_URL}
           />
 
           {markerPosition ? (
@@ -126,6 +133,7 @@ export default function LocationPickerLeafletMap({
                   <p className="text-base font-bold text-slate-900">
                     {locationName || 'Boat location'}
                   </p>
+
                   <p className="mt-1 text-sm text-slate-600">
                     {markerPosition[0].toFixed(6)}, {markerPosition[1].toFixed(6)}
                   </p>
