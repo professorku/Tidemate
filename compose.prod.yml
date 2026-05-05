@@ -58,6 +58,26 @@ services:
       retries: 5
       start_period: 30s
 
+  maintenance:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-tidemate}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-tidemate}
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      backend:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: >
+      python manage.py run_scheduled_maintenance
+
   frontend:
     build:
       context: .
