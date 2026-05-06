@@ -27,6 +27,39 @@
   }
 }
 
+  .boat-location-marker {
+    width: 30px;
+    height: 39px;
+  }
+
+  .boat-location-marker__bubble {
+    position: relative;
+    width: 30px;
+    height: 30px;
+    border-radius: 9999px;
+    background: #0f2f4f;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    box-shadow: 0 6px 16px rgba(15, 47, 79, 0.22);
+    border: 2px solid #d4af37;
+    line-height: 1;
+  }
+
+  .boat-location-marker__tip {
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    width: 9px;
+    height: 9px;
+    background: #0f2f4f;
+    border-right: 2px solid #d4af37;
+    border-bottom: 2px solid #d4af37;
+  }
+
 @layer components {
   .btn-primary {
     @apply rounded-full bg-gold px-4 py-2.5 text-sm font-semibold tracking-tight text-navy shadow-sm transition hover:brightness-95 active:scale-95;

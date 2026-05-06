@@ -7,8 +7,8 @@ import {
   useMap,
   useMapEvents,
 } from 'react-leaflet'
-import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import { boatMarkerIcon } from '../../../components/maps/boatMarkerIcon'
 
 const POSITRON_TILE_URL =
   'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
@@ -49,43 +49,6 @@ function LocationEvents({ onMapPick }) {
 
   return null
 }
-
-const boatMarkerIcon = L.divIcon({
-  className: '',
-  html: `
-    <div style="
-      position: relative;
-      width: 30px;
-      height: 30px;
-      border-radius: 9999px;
-      background: #0f2f4f;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      box-shadow: 0 6px 16px rgba(15, 47, 79, 0.22);
-      border: 2px solid #d4af37;
-      line-height: 1;
-    ">
-      ⚓
-      <div style="
-        position: absolute;
-        bottom: -5px;
-        left: 50%;
-        transform: translateX(-50%) rotate(45deg);
-        width: 9px;
-        height: 9px;
-        background: #0f2f4f;
-        border-right: 2px solid #d4af37;
-        border-bottom: 2px solid #d4af37;
-      "></div>
-    </div>
-  `,
-  iconSize: [30, 39],
-  iconAnchor: [15, 34],
-  popupAnchor: [0, -30],
-})
 
 export default function LocationPickerLeafletMap({
   markerPosition,
