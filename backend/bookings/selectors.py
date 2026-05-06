@@ -10,6 +10,10 @@ from .expiry import active_pending_booking_filter
 from .models import Booking
 
 
+MY_BOOKING_COUNT_TABS = ('all', 'upcoming', 'active', 'pending', 'completed', 'cancelled')
+HOST_BOOKING_COUNT_TABS = ('all', 'pending', 'confirmed', 'cancelled')
+
+
 def booking_base_queryset():
     return Booking.objects.select_related(
         'boat',
@@ -74,6 +78,22 @@ def get_user_bookings(user):
     )
 
 
+def get_user_booking_counts(user):
+    queryset = get_user_bookings(user)
+
+    counts = {
+        'all': queryset.count(),
+    }
+
+    for timeline in MY_BOOKING_COUNT_TABS:
+        if timeline == 'all':
+            continue
+
+        counts[timeline] = apply_timeline_filter(queryset, timeline).count()
+
+    return counts
+
+
 def get_host_bookings(user, *, status_value=None):
     queryset = (
         booking_base_queryset()
@@ -88,6 +108,21 @@ def get_host_bookings(user, *, status_value=None):
         queryset = queryset.filter(status=status_value)
 
     return queryset
+
+
+def get_host_booking_counts(user):
+    queryset = Booking.objects.filter(
+        boat__host=user,
+        archived_by_host_at__isnull=True,
+    )
+
+    return {
+        'all': queryset.count(),
+        'pending': queryset.filter(status='pending').count(),
+        'confirmed': queryset.filter(status='confirmed').count(),
+        'cancelled': queryset.filter(status='cancelled').count(),
+    }
+
 
 def get_booking_lookup_filter(booking_lookup):
     booking_lookup = str(booking_lookup or '').strip()

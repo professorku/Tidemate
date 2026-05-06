@@ -12,8 +12,10 @@ from .expiry import expire_visible_pending_bookings_for_user
 from .read_serializers import BookingReadSerializer
 from .selectors import (
     apply_timeline_filter,
+    get_host_booking_counts,
     get_host_booking_for_user,
     get_host_bookings,
+    get_user_booking_counts,
     get_user_bookings,
     get_visible_booking_for_user,
 )
@@ -65,6 +67,16 @@ class MyBookingsView(BookingRequestContextMixin, generics.ListAPIView):
         return apply_timeline_filter(queryset, timeline)
 
 
+class MyBookingCountsView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        expire_visible_pending_bookings_for_user(request.user)
+
+        counts = get_user_booking_counts(request.user)
+        return Response(counts, status=status.HTTP_200_OK)
+
+
 class HostBookingsView(BookingRequestContextMixin, generics.ListAPIView):
     serializer_class = BookingReadSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -77,6 +89,16 @@ class HostBookingsView(BookingRequestContextMixin, generics.ListAPIView):
         return get_host_bookings(self.request.user, status_value=status_param)
 
 
+class HostBookingCountsView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        expire_visible_pending_bookings_for_user(request.user)
+
+        counts = get_host_booking_counts(request.user)
+        return Response(counts, status=status.HTTP_200_OK)
+
+
 class BookingDetailView(BookingRequestContextMixin, generics.RetrieveAPIView):
     serializer_class = BookingReadSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -86,7 +108,6 @@ class BookingDetailView(BookingRequestContextMixin, generics.RetrieveAPIView):
 
         booking = get_visible_booking_for_user(self.request.user, self.kwargs['pk'])
         if not booking:
-            
             from django.http import Http404
 
             raise Http404

@@ -11,6 +11,12 @@ export function buildHostStatusParams(tab, extra = {}) {
   return tab === 'all' ? extra : { ...extra, status: tab }
 }
 
+function normalizeBookingCounts(data, tabs) {
+  return Object.fromEntries(
+    tabs.map((tab) => [tab, Number(data?.[tab] ?? 0)])
+  )
+}
+
 export function createBooking(payload) {
   return apiPost('/bookings/', payload)
 }
@@ -36,35 +42,27 @@ export function deleteBooking(bookingId) {
 }
 
 export async function getMyBookingsPage(tab, page = 1, pageSize = 8) {
-  const data = await apiGet('/bookings/my/', { params: buildTimelineParams(tab, { page, page_size: pageSize }) })
+  const data = await apiGet('/bookings/my/', {
+    params: buildTimelineParams(tab, { page, page_size: pageSize }),
+  })
+
   return toPaginatedData(data, { fallbackPageSize: pageSize })
 }
 
 export async function getMyBookingCounts() {
-  const entries = await Promise.all(
-    MY_BOOKING_TABS.map(async (tab) => {
-      const data = await apiGet('/bookings/my/', { params: buildTimelineParams(tab, { page_size: 1 }) })
-      const page = toPaginatedData(data, { fallbackPageSize: 1 })
-      return [tab, page.count]
-    })
-  )
-
-  return Object.fromEntries(entries)
+  const data = await apiGet('/bookings/my/counts/')
+  return normalizeBookingCounts(data, MY_BOOKING_TABS)
 }
 
 export async function getHostBookingsPage(tab, page = 1, pageSize = 8) {
-  const data = await apiGet('/bookings/host/', { params: buildHostStatusParams(tab, { page, page_size: pageSize }) })
+  const data = await apiGet('/bookings/host/', {
+    params: buildHostStatusParams(tab, { page, page_size: pageSize }),
+  })
+
   return toPaginatedData(data, { fallbackPageSize: pageSize })
 }
 
 export async function getHostBookingCounts() {
-  const entries = await Promise.all(
-    HOST_BOOKING_TABS.map(async (tab) => {
-      const data = await apiGet('/bookings/host/', { params: buildHostStatusParams(tab, { page_size: 1 }) })
-      const page = toPaginatedData(data, { fallbackPageSize: 1 })
-      return [tab, page.count]
-    })
-  )
-
-  return Object.fromEntries(entries)
+  const data = await apiGet('/bookings/host/counts/')
+  return normalizeBookingCounts(data, HOST_BOOKING_TABS)
 }

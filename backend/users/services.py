@@ -54,6 +54,7 @@ def toggle_block_for_user(*, actor, target_user):
         raise ValueError('You cannot block yourself.')
 
     my_profile = get_or_create_profile_for_user(actor)
+    target_profile = get_or_create_profile_for_user(target_user)
 
     if my_profile.blocked_users.filter(id=target_user.id).exists():
         my_profile.blocked_users.remove(target_user)
@@ -63,9 +64,20 @@ def toggle_block_for_user(*, actor, target_user):
         }
 
     my_profile.blocked_users.add(target_user)
+
+    # Blocking should remove the crew/contact relationship both ways.
     my_profile.contacts.remove(target_user)
+    target_profile.contacts.remove(actor)
 
     return {
         'is_blocked': True,
         'detail': 'User blocked.',
     }
+
+
+@transaction.atomic
+def revoke_other_sessions_for_user(*, user, current_refresh_token_hash):
+    return revoke_all_device_sessions_for_user(
+        user=user,
+        exclude_refresh_token_hash=current_refresh_token_hash,
+    )
