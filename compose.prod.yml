@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:17-alpine
+    image: postgis/postgis:17-3.5-alpine
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-tidemate}
@@ -84,6 +84,7 @@ services:
       dockerfile: frontend/Dockerfile
       args:
         VITE_API_BASE_URL: /api
+        VITE_GOOGLE_OAUTH_CLIENT_ID: ${VITE_GOOGLE_OAUTH_CLIENT_ID:-}
     restart: unless-stopped
     ports:
       - "${FRONTEND_HTTP_BIND:-127.0.0.1}:${FRONTEND_HTTP_PORT:-8080}:80"
