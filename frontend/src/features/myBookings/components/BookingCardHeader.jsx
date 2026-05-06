@@ -46,11 +46,11 @@ export default function BookingCardHeader({ booking, timelineStatus }) {
         ) : null}
       </div>
 
-      <h3 className="mt-3 text-2xl font-extrabold tracking-tight text-white">
+      <h3 className="mt-3 line-clamp-2 text-xl font-extrabold leading-tight tracking-tight text-white md:text-2xl">
         {booking.boat_title || 'Boat'}
       </h3>
 
-      <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-white/65">
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm text-white/65">
         <span className="inline-flex items-center gap-1.5">
           <MapPinIcon className="h-4 w-4 text-gold" />
           {locationLabel}
@@ -75,7 +75,7 @@ export default function BookingCardHeader({ booking, timelineStatus }) {
         </p>
       ) : null}
 
-      <p className="mt-3 text-sm text-white/65">
+      <p className="mt-2 text-sm text-white/65">
         Hosted by{' '}
         {booking.host_id ? (
           <Link

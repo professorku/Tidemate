@@ -1,7 +1,7 @@
+
 import {
   ArrowPathIcon,
   ExclamationTriangleIcon,
-  UserCircleIcon,
 } from '@heroicons/react/24/outline'
 import PageContainer from '../../../components/layout/PageContainer'
 import ProfileReviewList from '../../../components/ProfileReviewList'
@@ -141,21 +141,6 @@ export default function ProfilePage() {
               profileCompletion={profileCompletion}
               missingProfileItems={missingProfileItems}
             />
-
-            <div className="rounded-[28px] border border-white/15 bg-navy p-6 text-center text-white shadow-soft">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gold text-navy shadow-sm ring-1 ring-gold/40">
-                <UserCircleIcon className="h-7 w-7" />
-              </div>
-
-              <h2 className="mt-4 text-lg font-extrabold text-white">
-                Public profile preview
-              </h2>
-
-              <p className="mt-2 text-sm leading-6 text-white/65">
-                This is the information renters and hosts use to understand who they are
-                talking to.
-              </p>
-            </div>
           </aside>
         </section>
       </PageContainer>

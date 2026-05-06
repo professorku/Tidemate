@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { PhotoIcon } from '@heroicons/react/24/outline'
+import FavoriteButton from './BoatCard/FavoriteButton'
 
-export default function BoatImageGallery({ boat }) {
+export default function BoatImageGallery({
+  boat,
+  isOwner = false,
+  onFavoriteChange,
+}) {
   const images = useMemo(() => {
     if (Array.isArray(boat?.images) && boat.images.length > 0) {
       return boat.images
@@ -32,7 +37,15 @@ export default function BoatImageGallery({ boat }) {
 
   if (images.length === 0) {
     return (
-      <div className="overflow-hidden rounded-[32px] bg-slate-200">
+      <div className="relative overflow-hidden rounded-[32px] bg-slate-200">
+        {!isOwner ? (
+          <FavoriteButton
+            boat={boat}
+            onFavoriteChange={onFavoriteChange}
+            className="absolute right-4 top-4 z-10 !h-12 !w-12 border border-white/70 !bg-white/85 text-navy shadow-lg backdrop-blur-md hover:!bg-white"
+          />
+        ) : null}
+
         <div className="flex h-[260px] items-center justify-center md:h-[420px]">
           <div className="flex flex-col items-center text-slate-500">
             <PhotoIcon className="h-12 w-12" />
@@ -45,7 +58,15 @@ export default function BoatImageGallery({ boat }) {
 
   return (
     <div>
-      <div className="overflow-hidden rounded-[32px] bg-slate-200">
+      <div className="relative overflow-hidden rounded-[32px] bg-slate-200">
+        {!isOwner ? (
+          <FavoriteButton
+            boat={boat}
+            onFavoriteChange={onFavoriteChange}
+            className="absolute right-4 top-4 z-10 !h-12 !w-12 border border-white/70 !bg-white/85 text-navy shadow-lg backdrop-blur-md hover:!bg-white"
+          />
+        ) : null}
+
         <img
           src={selectedImage?.image}
           alt={boat?.title}

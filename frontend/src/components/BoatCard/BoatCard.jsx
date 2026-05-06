@@ -3,17 +3,20 @@ import BaseBoatCard from '../boats/BaseBoatCard'
 import BoatCardImage from './BoatCardImage'
 import FavoriteButton from './FavoriteButton'
 
-export default function BoatCard({ boat, onFavoriteChange }) {
-  const imageCount =
-    Array.isArray(boat.images)
-      ? boat.images.length
-      : boat.image
-        ? 1
-        : 0
+export default function BoatCard({
+  boat,
+  onFavoriteChange,
+  showFavorite = true,
+}) {
+  const imageCount = Array.isArray(boat.images)
+    ? boat.images.length
+    : boat.image
+      ? 1
+      : 0
 
   return (
-      <BaseBoatCard
-        className="!border-transparent !bg-transparent !shadow-none !transition-none hover:!translate-y-0 hover:!shadow-none"
+    <BaseBoatCard
+      className="!border-transparent !bg-transparent !shadow-none !transition-none hover:!translate-y-0 hover:!shadow-none"
       media={(
         <Link
           to={`/boats/${boat.id}`}
@@ -23,13 +26,15 @@ export default function BoatCard({ boat, onFavoriteChange }) {
           <BoatCardImage boat={boat} imageCount={imageCount} />
         </Link>
       )}
-      actionSlot={(
-        <FavoriteButton
-          boat={boat}
-          onFavoriteChange={onFavoriteChange}
-          className="absolute right-3 top-3 z-10"
-        />
-      )}
+      actionSlot={
+        showFavorite ? (
+          <FavoriteButton
+            boat={boat}
+            onFavoriteChange={onFavoriteChange}
+            className="absolute right-3 top-3 z-10"
+          />
+        ) : null
+      }
     />
   )
-} 
+}

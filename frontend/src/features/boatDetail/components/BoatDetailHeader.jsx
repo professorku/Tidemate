@@ -11,7 +11,6 @@ import {
   UserCircleIcon,
   UserGroupIcon,
 } from '@heroicons/react/24/outline'
-import FavoriteButton from '../../../components/BoatCard/FavoriteButton'
 import ReportModal from '../../../components/reports/ReportModal'
 import { useAuth } from '../../../context/useAuth'
 import { useToast } from '../../../context/useToast'
@@ -52,7 +51,6 @@ export default function BoatDetailHeader({
   boat,
   reviewsData,
   isOwner = false,
-  onFavoriteChange,
 }) {
   const { isAuthenticated } = useAuth()
   const { showToast } = useToast()
@@ -111,7 +109,7 @@ export default function BoatDetailHeader({
                 )}
               </div>
 
-              <h1 className="mt-5 max-w-4xl break-words text-3xl font-extrabold leading-[1.08] tracking-tight text-white md:text-4xl xl:text-[2.75rem]">
+              <h1 className="mt-5 max-w-4xl break-words text-2xl font-extrabold leading-tight tracking-tight text-white md:text-3xl xl:text-4xl">
                 {boat.title}
               </h1>
 
@@ -142,38 +140,25 @@ export default function BoatDetailHeader({
               ) : null}
             </div>
 
-            <div className="flex shrink-0 flex-col gap-3 rounded-[28px] border border-gold/20 bg-[#071d32]/80 p-4 shadow-sm lg:min-w-[240px]">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-gold">
-                Price
-              </p>
-
+            <div className="flex shrink-0 flex-col gap-4 rounded-[28px] border border-gold/20 bg-[#071d32]/80 p-4 shadow-sm lg:min-w-[240px]">
               <div>
-                <p className="text-3xl font-extrabold tracking-tight text-white">
-                  {formatMoney(boat.price_per_day)}
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-gold">
+                  Price
                 </p>
-                <p className="mt-1 text-sm font-medium text-white/55">
-                  per day
-                </p>
+
+                <div className="mt-1">
+                  <p className="text-3xl font-extrabold tracking-tight text-white">
+                    {formatMoney(boat.price_per_day)}
+                  </p>
+                  <p className="mt-1 text-sm font-medium text-white/55">
+                    per day
+                  </p>
+                </div>
               </div>
 
               {!isOwner ? (
                 <>
-                  <div className="flex items-center gap-2 border-t border-gold/10 pt-3">
-                    <FavoriteButton
-                      boat={boat}
-                      onFavoriteChange={onFavoriteChange}
-                      className="!h-10 !w-10 border border-gold/20 !bg-white"
-                    />
-
-                    <div>
-                      <p className="text-sm font-bold text-white">
-                        Save listing
-                      </p>
-                      <p className="text-xs text-white/55">
-                        Add this boat to your favorites
-                      </p>
-                    </div>
-                  </div>
+                  <div className="border-t border-gold/10" />
 
                   <button
                     type="button"

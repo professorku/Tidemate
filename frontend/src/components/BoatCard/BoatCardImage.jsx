@@ -30,7 +30,7 @@ export default function BoatCardImage({ boat, imageCount }) {
           </span>
 
           {newLabel && (
-            <span className="inline-flex items-center rounded-full bg-amber-400/80 px-3 py-1.5 text-[11px] font-bold leading-none text-navy backdrop-blur-sm">
+            <span className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full bg-amber-400/80 px-3 py-1.5 text-[11px] font-bold leading-none text-navy backdrop-blur-sm">
               {newLabel}
             </span>
           )}
