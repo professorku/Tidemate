@@ -404,15 +404,21 @@ Example Vite proxy entry:
 }
 ```
 
-For production, WebSocket traffic should be routed to the Django ASGI server:
+For the chosen Docker Compose production setup, browser traffic first reaches the frontend nginx container. The frontend nginx container then proxies API and WebSocket traffic internally to the Django ASGI backend container:
 
 ```text
-/api/*   -> Django backend
-/ws/*    -> Django ASGI server
-/media/* -> production media storage or media-serving layer
+/api/* -> backend container
+/ws/*  -> backend container
 ```
 
-If the frontend and backend are deployed on different domains, configure the frontend WebSocket base URL explicitly. CORS, CSRF trusted origins, allowed hosts, cookie settings, and WebSocket origins must all match the deployed domains.
+The public browser URL should still use HTTPS and WSS:
+
+```text
+https://your-domain.com
+wss://your-domain.com/ws/...
+```
+
+CORS, CSRF trusted origins, allowed hosts, cookie settings, and WebSocket origins must all match the deployed domain.
 
 ---
 
@@ -510,9 +516,25 @@ npm audit
 
 This repository includes production-oriented settings and Docker files, but it does **not** include a complete public HTTPS edge deployment by itself.
 
-The production setup assumes that TideMate is deployed behind a proper HTTPS reverse proxy, load balancer, platform router, or CDN edge.
+The intended production-style setup for a private portfolio demo is:
 
-Examples include:
+```text
+Browser
+  |
+  | HTTPS / WSS
+  v
+Outer VPS Nginx or Caddy
+  |
+  | HTTP to localhost
+  v
+127.0.0.1:8080 frontend nginx container
+  |
+  | /api/* and /ws/* proxied internally
+  v
+Django ASGI backend container
+```
+
+Examples of suitable HTTPS edge layers include:
 
 - Nginx with Certbot/Let’s Encrypt
 - Caddy
@@ -538,9 +560,11 @@ Important production security settings include:
 SECURE_SSL_REDIRECT=True
 SESSION_COOKIE_SECURE=True
 CSRF_COOKIE_SECURE=True
-SECURE_HSTS_SECONDS=31536000
+SECURE_HSTS_SECONDS=3600
 SECURE_PROXY_SSL_HEADER=("HTTP_X_FORWARDED_PROTO", "https")
 ```
+
+For the first private demo deployment, HSTS should start conservatively. After HTTPS has been tested properly, the value can be increased.
 
 Because `SECURE_PROXY_SSL_HEADER` is enabled, the HTTPS reverse proxy must forward this header to Django:
 
@@ -583,22 +607,42 @@ Do **not** use plain `http://` origins for a real production deployment.
 
 ### Production Docker Compose Assumptions
 
-`compose.prod.yml` is production-oriented, but it should not be understood as a complete public TLS setup.
+`compose.prod.yml` is the intended production-style deployment setup for this project.
 
-The included frontend container listens on port `80`:
+The frontend nginx container is bound only to localhost on the VPS:
 
 ```text
-host:80 -> frontend nginx container
+127.0.0.1:8080 -> frontend nginx container
 ```
 
-That is acceptable only when one of these is true:
+The backend container is not exposed directly to the public internet. The frontend nginx container proxies internal requests to the backend container:
 
-1. the host/container is behind a separate HTTPS-terminating reverse proxy or load balancer, or
-2. the compose file is being used for internal testing, staging, or private network deployment.
+```text
+/api/* -> backend:8000
+/ws/*  -> backend:8000
+```
 
-For a real public deployment, do not expose TideMate as plain HTTP. Put an HTTPS layer in front of it.
+A separate HTTPS reverse proxy on the VPS, such as Nginx with Certbot/Let’s Encrypt, should sit in front of the Compose stack:
 
-The internal backend healthcheck uses plain HTTP against the local container:
+```text
+Browser
+  |
+  | HTTPS / WSS
+  v
+Outer VPS Nginx
+  |
+  | HTTP to localhost
+  v
+127.0.0.1:8080 frontend nginx container
+  |
+  | internal Docker network
+  v
+Django ASGI backend container
+```
+
+For a real public deployment, do not expose TideMate as plain HTTP. External users should only access the app through HTTPS.
+
+The internal backend healthcheck uses plain HTTP against the local backend container:
 
 ```text
 http://127.0.0.1:8000/api/users/health/
@@ -616,16 +660,16 @@ so Django can allow that internal healthcheck without fighting the production `S
 
 ### Example HTTPS Reverse Proxy Shape
 
-A typical production request path should look like this:
+A typical production request path for the chosen Docker Compose setup should look like this:
 
 ```text
 Browser
   |
   | HTTPS / WSS
   v
-Public reverse proxy or platform load balancer
+Outer VPS Nginx
   |
-  | HTTP inside private network
+  | HTTP to 127.0.0.1:8080
   | X-Forwarded-Proto: https
   v
 frontend nginx container
@@ -635,9 +679,21 @@ frontend nginx container
 Django ASGI backend container
 ```
 
-A simplified Nginx-style HTTPS edge would need to do roughly this:
+A simplified Nginx HTTPS edge config looks like this:
 
 ```nginx
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    '' close;
+}
+
+server {
+    listen 80;
+    server_name your-domain.com www.your-domain.com;
+
+    return 301 https://$host$request_uri;
+}
+
 server {
     listen 443 ssl http2;
     server_name your-domain.com www.your-domain.com;
@@ -645,37 +701,29 @@ server {
     ssl_certificate /etc/letsencrypt/live/your-domain.com/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
 
+    client_max_body_size 10M;
+
     location / {
-        proxy_pass http://127.0.0.1:80;
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
         proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port 443;
+
+        proxy_redirect off;
     }
 }
-
-server {
-    listen 80;
-    server_name your-domain.com www.your-domain.com;
-    return 301 https://$host$request_uri;
-}
 ```
 
-If the HTTPS edge proxies `/ws/` directly to the Django ASGI server instead of through the frontend nginx container, it must include WebSocket upgrade headers:
-
-```nginx
-location /ws/ {
-    proxy_pass http://127.0.0.1:8000;
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
-    proxy_set_header Host $host;
-    proxy_set_header X-Forwarded-Proto https;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-}
-```
-
-The exact production configuration depends on the hosting provider, but the important assumption is the same: external users should reach TideMate over HTTPS, and Django must receive the forwarded HTTPS information from the proxy.
+The outer VPS Nginx should not serve the React build directly and should not proxy `/api/` or `/ws/` directly to Django. It should proxy all browser traffic to the frontend nginx container at `127.0.0.1:8080`, and the frontend nginx container handles internal routing.
 
 ---
 

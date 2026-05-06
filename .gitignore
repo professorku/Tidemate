@@ -195,4 +195,4 @@ redis-data/
 !frontend/vite.config.js
 !frontend/tailwind.config.js
 !frontend/postcss.config.js.
-env.production
+.env.production
