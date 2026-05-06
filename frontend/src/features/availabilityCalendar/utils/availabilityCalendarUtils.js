@@ -58,12 +58,31 @@ export function isSameDay(a, b) {
   return normalizeDate(a).getTime() === normalizeDate(b).getTime()
 }
 
+// Inclusive range.
+// Used for selected date ranges in the calendar UI.
+// Example: selecting May 1 -> May 5 should visually include May 5.
 export function isWithinRange(date, start, end) {
   if (!date || !start || !end) return false
+
   const current = normalizeDate(date).getTime()
   const startTime = normalizeDate(start).getTime()
   const endTime = normalizeDate(end).getTime()
+
   return current >= startTime && current <= endTime
+}
+
+// Half-open range.
+// Used for unavailable booking ranges.
+// Example: booking May 1 -> May 5 blocks May 1, 2, 3, 4,
+// but May 5 is available again as the return/startover date.
+export function isWithinHalfOpenRange(date, start, end) {
+  if (!date || !start || !end) return false
+
+  const current = normalizeDate(date).getTime()
+  const startTime = normalizeDate(start).getTime()
+  const endTime = normalizeDate(end).getTime()
+
+  return current >= startTime && current < endTime
 }
 
 export function isPastDate(date) {

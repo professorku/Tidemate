@@ -7,7 +7,6 @@ import {
   MapPinIcon,
   PencilSquareIcon,
   TrashIcon,
-  UserGroupIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline'
 import useLongPressReveal from '../../../utils/useLongPressReveal'
@@ -27,9 +26,9 @@ export default function BoatCard({ boat, onDelete, deletingId }) {
     <article
       {...bind}
       className="group relative overflow-hidden rounded-[28px] border border-transparent bg-[#071d32] text-white shadow-soft transition duration-300 hover:-translate-y-0.5"
-      >
+    >
       <div className="relative h-52 overflow-hidden bg-navy">
-        {(boat.thumbnail || boat.image) ? (
+        {boat.thumbnail || boat.image ? (
           <img
             src={boat.thumbnail || boat.image}
             alt={boat.title}
@@ -49,11 +48,6 @@ export default function BoatCard({ boat, onDelete, deletingId }) {
           <div className="flex min-w-0 flex-wrap gap-2">
             <span className="rounded-full bg-gold px-3 py-1 text-[11px] font-extrabold text-navy shadow-sm ring-1 ring-gold/40">
               {formatBoatType(boat.boat_type)}
-            </span>
-
-            <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-3 py-1 text-[11px] font-bold text-navy shadow-sm">
-              <UserGroupIcon className="h-3.5 w-3.5" />
-              {guestsLabel}
             </span>
           </div>
 
@@ -161,7 +155,7 @@ export default function BoatCard({ boat, onDelete, deletingId }) {
           <Link
             to={`/my-boats/${boat.id}/edit`}
             className="inline-flex items-center justify-center gap-1.5 rounded-full border border-[#173047] bg-[#0b263d] px-3 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:border-[#214662] hover:bg-[#102f49]"
-            >
+          >
             <PencilSquareIcon className="h-4 w-4" />
             Edit
           </Link>
@@ -169,7 +163,7 @@ export default function BoatCard({ boat, onDelete, deletingId }) {
           <Link
             to="/host-bookings"
             className="inline-flex items-center justify-center gap-1.5 rounded-full border border-[#173047] bg-[#0b263d] px-3 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:border-[#214662] hover:bg-[#102f49]"
-            >
+          >
             <CalendarDaysIcon className="h-4 w-4" />
             Bookings
           </Link>

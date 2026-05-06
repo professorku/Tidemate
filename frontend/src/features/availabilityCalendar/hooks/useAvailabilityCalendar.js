@@ -3,7 +3,7 @@ import {
   parseISODate,
   normalizeDate,
   addMonths,
-  isWithinRange,
+  isWithinHalfOpenRange,
 } from '../utils/availabilityCalendarUtils'
 
 export function useAvailabilityCalendar({
@@ -25,6 +25,7 @@ export function useAvailabilityCalendar({
       .map((range) => {
         const start = parseISODate(range?.start_date)
         const end = parseISODate(range?.end_date)
+
         if (!start || !end) return null
 
         return {
@@ -53,12 +54,15 @@ export function useAvailabilityCalendar({
   const canGoPrev = viewDate > new Date(today.getFullYear(), today.getMonth(), 1)
 
   const isBlocked = (date) =>
-    safeRanges.some((range) => isWithinRange(date, range.start, range.end))
+    safeRanges.some((range) =>
+      isWithinHalfOpenRange(date, range.start, range.end)
+    )
 
   const getStatus = (date) => {
     const match = safeRanges.find((range) =>
-      isWithinRange(date, range.start, range.end)
+      isWithinHalfOpenRange(date, range.start, range.end)
     )
+
     return match ? match.status : null
   }
 
