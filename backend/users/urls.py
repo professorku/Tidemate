@@ -43,4 +43,6 @@ urlpatterns = [
 
     path("crewmates/<int:user_id>/toggle/", toggle_crewmate, name="toggle_crewmate"),
     path("blocks/<int:user_id>/toggle/", toggle_block_user, name="toggle_block_user"),
+    path("crewmates/<int:user_id>/", toggle_crewmate, name="toggle_crewmate_legacy"),
+    path("blocks/<int:user_id>/", toggle_block_user, name="toggle_block_user_legacy"),
 ]
