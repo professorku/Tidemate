@@ -111,6 +111,7 @@ describe('useEditProfilePage', () => {
     })
 
     expect(updateMyProfile).toHaveBeenCalledWith({
+      display_name: 'jens',
       email: 'jens@example.com',
       current_password: '',
       location: 'Bodø',
