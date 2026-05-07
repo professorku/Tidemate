@@ -21,6 +21,8 @@ export default function PublicProfileHero({
   averageRating,
   actions = null,
 }) {
+  const displayName = profile.display_name || profile.username || 'TideMate user'
+
   return (
     <div className="relative overflow-hidden border-b border-white/15 px-6 py-8 md:px-8 md:py-10">
       <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-gold/10 blur-3xl" />
@@ -31,7 +33,7 @@ export default function PublicProfileHero({
           {profile.avatar ? (
             <img
               src={profile.avatar}
-              alt={profile.username}
+              alt={displayName}
               decoding="async"
               fetchPriority="high"
               className="h-28 w-28 rounded-full border-4 border-gold object-cover shadow-lg ring-1 ring-gold/40 md:h-32 md:w-32"
@@ -48,7 +50,7 @@ export default function PublicProfileHero({
             </p>
 
             <h1 className="mt-2 text-4xl font-black tracking-tight text-white md:text-5xl">
-              {profile.username}
+              {displayName}
             </h1>
 
             <div className="mt-4 flex flex-wrap gap-2">
@@ -71,7 +73,7 @@ export default function PublicProfileHero({
             <p className="mt-5 max-w-2xl text-[15px] leading-7 text-white/70 md:text-base">
               {profile.bio
                 ? profile.bio
-                : `${profile.username} has not added a bio yet. You can still browse their listed boats and reviews below.`}
+                : `${displayName} has not added a bio yet. You can still browse their listed boats and reviews below.`}
             </p>
           </div>
         </div>

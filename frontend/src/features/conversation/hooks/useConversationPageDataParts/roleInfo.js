@@ -1,3 +1,7 @@
+function getDisplayName(displayName, username, fallback = 'User') {
+  return displayName || username || fallback
+}
+
 export function buildConversationRoleInfo({ conversation, me }) {
   if (!conversation || !me) {
     return {
@@ -10,22 +14,32 @@ export function buildConversationRoleInfo({ conversation, me }) {
     }
   }
 
+  const hostDisplayName = getDisplayName(
+    conversation.host_display_name,
+    conversation.host_username
+  )
+
+  const renterDisplayName = getDisplayName(
+    conversation.renter_display_name,
+    conversation.renter_username
+  )
+
   if (me.username === conversation.host_username) {
     return {
-      myUsername: conversation.host_username,
+      myUsername: hostDisplayName,
       myUserId: conversation.host,
       myAvatar: conversation.host_avatar,
-      otherUsername: conversation.renter_username,
+      otherUsername: renterDisplayName,
       otherUserId: conversation.renter,
       otherAvatar: conversation.renter_avatar,
     }
   }
 
   return {
-    myUsername: conversation.renter_username,
+    myUsername: renterDisplayName,
     myUserId: conversation.renter,
     myAvatar: conversation.renter_avatar,
-    otherUsername: conversation.host_username,
+    otherUsername: hostDisplayName,
     otherUserId: conversation.host,
     otherAvatar: conversation.host_avatar,
   }
@@ -34,10 +48,21 @@ export function buildConversationRoleInfo({ conversation, me }) {
 export function getAvatarForConversationMessage(conversation, message) {
   if (!conversation) return null
 
+  const hostDisplayName = getDisplayName(
+    conversation.host_display_name,
+    conversation.host_username
+  )
+
+  const renterDisplayName = getDisplayName(
+    conversation.renter_display_name,
+    conversation.renter_username
+  )
+
   if (message.sender_username === conversation.host_username) {
     return {
       avatar: conversation.host_avatar,
-      username: conversation.host_username,
+      username: hostDisplayName,
+      rawUsername: conversation.host_username,
       userId: conversation.host,
     }
   }
@@ -45,14 +70,16 @@ export function getAvatarForConversationMessage(conversation, message) {
   if (message.sender_username === conversation.renter_username) {
     return {
       avatar: conversation.renter_avatar,
-      username: conversation.renter_username,
+      username: renterDisplayName,
+      rawUsername: conversation.renter_username,
       userId: conversation.renter,
     }
   }
 
   return {
     avatar: null,
-    username: message.sender_username,
+    username: getDisplayName(message.sender_display_name, message.sender_username),
+    rawUsername: message.sender_username,
     userId: null,
   }
 }

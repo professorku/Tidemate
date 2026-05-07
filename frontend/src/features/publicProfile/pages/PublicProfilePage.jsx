@@ -39,8 +39,8 @@ export default function PublicProfilePage() {
   } = usePublicProfilePage(id)
 
   const initials = useMemo(() => {
-    const username = profile?.username || 'TM'
-    return username.slice(0, 2).toUpperCase()
+    const displayName = profile?.display_name || profile?.username || 'TM'
+    return displayName.trim().slice(0, 2).toUpperCase() || 'TM'
   }, [profile])
 
   if (loading) {
@@ -54,6 +54,7 @@ export default function PublicProfilePage() {
   const reviewCount = reviewsData?.review_count || 0
   const averageRating = reviewsData?.average_rating || null
   const joinedText = formatJoinedDate(profile.member_since)
+  const displayName = profile.display_name || profile.username || 'TideMate user'
 
   return (
     <main className="min-h-screen bg-[#071d32]">
@@ -92,7 +93,7 @@ export default function PublicProfilePage() {
         <PublicProfileBoats boats={boats} profile={profile} />
 
         <ProfileReviewList
-          title={`Reviews for ${profile.username}`}
+          title={`Reviews for ${displayName}`}
           averageRating={reviewsData.average_rating}
           reviewCount={reviewCount}
           reviews={reviewsData.results}

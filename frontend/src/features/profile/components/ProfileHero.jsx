@@ -56,6 +56,7 @@ export default function ProfileHero({
 }) {
   const averageRating = formatAverageRating(reviewsData.average_rating)
   const hasMissingItems = missingProfileItems.length > 0
+  const displayName = profile.display_name || profile.username || 'TideMate user'
 
   return (
     <section className="overflow-hidden rounded-[34px] border border-navy bg-navy text-white shadow-soft">
@@ -66,7 +67,7 @@ export default function ProfileHero({
               {profile.avatar ? (
                 <img
                   src={profile.avatar}
-                  alt={profile.username}
+                  alt={displayName}
                   className="h-32 w-32 rounded-full border-4 border-gold object-cover shadow-lg ring-1 ring-gold/40 md:h-36 md:w-36"
                 />
               ) : (
@@ -108,7 +109,7 @@ export default function ProfileHero({
               </div>
 
               <h1 className="mt-4 truncate text-3xl font-extrabold tracking-tight text-white md:text-5xl">
-                {profile.username}
+                {displayName}
               </h1>
 
               <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/70">

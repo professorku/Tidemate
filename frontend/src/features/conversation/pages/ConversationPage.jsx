@@ -247,14 +247,6 @@ export default function ConversationPage() {
                     : ' · Direct inquiry'}
                 </p>
               </div>
-
-              <button
-                type="button"
-                onClick={reload}
-                className="inline-flex items-center justify-center rounded-full border border-white/25 bg-navy px-4 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-ocean"
-              >
-                Refresh
-              </button>
             </div>
           </section>
 

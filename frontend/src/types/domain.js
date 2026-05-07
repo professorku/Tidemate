@@ -215,6 +215,7 @@ export function normalizeUser(user) {
     return {
       id: null,
       username: '',
+      display_name: '',
       email: '',
       location: '',
       bio: '',
@@ -228,6 +229,7 @@ export function normalizeUser(user) {
     ...user,
     id: user.id ?? null,
     username: user.username ?? '',
+    display_name: user.display_name ?? '',
     email: user.email ?? '',
     location: user.location ?? '',
     bio: user.bio ?? '',

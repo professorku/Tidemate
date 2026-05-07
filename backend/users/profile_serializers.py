@@ -4,6 +4,7 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from config.uploads import MAX_AVATAR_IMAGE_SIZE_BYTES, validate_image_upload
+from .models import MAX_PROFILE_BIO_LENGTH, MAX_PROFILE_DISPLAY_NAME_LENGTH, Profile
 
 from .email_utils import normalize_email, pending_email_exists, user_email_exists
 from .email_verification import (
@@ -32,11 +33,18 @@ class BaseProfileSerializer(serializers.ModelSerializer):
         trim_whitespace=True,
     )
     avatar = serializers.SerializerMethodField()
+    display_name = serializers.CharField(
+    required=False,
+    allow_blank=True,
+    max_length=MAX_PROFILE_DISPLAY_NAME_LENGTH,
+    trim_whitespace=True,
+    )
 
     class Meta:
         model = Profile
         fields = [
             "username",
+            "display_name",
             "bio",
             "location",
             "avatar",
@@ -55,6 +63,9 @@ class BaseProfileSerializer(serializers.ModelSerializer):
             return request.build_absolute_uri(url)
 
         return url
+
+    def validate_display_name(self, value):
+        return (value or "").strip()
 
     def validate_bio(self, value):
         return (value or "").strip()
@@ -179,7 +190,8 @@ class MyProfileSerializer(BaseProfileSerializer):
 
         if avatar_file is not None:
             instance.avatar = avatar_file
-
+        
+        instance.display_name = validated_data.get("display_name", instance.display_name)
         instance.bio = validated_data.get("bio", instance.bio)
         instance.location = validated_data.get("location", instance.location)
 

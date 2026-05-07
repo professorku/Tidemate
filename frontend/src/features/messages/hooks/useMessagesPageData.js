@@ -18,6 +18,16 @@ function canDeleteConversation(conversation) {
   return conversation.booking_status === 'cancelled' || conversation.trip_state === 'completed'
 }
 
+function getOtherUserSearchName(conversation, currentUsername) {
+  const isHost = currentUsername === conversation.host_username
+
+  if (isHost) {
+    return conversation.renter_display_name || conversation.renter_username || ''
+  }
+
+  return conversation.host_display_name || conversation.host_username || ''
+}
+
 export default function useMessagesPageData() {
   const { user: me } = useAuth()
   const queryClient = useQueryClient()
@@ -40,7 +50,6 @@ export default function useMessagesPageData() {
       })
     },
   })
-
 
   const pageData = conversationsQuery.data
   const conversationsPage = useMemo(() => pageData?.results || [], [pageData])
@@ -67,12 +76,14 @@ export default function useMessagesPageData() {
     const query = search.trim().toLowerCase()
 
     return sortedConversations.filter((conversation) => {
-      const otherUsername = me?.username === conversation.host_username
-        ? conversation.renter_username
-        : conversation.host_username
+      const otherUserName = getOtherUserSearchName(conversation, me?.username)
 
       const matchesSearch = !query || [
-        otherUsername,
+        otherUserName,
+        conversation.host_display_name,
+        conversation.renter_display_name,
+        conversation.host_username,
+        conversation.renter_username,
         conversation.boat_title,
         conversation.last_message_text,
       ].some((value) => String(value || '').toLowerCase().includes(query))

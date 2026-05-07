@@ -21,6 +21,11 @@ export default function BookingCardHeader({ booking, timelineStatus }) {
   const locationLabel = getBoatLocationLabel(booking, 'Location not set')
   const publicLocationLabel = getBoatPublicLocationLabel(booking, '')
 
+  const hostDisplayName =
+    booking.host_display_name ||
+    booking.host_username ||
+    'Host'
+
   return (
     <div className="pr-12">
       <div className="flex flex-wrap items-center gap-2">
@@ -82,11 +87,11 @@ export default function BookingCardHeader({ booking, timelineStatus }) {
             to={`/users/${booking.host_id}`}
             className="font-bold text-gold hover:underline"
           >
-            {booking.host_username || 'Host'}
+            {hostDisplayName}
           </Link>
         ) : (
           <span className="font-bold text-white">
-            {booking.host_username || 'Host'}
+            {hostDisplayName}
           </span>
         )}
       </p>

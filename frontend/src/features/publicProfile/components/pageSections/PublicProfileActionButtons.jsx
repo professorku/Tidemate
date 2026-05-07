@@ -25,6 +25,7 @@ export default function PublicProfileActionButtons({
   const { isAuthenticated } = useAuth()
   const { showToast } = useToast()
   const [isReportOpen, setIsReportOpen] = useState(false)
+  const displayName = profile?.display_name || profile?.username || 'this user'
 
   if (isMe) {
     return null
@@ -90,7 +91,7 @@ export default function PublicProfileActionButtons({
         isOpen={isReportOpen}
         targetType="user"
         targetId={profile?.id}
-        targetLabel={profile?.username}
+        targetLabel={displayName}
         onClose={() => setIsReportOpen(false)}
       />
     </>

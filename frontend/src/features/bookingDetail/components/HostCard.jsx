@@ -4,15 +4,25 @@ import {
   UserCircleIcon,
 } from '@heroicons/react/24/outline'
 
-function getInitials(username) {
-  return String(username || 'TM').trim().slice(0, 2).toUpperCase() || 'TM'
+function getInitials(name) {
+  return String(name || 'TM').trim().slice(0, 2).toUpperCase() || 'TM'
 }
 
 export default function HostCard({ booking, viewerRole = 'renter' }) {
   const isHostView = viewerRole === 'host'
+
   const personId = isHostView ? booking.renter_id : booking.host_id
-  const username = isHostView ? booking.renter_username : booking.host_username
+
+  const username = isHostView
+    ? booking.renter_username
+    : booking.host_username
+
+  const displayName = isHostView
+    ? booking.renter_display_name || booking.renter_username || 'Renter'
+    : booking.host_display_name || booking.host_username || 'Host'
+
   const avatar = isHostView ? booking.renter_avatar : null
+
   const messageHref = booking.conversation_id
     ? `/messages/${booking.conversation_id}`
     : '/messages'
@@ -24,14 +34,14 @@ export default function HostCard({ booking, viewerRole = 'renter' }) {
           {avatar ? (
             <img
               src={avatar}
-              alt={username}
+              alt={displayName}
               loading="lazy"
               decoding="async"
               className="h-16 w-16 rounded-full object-cover ring-4 ring-gold/20"
             />
           ) : (
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gold text-lg font-extrabold text-navy ring-4 ring-gold/20">
-              {getInitials(username)}
+              {getInitials(displayName)}
             </div>
           )}
 
@@ -44,7 +54,7 @@ export default function HostCard({ booking, viewerRole = 'renter' }) {
               to={`/users/${personId}`}
               className="mt-1 inline-flex items-center gap-2 text-xl font-extrabold text-white transition hover:text-gold"
             >
-              {username}
+              {displayName}
               <UserCircleIcon className="h-5 w-5 text-gold/70" />
             </Link>
 
@@ -53,6 +63,12 @@ export default function HostCard({ booking, viewerRole = 'renter' }) {
                 ? 'This is the renter attached to the booking.'
                 : 'This is the person hosting the boat.'}
             </p>
+
+            {username && username !== displayName ? (
+              <p className="mt-1 text-xs text-white/35">
+                @{username}
+              </p>
+            ) : null}
           </div>
         </div>
 

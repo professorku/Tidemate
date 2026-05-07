@@ -11,6 +11,15 @@ class ConversationRepresentationMixin:
 
         return url
 
+    def _get_user_display_name(self, user):
+        if not user:
+            return 'User'
+
+        profile = getattr(user, 'profile', None)
+        display_name = getattr(profile, 'display_name', '') if profile else ''
+
+        return (display_name or user.username or 'User').strip()
+
     def _build_avatar_url(self, user):
         profile = getattr(user, 'profile', None)
         if not profile or not profile.avatar:
@@ -57,6 +66,12 @@ class ConversationRepresentationMixin:
             return self._build_media_url(boat.thumbnail)
 
         return self.get_boat_image(obj)
+
+    def get_host_display_name(self, obj):
+        return self._get_user_display_name(getattr(obj, 'host', None))
+
+    def get_renter_display_name(self, obj):
+        return self._get_user_display_name(getattr(obj, 'renter', None))
 
     def get_host_avatar(self, obj):
         return self._build_avatar_url(obj.host)

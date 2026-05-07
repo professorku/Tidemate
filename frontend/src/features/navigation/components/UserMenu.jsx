@@ -18,6 +18,7 @@ export default function UserMenu() {
     'block rounded-lg px-3 py-2.5 text-sm font-medium text-white/80 transition hover:bg-white/10 hover:text-white'
 
   const hasListedBoats = Number(user?.stats?.boats_listed || 0) > 0
+  const displayName = user?.display_name || user?.username || ''
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -62,7 +63,7 @@ export default function UserMenu() {
             onFocus={() => preloadRoute('profile')}
           >
             <UserCircleIcon className="h-5 w-5 text-gold" />
-            {user?.username ? `${user.username}'s profile` : 'My profile'}
+            {displayName ? `${displayName}'s profile` : 'My profile'}
           </Link>
 
           <div className="my-2 border-t border-gold/15" />

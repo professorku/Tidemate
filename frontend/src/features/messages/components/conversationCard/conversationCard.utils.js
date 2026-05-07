@@ -1,3 +1,7 @@
+function getDisplayName(displayName, username, fallback = 'User') {
+  return displayName || username || fallback
+}
+
 export function getOtherUser(conversation, currentUsername) {
   const isHost = currentUsername === conversation.host_username
 
@@ -5,12 +9,20 @@ export function getOtherUser(conversation, currentUsername) {
     isHost,
     otherUser: isHost
       ? {
-          username: conversation.renter_username,
+          username: getDisplayName(
+            conversation.renter_display_name,
+            conversation.renter_username
+          ),
+          rawUsername: conversation.renter_username,
           avatar: conversation.renter_avatar,
           id: conversation.renter,
         }
       : {
-          username: conversation.host_username,
+          username: getDisplayName(
+            conversation.host_display_name,
+            conversation.host_username
+          ),
+          rawUsername: conversation.host_username,
           avatar: conversation.host_avatar,
           id: conversation.host,
         },

@@ -10,6 +10,16 @@ from .models import Booking
 from .serializers import BookingCancelSerializer
 
 
+def get_user_display_name(user, fallback='User'):
+    if not user:
+        return fallback
+
+    profile = getattr(user, 'profile', None)
+    display_name = getattr(profile, 'display_name', '') if profile else ''
+
+    return (display_name or user.username or fallback).strip()
+
+
 @transaction.atomic
 def create_booking(*, serializer):
     booking = serializer.save()
@@ -22,11 +32,13 @@ def create_booking(*, serializer):
         },
     )
 
+    renter_name = get_user_display_name(booking.renter, fallback='Renter')
+
     Notification.objects.create(
         user=booking.boat.host,
         message=(
             f'New booking request for "{booking.boat.title}" '
-            f'from {booking.renter.username}.'
+            f'from {renter_name}.'
         ),
         target_url='/host-bookings',
     )
@@ -60,7 +72,13 @@ def confirm_booking(*, booking):
 @transaction.atomic
 def cancel_booking(*, booking, actor, data):
     booking = (
-        Booking.objects.select_related('boat', 'boat__host', 'renter')
+        Booking.objects.select_related(
+            'boat',
+            'boat__host',
+            'boat__host__profile',
+            'renter',
+            'renter__profile',
+        )
         .select_for_update()
         .get(pk=booking.pk)
     )
@@ -97,10 +115,12 @@ def cancel_booking(*, booking, actor, data):
     )
 
     if is_renter:
+        renter_name = get_user_display_name(booking.renter, fallback='The renter')
+
         Notification.objects.create(
             user=booking.boat.host,
             message=(
-                f'{booking.renter.username} cancelled the booking for '
+                f'{renter_name} cancelled the booking for '
                 f'"{booking.boat.title}".'
             ),
             target_url='/host-bookings',

@@ -4,6 +4,8 @@ import EmptyState from '../../../components/ui/EmptyState'
 import { formatCurrency } from '../../../utils/format/number'
 
 export default function PublicProfileBoats({ boats, profile }) {
+  const displayName = profile.display_name || profile.username || 'TideMate user'
+
   return (
     <section className="rounded-[32px] border border-white/15 bg-navy p-6 text-white shadow-soft md:p-8">
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
@@ -13,7 +15,7 @@ export default function PublicProfileBoats({ boats, profile }) {
           </p>
 
           <h2 className="mt-2 text-2xl font-black tracking-tight text-white">
-            Boats from {profile.username}
+            Boats from {displayName}
           </h2>
 
           <p className="mt-2 max-w-2xl text-sm leading-6 text-white/65 md:text-base">
@@ -31,7 +33,7 @@ export default function PublicProfileBoats({ boats, profile }) {
           <EmptyState
             icon={<LifebuoyIcon className="h-8 w-8" />}
             title="No public boats yet"
-            text={`${profile.username} has not published any boats yet. Check back later to see new listings.`}
+            text={`${displayName} has not published any boats yet. Check back later to see new listings.`}
             compact={false}
             tone="neutral"
           />

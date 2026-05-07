@@ -22,6 +22,7 @@ export default function ProfileDetailsCard({
   missingProfileItems = [],
 }) {
   const hasPendingEmail = Boolean(profile.email_change_pending || profile.pending_email)
+  const displayName = profile.display_name || profile.username || 'TideMate user'
 
   return (
     <section className="rounded-[28px] border border-white/15 bg-navy p-6 text-white shadow-soft">
@@ -40,8 +41,8 @@ export default function ProfileDetailsCard({
       <div className="mt-5 space-y-3">
         <DetailItem
           icon={<UserCircleIcon className="h-5 w-5" />}
-          label="Username"
-          value={profile.username}
+          label="Display name"
+          value={displayName}
         />
 
         <DetailItem

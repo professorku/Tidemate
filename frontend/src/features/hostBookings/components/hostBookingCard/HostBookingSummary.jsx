@@ -22,6 +22,12 @@ export default function HostBookingSummary({
   isPending,
 }) {
   const renterId = getRenterId(booking)
+  const renterDisplayName =
+    booking.renter_display_name ||
+    booking.renter_username ||
+    booking.user_username ||
+    'Renter'
+
   const hasExactLocation = canShowExactLocation(booking)
   const locationLabel = getBoatLocationLabel(booking, 'Location not set')
   const publicLocationLabel = getBoatPublicLocationLabel(booking, '')
@@ -87,11 +93,11 @@ export default function HostBookingSummary({
             to={`/users/${renterId}`}
             className="font-bold text-gold hover:underline"
           >
-            {booking.renter_username || booking.user_username || 'Renter'}
+            {renterDisplayName}
           </Link>
         ) : (
           <span className="font-bold text-white">
-            {booking.renter_username || booking.user_username || 'Renter'}
+            {renterDisplayName}
           </span>
         )}
       </p>

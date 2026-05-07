@@ -12,6 +12,7 @@ import {
 } from '../services/editProfileService'
 
 const INITIAL_FORM = {
+  display_name: '',
   email: '',
   current_password: '',
   location: '',
@@ -22,21 +23,23 @@ function normalizeEmail(email) {
   return (email || '').trim().toLowerCase()
 }
 
-function getInitials(username) {
-  const safeUsername = (username || 'TM').trim()
-  return safeUsername.slice(0, 2).toUpperCase() || 'TM'
+function getInitials(name) {
+  const safeName = (name || 'TM').trim()
+  return safeName.slice(0, 2).toUpperCase() || 'TM'
 }
 
 function calculateProfileCompletion(profile) {
   if (!profile) return 0
 
   let completed = 0
+
   if (profile.avatar) completed += 1
+  if (profile.display_name || profile.displayName || profile.username) completed += 1
   if (profile.email) completed += 1
   if (profile.location) completed += 1
   if (profile.bio) completed += 1
 
-  return Math.round((completed / 4) * 100)
+  return Math.round((completed / 5) * 100)
 }
 
 export default function useEditProfilePage() {
@@ -58,7 +61,9 @@ export default function useEditProfilePage() {
     const loadProfile = async () => {
       try {
         setLoading(true)
+
         const profile = user || (await getMyProfile())
+
         setInitialProfile(profile)
         formMethods.reset(mapProfileToForm(profile))
         setError('')
@@ -85,15 +90,25 @@ export default function useEditProfilePage() {
 
   const emailChanged = useMemo(() => {
     if (!initialProfile) return false
+
     return normalizeEmail(watchedValues.email) !== normalizeEmail(initialProfile.email)
   }, [initialProfile, watchedValues.email])
 
   const preview = useMemo(() => {
-    const username = initialProfile?.username || user?.username || 'TideMate user'
+    const username = initialProfile?.username || user?.username || ''
+
+    const displayName =
+      watchedValues.display_name ||
+      initialProfile?.display_name ||
+      user?.display_name ||
+      username ||
+      'TideMate user'
 
     return {
       username,
-      initials: getInitials(username),
+      display_name: watchedValues.display_name || initialProfile?.display_name || user?.display_name || '',
+      displayName,
+      initials: getInitials(displayName),
       avatar: avatarPreview,
       email: watchedValues.email || initialProfile?.email || '',
       location: watchedValues.location || '',
@@ -102,8 +117,10 @@ export default function useEditProfilePage() {
   }, [
     avatarPreview,
     initialProfile,
+    user?.display_name,
     user?.username,
     watchedValues.bio,
+    watchedValues.display_name,
     watchedValues.email,
     watchedValues.location,
   ])
@@ -112,10 +129,12 @@ export default function useEditProfilePage() {
 
   const clearLocalAvatar = () => {
     setAvatarFile(null)
+
     setLocalAvatarPreview((currentPreview) => {
       if (currentPreview) {
         URL.revokeObjectURL(currentPreview)
       }
+
       return ''
     })
   }
@@ -127,12 +146,15 @@ export default function useEditProfilePage() {
     const nextPreview = URL.createObjectURL(file)
 
     setAvatarFile(file)
+
     setLocalAvatarPreview((currentPreview) => {
       if (currentPreview) {
         URL.revokeObjectURL(currentPreview)
       }
+
       return nextPreview
     })
+
     setError('')
     setSuccess('')
 

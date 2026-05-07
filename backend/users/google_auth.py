@@ -9,7 +9,7 @@ from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token as google_id_token
 
 from .email_utils import normalize_email
-from .models import GoogleAccount
+from .models import GoogleAccount, MAX_PROFILE_DISPLAY_NAME_LENGTH, Profile
 
 
 User = get_user_model()
@@ -62,6 +62,20 @@ def _payload_email_is_verified(payload):
     return value is True or str(value).lower() == "true"
 
 
+def _set_display_name_from_google(user, name):
+   
+    name = (name or "").strip()
+
+    if not name:
+        return
+
+    profile, _ = Profile.objects.get_or_create(user=user)
+
+    if not profile.display_name:
+        profile.display_name = name[:MAX_PROFILE_DISPLAY_NAME_LENGTH]
+        profile.save(update_fields=["display_name"])
+
+
 @transaction.atomic
 def get_or_create_user_from_google_credential(credential):
     if not credential or not isinstance(credential, str):
@@ -91,22 +105,30 @@ def get_or_create_user_from_google_credential(credential):
 
     if google_account:
         fields_to_update = []
+
         if google_account.email != email:
             google_account.email = email
             fields_to_update.append("email")
+
         if google_account.name != name:
             google_account.name = name
             fields_to_update.append("name")
+
         if google_account.picture_url != picture_url:
             google_account.picture_url = picture_url
             fields_to_update.append("picture_url")
+
         if fields_to_update:
             google_account.save(update_fields=[*fields_to_update, "updated_at"])
 
         user = google_account.user
+
         if not user.is_active:
             user.is_active = True
             user.save(update_fields=["is_active"])
+
+        _set_display_name_from_google(user, name)
+
         return user, False
 
     user = User.objects.select_for_update().filter(email__iexact=email).first()
@@ -116,11 +138,14 @@ def get_or_create_user_from_google_credential(credential):
         username = _unique_username(email=email, name=name)
         user = User(username=username, email=email, is_active=True)
         user.set_unusable_password()
+
         try:
             user.save()
         except IntegrityError as exc:
             raise GoogleAuthError({"detail": "Could not create a user for this Google account."}) from exc
+
         created = True
+
     elif not user.is_active:
         user.is_active = True
         user.save(update_fields=["is_active"])
@@ -135,5 +160,7 @@ def get_or_create_user_from_google_credential(credential):
         )
     except IntegrityError as exc:
         raise GoogleAuthError({"detail": "This Google account is already linked to another user."}) from exc
+
+    _set_display_name_from_google(user, name)
 
     return user, created

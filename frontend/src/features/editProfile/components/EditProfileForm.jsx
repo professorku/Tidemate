@@ -11,6 +11,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { useWatch } from 'react-hook-form'
 
+const DISPLAY_NAME_MAX_LENGTH = 80
 const BIO_MAX_LENGTH = 300
 const LOCATION_MAX_LENGTH = 60
 
@@ -228,6 +229,28 @@ export default function EditProfileForm({
           title="Public profile"
           description="This is shown on your profile and helps people know who they are renting from or renting to."
         />
+
+      <Field label="Display name" htmlFor="displayName">
+        <input
+          id="displayName"
+          type="text"
+          autoComplete="name"
+          disabled={saving}
+          maxLength={DISPLAY_NAME_MAX_LENGTH}
+          placeholder="Example: Jens Småby"
+          className={inputClassName}
+          {...register('display_name', {
+            maxLength: {
+              value: DISPLAY_NAME_MAX_LENGTH,
+              message: `Display name must be ${DISPLAY_NAME_MAX_LENGTH} characters or less.`,
+            },
+          })}
+        />
+        <p className="mt-2 text-xs text-white/50">
+          This is the name other users will see. Your username is still used internally.
+        </p>
+        <FieldError message={errors.display_name?.message} />
+      </Field>
 
         <Field label="Location" htmlFor="location">
           <input

@@ -7,11 +7,23 @@ from .models import Review
 from .review_helpers import get_booking_return_datetime
 
 
+def get_user_display_name(user, fallback='User'):
+    if not user:
+        return fallback
+
+    profile = getattr(user, 'profile', None)
+    display_name = getattr(profile, 'display_name', '') if profile else ''
+
+    return (display_name or user.username or fallback).strip()
+
+
 def create_review_notification(review):
     if review.review_type == Review.REVIEW_TYPE_USER and review.reviewed_user:
+        reviewer_name = get_user_display_name(review.reviewer, fallback='Someone')
+
         Notification.objects.create(
             user=review.reviewed_user,
-            message=f"{review.reviewer.username} left you a review ({review.rating}/5) for {review.boat.title}.",
+            message=f"{reviewer_name} left you a review ({review.rating}/5) for {review.boat.title}.",
             target_url=f'/users/{review.reviewed_user.id}',
         )
 
@@ -64,6 +76,7 @@ def build_reviewable_booking_payload(booking, user):
         'boat_thumbnail': booking.boat.thumbnail.url if booking.boat.thumbnail else (booking.boat.image.url if booking.boat.image else None),
         'target_user_id': target_user.id,
         'target_username': target_user.username,
+        'target_display_name': get_user_display_name(target_user),
         'target_role': target_role,
         'start_date': booking.start_date,
         'end_date': booking.end_date,

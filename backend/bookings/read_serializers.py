@@ -15,6 +15,7 @@ BOOKING_READ_ONLY_FIELDS = [
     'boat_guests',
     'price_per_day',
     'host_username',
+    'host_display_name',
     'host_id',
     'latitude',
     'longitude',
@@ -29,6 +30,7 @@ BOOKING_READ_ONLY_FIELDS = [
     'renter',
     'renter_id',
     'renter_username',
+    'renter_display_name',
     'renter_avatar',
     'pickup_datetime',
     'return_datetime',
@@ -58,6 +60,7 @@ BOOKING_READ_ONLY_FIELDS = [
 
 class BookingReadSerializer(BookingRepresentationMixin, serializers.ModelSerializer):
     renter_username = serializers.CharField(source='renter.username', read_only=True)
+    renter_display_name = serializers.SerializerMethodField()
     renter_id = serializers.IntegerField(source='renter.id', read_only=True)
     renter_avatar = serializers.SerializerMethodField()
 
@@ -75,6 +78,7 @@ class BookingReadSerializer(BookingRepresentationMixin, serializers.ModelSeriali
     )
 
     host_username = serializers.CharField(source='boat.host.username', read_only=True)
+    host_display_name = serializers.SerializerMethodField()
     host_id = serializers.IntegerField(source='boat.host.id', read_only=True)
 
     latitude = serializers.SerializerMethodField()
@@ -119,6 +123,7 @@ class BookingReadSerializer(BookingRepresentationMixin, serializers.ModelSeriali
             'boat_guests',
             'price_per_day',
             'host_username',
+            'host_display_name',
             'host_id',
             'latitude',
             'longitude',
@@ -133,6 +138,7 @@ class BookingReadSerializer(BookingRepresentationMixin, serializers.ModelSeriali
             'renter',
             'renter_id',
             'renter_username',
+            'renter_display_name',
             'renter_avatar',
             'start_date',
             'end_date',

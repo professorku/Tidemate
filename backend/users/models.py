@@ -5,6 +5,7 @@ from django.dispatch import receiver
 
 
 MAX_PROFILE_BIO_LENGTH = 1000
+MAX_PROFILE_DISPLAY_NAME_LENGTH = 50
 
 
 class DeviceSession(models.Model):
@@ -47,9 +48,12 @@ class GoogleAccount(models.Model):
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    display_name = models.CharField(max_length=MAX_PROFILE_DISPLAY_NAME_LENGTH, blank=True)
     bio = models.CharField(max_length=MAX_PROFILE_BIO_LENGTH, blank=True)
     location = models.CharField(max_length=120, blank=True)
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
+    
+    MAX_PROFILE_DISPLAY_NAME_LENGTH = 80
 
     pending_email = models.EmailField(blank=True, null=True, db_index=True)
     pending_email_requested_at = models.DateTimeField(blank=True, null=True)

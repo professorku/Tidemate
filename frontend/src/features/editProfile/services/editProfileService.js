@@ -12,6 +12,7 @@ function appendIfPresent(formData, key, value) {
 
 export async function updateMyProfile(payload) {
   const cleanedPayload = {
+    display_name: payload.display_name || '',
     email: payload.email || '',
     location: payload.location || '',
     bio: payload.bio || '',
@@ -24,6 +25,7 @@ export async function updateMyProfile(payload) {
   if (payload.avatar_upload) {
     const formData = new FormData()
 
+    appendIfPresent(formData, 'display_name', cleanedPayload.display_name)
     appendIfPresent(formData, 'email', cleanedPayload.email)
     appendIfPresent(formData, 'location', cleanedPayload.location)
     appendIfPresent(formData, 'bio', cleanedPayload.bio)
@@ -40,6 +42,7 @@ export async function updateMyProfile(payload) {
 
 export function mapProfileToForm(profile) {
   return {
+    display_name: profile?.display_name || profile?.username || '',
     email: profile?.email || '',
     current_password: '',
     location: profile?.location || '',
@@ -50,15 +53,18 @@ export function mapProfileToForm(profile) {
 function flattenErrorValue(value) {
   if (!value) return null
   if (typeof value === 'string') return value
+
   if (Array.isArray(value)) {
     return value.map(flattenErrorValue).filter(Boolean)[0] || null
   }
+
   if (typeof value === 'object') {
     for (const nestedValue of Object.values(value)) {
       const message = flattenErrorValue(nestedValue)
       if (message) return message
     }
   }
+
   return null
 }
 
@@ -67,6 +73,7 @@ export function getProfileUpdateError(err) {
 
   return (
     flattenErrorValue(data?.detail) ||
+    flattenErrorValue(data?.display_name) ||
     flattenErrorValue(data?.email) ||
     flattenErrorValue(data?.current_password) ||
     flattenErrorValue(data?.location) ||

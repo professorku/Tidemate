@@ -14,6 +14,16 @@ def get_or_create_profile(user):
     return profile
 
 
+def get_user_display_name(user, fallback='User'):
+    if not user:
+        return fallback
+
+    profile = getattr(user, 'profile', None)
+    display_name = getattr(profile, 'display_name', '') if profile else ''
+
+    return (display_name or user.username or fallback).strip()
+
+
 def get_conversation_archive_field_for_user(*, conversation, user):
     if conversation.host_id == user.id:
         return 'archived_by_host_at'
@@ -178,12 +188,14 @@ def start_direct_conversation(
         )
         return conversation, False
 
+    actor_name = get_user_display_name(actor)
+
     if boat is not None:
         notification_message = (
-            f'{actor.username} started a conversation about "{boat.title}" with you.'
+            f'{actor_name} started a conversation about "{boat.title}" with you.'
         )
     else:
-        notification_message = f'{actor.username} started a direct conversation with you.'
+        notification_message = f'{actor_name} started a direct conversation with you.'
 
     create_and_push_notification(
         user=target_user,
@@ -224,13 +236,15 @@ def send_message(*, conversation, sender, serializer):
         else None
     )
 
+    sender_name = get_user_display_name(sender)
+
     if conversation_boat:
         notification_text = (
             f'New message about "{conversation_boat.title}" '
-            f'from {sender.username}: {preview_text}'
+            f'from {sender_name}: {preview_text}'
         )
     else:
-        notification_text = f'New message from {sender.username}: {preview_text}'
+        notification_text = f'New message from {sender_name}: {preview_text}'
 
     create_and_push_notification(
         user=recipient,

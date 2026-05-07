@@ -7,6 +7,7 @@ from .serializer_helpers import ConversationRepresentationMixin
 
 class MessageSerializer(serializers.ModelSerializer):
     sender_username = serializers.CharField(source='sender.username', read_only=True)
+    sender_display_name = serializers.SerializerMethodField()
     text = serializers.CharField(
         max_length=MAX_MESSAGE_LENGTH,
         allow_blank=False,
@@ -20,6 +21,7 @@ class MessageSerializer(serializers.ModelSerializer):
             'conversation',
             'sender',
             'sender_username',
+            'sender_display_name',
             'text',
             'created_at',
             'is_read',
@@ -29,11 +31,24 @@ class MessageSerializer(serializers.ModelSerializer):
         read_only_fields = [
             'conversation',
             'sender',
+            'sender_username',
+            'sender_display_name',
             'created_at',
             'is_read',
             'is_deleted',
             'deleted_at',
         ]
+
+    def get_sender_display_name(self, obj):
+        user = getattr(obj, 'sender', None)
+
+        if not user:
+            return 'User'
+
+        profile = getattr(user, 'profile', None)
+        display_name = getattr(profile, 'display_name', '') if profile else ''
+
+        return (display_name or user.username or 'User').strip()
 
     def validate_text(self, value):
         value = (value or '').strip()
@@ -52,7 +67,9 @@ class ConversationSerializer(ConversationRepresentationMixin, serializers.ModelS
     boat_thumbnail = serializers.SerializerMethodField()
 
     host_username = serializers.CharField(source='host.username', read_only=True)
+    host_display_name = serializers.SerializerMethodField()
     renter_username = serializers.CharField(source='renter.username', read_only=True)
+    renter_display_name = serializers.SerializerMethodField()
 
     host_avatar = serializers.SerializerMethodField()
     renter_avatar = serializers.SerializerMethodField()
@@ -84,9 +101,11 @@ class ConversationSerializer(ConversationRepresentationMixin, serializers.ModelS
             'boat_thumbnail',
             'host',
             'host_username',
+            'host_display_name',
             'host_avatar',
             'renter',
             'renter_username',
+            'renter_display_name',
             'renter_avatar',
             'start_date',
             'end_date',

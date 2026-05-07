@@ -70,6 +70,17 @@ class BoatListingReadMethodsMixin:
         user = getattr(request, 'user', None)
         return user if user and user.is_authenticated else None
 
+    def get_host_name(self, obj):
+        user = getattr(obj, 'host', None)
+
+        if not user:
+            return 'Host'
+
+        profile = getattr(user, 'profile', None)
+        display_name = getattr(profile, 'display_name', '') if profile else ''
+
+        return (display_name or user.username or 'Host').strip()
+
     def _get_location_payload(self, obj):
         cache_key = '_tidemate_location_privacy_payload'
         cached_payload = getattr(obj, cache_key, None)
@@ -149,7 +160,7 @@ class BoatListingReadMethodsMixin:
 
 
 class BoatListingReadMixin(BoatListingReadMethodsMixin, serializers.Serializer):
-    host_name = serializers.CharField(source='host.username', read_only=True)
+    host_name = serializers.SerializerMethodField()
     host_id = serializers.IntegerField(source='host.id', read_only=True)
 
     image = serializers.SerializerMethodField()
@@ -216,7 +227,7 @@ class BoatListingPublicSerializer(BoatListingReadMixin, serializers.ModelSeriali
 
 
 class BoatListingOwnerSerializer(BoatListingReadMixin, serializers.ModelSerializer):
- 
+
     class Meta:
         model = BoatListing
         fields = [
@@ -581,7 +592,7 @@ class BoatListingWriteMixin(serializers.Serializer):
 
 
 class BoatListingWriteSerializer(BoatListingWriteMixin, serializers.ModelSerializer):
-  
+
     class Meta:
         model = BoatListing
         fields = [
@@ -608,7 +619,7 @@ class BoatListingOwnerWriteSerializer(
     serializers.ModelSerializer,
 ):
 
-    host_name = serializers.CharField(source='host.username', read_only=True)
+    host_name = serializers.SerializerMethodField()
     host_id = serializers.IntegerField(source='host.id', read_only=True)
 
     image = serializers.SerializerMethodField()

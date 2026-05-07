@@ -33,6 +33,15 @@ class BookingContextMixin:
         user = getattr(request, 'user', None)
         return user if user and user.is_authenticated else None
 
+    def _get_user_display_name(self, user, fallback='User'):
+        if not user:
+            return fallback
+
+        profile = getattr(user, 'profile', None)
+        display_name = getattr(profile, 'display_name', '') if profile else ''
+
+        return (display_name or user.username or fallback).strip()
+
 
 class BookingReviewMixin(BookingContextMixin):
     def _get_review_target(self, booking, user):
@@ -122,7 +131,7 @@ class BookingReviewMixin(BookingContextMixin):
     def get_review_target_name(self, obj):
         user = self._get_request_user()
         target_user, _ = self._get_review_target(obj, user)
-        return target_user.username if target_user else None
+        return self._get_user_display_name(target_user) if target_user else None
 
     def get_review_target_role(self, obj):
         user = self._get_request_user()
@@ -173,6 +182,12 @@ class BookingRepresentationMixin(BookingReviewMixin):
         )
         setattr(obj, cache_key, payload)
         return payload
+
+    def get_host_display_name(self, obj):
+        return self._get_user_display_name(getattr(obj.boat, 'host', None), fallback='Host')
+
+    def get_renter_display_name(self, obj):
+        return self._get_user_display_name(getattr(obj, 'renter', None), fallback='Renter')
 
     def get_boat_image(self, obj):
         if obj.boat and obj.boat.image:
@@ -255,7 +270,7 @@ class BookingRepresentationMixin(BookingReviewMixin):
             and obj.boat.host == user
             and obj.status == 'pending'
             and not pending_booking_is_expired(obj)
-    )
+        )
 
     def get_can_cancel(self, obj):
         user = self._get_request_user()

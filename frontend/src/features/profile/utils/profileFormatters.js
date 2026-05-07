@@ -22,8 +22,8 @@ export function formatAverageRating(value, options = {}) {
 }
 
 export function getProfileInitials(profile) {
-  const username = profile?.username || 'TM'
-  return username.trim().slice(0, 2).toUpperCase() || 'TM'
+  const displayName = profile?.display_name || profile?.username || 'TM'
+  return displayName.trim().slice(0, 2).toUpperCase() || 'TM'
 }
 
 export function getMissingProfileItems(profile) {

@@ -27,6 +27,12 @@ export default function ConversationSidebar({ conversation, messages, tripState 
   const bookingReference = getConversationBookingReference(conversation)
   const bookingPath = getConversationBookingPath(conversation)
 
+  const hostDisplayName =
+    conversation.host_display_name || conversation.host_username || '—'
+
+  const renterDisplayName =
+    conversation.renter_display_name || conversation.renter_username || '—'
+
   return (
     <aside className="space-y-4 xl:sticky xl:top-24 xl:self-start">
       <div className="overflow-hidden rounded-[28px] border border-white/15 bg-navy text-white shadow-soft">
@@ -132,14 +138,14 @@ export default function ConversationSidebar({ conversation, messages, tripState 
         <DetailCard
           icon={<UserIcon className="h-5 w-5" />}
           label="Host"
-          value={conversation.host_username || '—'}
+          value={hostDisplayName}
           to={conversation.host ? `/users/${conversation.host}` : undefined}
         />
 
         <DetailCard
           icon={<UserIcon className="h-5 w-5" />}
           label="Renter"
-          value={conversation.renter_username || '—'}
+          value={renterDisplayName}
           to={conversation.renter ? `/users/${conversation.renter}` : undefined}
         />
 
