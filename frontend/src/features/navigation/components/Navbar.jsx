@@ -13,6 +13,7 @@ import UserMenu from './UserMenu'
 import { useNavbar } from '../hooks/useNavbar'
 import { useAuth } from '../../../context/useAuth'
 import { preloadRoute } from '../../../routes/lazyPages'
+import tidemateLogo from '../../../assets/tidemate-logo-gold-transparent.png'
 
 function NavbarMarketplaceFilters({ onClose }) {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -79,9 +80,12 @@ export default function Navbar() {
           onMouseEnter={() => preloadRoute('home')}
           onFocus={() => preloadRoute('home')}
         >
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold text-base text-navy">
-            ⚓
-          </div>
+          <img
+            src={tidemateLogo}
+            alt=""
+            aria-hidden="true"
+            className="h-10 w-10 shrink-0 object-contain"
+          />
           <span className="truncate">TideMate</span>
         </Link>
 
