@@ -328,7 +328,12 @@ def logout(request):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
-@throttle_classes([AuthAnonRateThrottle, AuthUserRateThrottle, ForgotPasswordIdentityRateThrottle, ForgotPasswordIpRateThrottle])
+@throttle_classes([
+    AuthAnonRateThrottle,
+    AuthUserRateThrottle,
+    ForgotPasswordIdentityRateThrottle,
+    ForgotPasswordIpRateThrottle,
+])
 def forgot_password(request):
     csrf_error = enforce_csrf(request)
     if csrf_error is not None:
@@ -339,12 +344,15 @@ def forgot_password(request):
 
     email = serializer.validated_data["email"]
     user = User.objects.filter(email__iexact=email, is_active=True).first()
+
     reset_link = send_password_reset_email(user) if user else None
 
     return Response(
         {
             "detail": "If an account exists for that email, a password reset link has been sent.",
-            "reset_link": reset_link if user and _should_include_debug_link(request, "X-Debug-Reset-Link") else None,
+            "reset_link": reset_link
+            if user and _should_include_debug_link(request, "X-Debug-Reset-Link")
+            else None,
         },
         status=status.HTTP_200_OK,
     )
