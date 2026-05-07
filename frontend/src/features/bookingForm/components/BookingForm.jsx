@@ -33,12 +33,12 @@ export default function BookingForm(props) {
 
   return (
     <div className="space-y-4">
-      <BookingPriceCard boat={boat}>
+      <BookingPriceCard>
         <form className="mt-5 space-y-4" onSubmit={handleSubmit}>
           <div className="grid gap-2.5 sm:grid-cols-2">
             <button
               type="button"
-              className="rounded-[18px] border border-gold/20 bg-[#071d32]/70 p-3 text-left"
+              className="rounded-[18px] border border-gold/20 bg-transparent p-3 text-left transition hover:bg-white/5"
             >
               <p className="text-[11px] font-semibold uppercase tracking-wide text-gold">
                 Pickup
@@ -50,7 +50,7 @@ export default function BookingForm(props) {
 
             <button
               type="button"
-              className="rounded-[18px] border border-gold/20 bg-[#071d32]/70 p-3 text-left"
+              className="rounded-[18px] border border-gold/20 bg-transparent p-3 text-left transition hover:bg-white/5"
             >
               <p className="text-[11px] font-semibold uppercase tracking-wide text-gold">
                 Return

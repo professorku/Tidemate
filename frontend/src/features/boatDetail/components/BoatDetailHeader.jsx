@@ -163,7 +163,7 @@ export default function BoatDetailHeader({
                   <button
                     type="button"
                     onClick={handleOpenReport}
-                    className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-navy px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-ocean"
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-transparent px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:border-white/25 hover:bg-white/5"
                   >
                     <FlagIcon className="h-4 w-4 text-gold" />
                     Report listing
