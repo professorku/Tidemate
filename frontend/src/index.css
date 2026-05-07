@@ -60,6 +60,20 @@
     border-bottom: 2px solid #d4af37;
   }
 
+  .leaflet-container {
+    background: #e5e7eb;
+  }
+
+  .leaflet-container .leaflet-tile {
+    max-width: none !important;
+    max-height: none !important;
+  }
+
+  .leaflet-container img.leaflet-tile {
+    width: 256px !important;
+    height: 256px !important;
+  }
+
 @layer components {
   .btn-primary {
     @apply rounded-full bg-gold px-4 py-2.5 text-sm font-semibold tracking-tight text-navy shadow-sm transition hover:brightness-95 active:scale-95;

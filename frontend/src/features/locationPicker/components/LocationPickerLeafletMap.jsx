@@ -10,10 +10,10 @@ import {
 import 'leaflet/dist/leaflet.css'
 import { boatMarkerIcon } from '../../../components/maps/boatMarkerIcon'
 
-const POSITRON_TILE_URL =
-  'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+const MAP_TILE_URL =
+  'https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}{r}.png'
 
-const CARTO_ATTRIBUTION = '&copy; OpenStreetMap contributors &copy; CARTO'
+const MAP_ATTRIBUTION = '&copy; OpenStreetMap contributors &copy; CARTO'
 
 function FlyToLocation({ center, zoom = 12 }) {
   const map = useMap()
@@ -75,8 +75,9 @@ export default function LocationPickerLeafletMap({
           <LocationEvents onMapPick={onPickCoordinates} />
 
           <TileLayer
-            attribution={CARTO_ATTRIBUTION}
-            url={POSITRON_TILE_URL}
+            attribution={MAP_ATTRIBUTION}
+            url={MAP_TILE_URL}
+            maxZoom={19}
           />
 
           {markerPosition ? (
