@@ -104,7 +104,6 @@ export default function ConversationPage() {
     messagesPagination,
     loadOlderMessages,
     chatConnected,
-    reload,
   } = useConversationPageData(id)
 
   const requestDeleteConversation = async () => {

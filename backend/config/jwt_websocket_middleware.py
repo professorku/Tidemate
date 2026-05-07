@@ -18,6 +18,7 @@ def get_user_and_token_metadata(token):
         jwt_auth = JWTAuthentication()
         validated_token = jwt_auth.get_validated_token(token)
         user = jwt_auth.get_user(validated_token)
+
         exp = validated_token.get("exp")
         jti = validated_token.get("jti")
 
@@ -41,7 +42,7 @@ def _get_token_from_cookies(scope):
     cookie_header = None
 
     for header_name, header_value in scope.get("headers", []):
-        if header_name == b"cookie":
+        if header_name.lower() == b"cookie":
             cookie_header = header_value
             break
 
@@ -57,10 +58,15 @@ def _get_token_from_cookies(scope):
     cookie = SimpleCookie()
     cookie.load(decoded_cookie_header)
 
-    cookie_name = getattr(settings, "JWT_ACCESS_COOKIE_NAME", "access_token")
-    morsel = cookie.get(cookie_name)
+    ws_cookie_name = getattr(settings, "JWT_WS_ACCESS_COOKIE_NAME", "ws_access_token")
+    access_cookie_name = getattr(settings, "JWT_ACCESS_COOKIE_NAME", "access_token")
 
-    return morsel.value if morsel else None
+    ws_morsel = cookie.get(ws_cookie_name)
+    if ws_morsel:
+        return ws_morsel.value
+
+    access_morsel = cookie.get(access_cookie_name)
+    return access_morsel.value if access_morsel else None
 
 
 class JWTAuthMiddleware:

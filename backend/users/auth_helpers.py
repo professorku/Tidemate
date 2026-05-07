@@ -9,6 +9,9 @@ ACCESS_COOKIE_HTTPONLY = getattr(settings, 'JWT_ACCESS_COOKIE_HTTPONLY', True)
 ACCESS_COOKIE_SAMESITE = getattr(settings, 'JWT_ACCESS_COOKIE_SAMESITE', 'Lax')
 ACCESS_COOKIE_MAX_AGE = int(settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds())
 
+WS_ACCESS_COOKIE_NAME = getattr(settings, 'JWT_WS_ACCESS_COOKIE_NAME', 'ws_access_token')
+WS_ACCESS_COOKIE_PATH = getattr(settings, 'JWT_WS_ACCESS_COOKIE_PATH', '/ws/')
+
 REFRESH_COOKIE_NAME = getattr(settings, 'JWT_REFRESH_COOKIE_NAME', 'refresh_token')
 REFRESH_COOKIE_PATH = getattr(settings, 'JWT_REFRESH_COOKIE_PATH', '/api/users/')
 REFRESH_COOKIE_DOMAIN = getattr(settings, 'JWT_REFRESH_COOKIE_DOMAIN', None)
@@ -30,11 +33,29 @@ def set_access_cookie(response, access_token):
         domain=ACCESS_COOKIE_DOMAIN,
     )
 
+    response.set_cookie(
+        key=WS_ACCESS_COOKIE_NAME,
+        value=access_token,
+        max_age=ACCESS_COOKIE_MAX_AGE,
+        httponly=ACCESS_COOKIE_HTTPONLY,
+        secure=ACCESS_COOKIE_SECURE,
+        samesite=ACCESS_COOKIE_SAMESITE,
+        path=WS_ACCESS_COOKIE_PATH,
+        domain=ACCESS_COOKIE_DOMAIN,
+    )
+
 
 def clear_access_cookie(response):
     response.delete_cookie(
         key=ACCESS_COOKIE_NAME,
         path=ACCESS_COOKIE_PATH,
+        domain=ACCESS_COOKIE_DOMAIN,
+        samesite=ACCESS_COOKIE_SAMESITE,
+    )
+
+    response.delete_cookie(
+        key=WS_ACCESS_COOKIE_NAME,
+        path=WS_ACCESS_COOKIE_PATH,
         domain=ACCESS_COOKIE_DOMAIN,
         samesite=ACCESS_COOKIE_SAMESITE,
     )
