@@ -69,10 +69,13 @@ describe('LoginPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /^log in$/i }))
 
     await waitFor(() => {
-      expect(serviceMocks.loginUser).toHaveBeenCalledWith({
-        username: 'jens',
-        password: 'correct-password',
-      })
+      expect(serviceMocks.loginUser).toHaveBeenCalledWith(
+        {
+          username: 'jens',
+          password: 'correct-password',
+        },
+        ''
+      )
     })
 
     expect(authMocks.login).toHaveBeenCalledTimes(1)
