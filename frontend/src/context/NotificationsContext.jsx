@@ -11,7 +11,7 @@ const NotificationsContext = createContext(null)
 export default NotificationsContext
 
 export function NotificationsProvider({ children }) {
-  const { isAuthenticated, isAuthReady, expireSession } = useAuth()
+  const { isAuthenticated, isAuthReady, expireSession, isLogoutInProgress } = useAuth()
   const { showToast } = useToast()
   const [notifications, setNotifications] = useState([])
 
@@ -22,11 +22,19 @@ export function NotificationsProvider({ children }) {
   const handleSocketAuthFailure = useCallback((detail) => {
     replaceNotifications([])
     expireSession()
+
+    // If the user just clicked Sign Out, the server will close the WS with a
+    // 4401 auth-failure code. That's expected — don't tell them their session
+    // expired when they intentionally ended it.
+    if (isLogoutInProgress?.()) {
+      return
+    }
+
     showToast({
       tone: 'info',
       message: detail || 'Your session expired. Please sign in again.',
     })
-  }, [expireSession, replaceNotifications, showToast])
+  }, [expireSession, isLogoutInProgress, replaceNotifications, showToast])
 
   const upsertNotification = useCallback((notification) => {
     setNotifications((prev) => upsertNotificationItem(prev, notification))

@@ -8,18 +8,12 @@ from .expiry import (
     active_booking_filter,
     active_pending_booking_filter,
     expire_booking_if_needed,
+    get_payment_booking_expiry_at,
 )
 from .models import Booking
 
 
 def _get_overlapping_bookings(*, boat, start_date, end_date, now=None):
-    """
-    Half-open overlap check:
-
-        [start_date, end_date)
-
-    This allows a new booking to start on the same date another booking ends.
-    """
     return Booking.objects.filter(
         active_booking_filter(now=now),
         boat=boat,
@@ -39,32 +33,32 @@ def confirm_pending_booking(*, booking):
     )
 
     if locked_booking.status != 'pending':
-        raise ValueError('Only pending bookings can be confirmed.')
+        raise ValueError('Only pending bookings can be approved by the host.')
 
     if expire_booking_if_needed(locked_booking, now=current_time):
         raise ValueError(EXPIRED_PENDING_ERROR_MESSAGE)
 
     locked_boat = BoatListing.objects.select_for_update().get(pk=locked_booking.boat_id)
 
-    overlapping_confirmed_exists = (
+    overlapping_confirmed_or_payment_exists = (
         _get_overlapping_bookings(
             boat=locked_boat,
             start_date=locked_booking.start_date,
             end_date=locked_booking.end_date,
             now=current_time,
         )
-        .filter(status='confirmed')
+        .filter(status__in=['confirmed', 'awaiting_payment'])
         .exclude(pk=locked_booking.pk)
         .exists()
     )
 
-    if overlapping_confirmed_exists:
+    if overlapping_confirmed_or_payment_exists:
         raise ValueError(
-            'These dates are no longer available because another overlapping booking was already confirmed.'
+            'These dates are no longer available because another overlapping booking was already approved or confirmed.'
         )
 
-    locked_booking.status = 'confirmed'
-    locked_booking.expires_at = None
+    locked_booking.status = 'awaiting_payment'
+    locked_booking.expires_at = get_payment_booking_expiry_at(now=current_time)
     locked_booking.save(update_fields=['status', 'expires_at'])
 
     overlapping_pending = list(
@@ -84,7 +78,7 @@ def confirm_pending_booking(*, booking):
     )
 
     cancelled_at = timezone.now()
-    cancellation_reason = 'Another overlapping booking was confirmed for these dates.'
+    cancellation_reason = 'Another overlapping booking was approved for these dates.'
 
     for other_booking in overlapping_pending:
         other_booking.status = 'cancelled'

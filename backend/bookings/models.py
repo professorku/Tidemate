@@ -27,6 +27,7 @@ def generate_booking_public_id():
 class Booking(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
+        ('awaiting_payment', 'Awaiting payment'),
         ('confirmed', 'Confirmed'),
         ('cancelled', 'Cancelled'),
     ]

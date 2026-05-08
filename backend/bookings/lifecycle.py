@@ -4,7 +4,7 @@ from django.utils import timezone
 
 from config.booking_policy import BOOKING_END_TIME, BOOKING_START_TIME
 
-from .expiry import pending_booking_is_expired
+from .expiry import booking_is_expired
 
 
 def booking_pickup_datetime(booking):
@@ -23,10 +23,10 @@ def get_booking_lifecycle_stage(booking, *, now=None):
     if booking.status == 'cancelled':
         return 'cancelled'
 
-    if booking.status == 'pending':
-        if pending_booking_is_expired(booking, now=current_time):
+    if booking.status in {'pending', 'awaiting_payment'}:
+        if booking_is_expired(booking, now=current_time):
             return 'cancelled'
-        return 'pending'
+        return booking.status
 
     pickup_datetime = booking_pickup_datetime(booking)
     return_datetime = booking_return_datetime(booking)
@@ -46,10 +46,10 @@ def can_cancel_booking(booking, *, now=None):
     if booking.status == 'cancelled':
         return False
 
-    if booking.status == 'pending':
-        return not pending_booking_is_expired(booking, now=current_time)
+    if booking.status in {'pending', 'awaiting_payment'}:
+        return not booking_is_expired(booking, now=current_time)
 
     if booking.status != 'confirmed':
         return False
 
-    return current_time < booking_pickup_datetime(booking)  
+    return current_time < booking_pickup_datetime(booking)

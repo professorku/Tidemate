@@ -18,11 +18,17 @@ const SESSION_STATUS = {
   ANONYMOUS: 'anonymous',
 }
 
+// How long after a user-initiated logout to keep suppressing
+// "session expired" toasts that arrive from the WS close path.
+const LOGOUT_SUPPRESSION_MS = 3000
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [sessionStatus, setSessionStatus] = useState(SESSION_STATUS.INITIALIZING)
   const bootstrapRef = useRef(false)
+  const isLoggingOutRef = useRef(false)
+  const logoutSuppressionTimerRef = useRef(null)
 
   const setAnonymousSession = useCallback(({ clearHint = true } = {}) => {
     if (clearHint) {
@@ -80,6 +86,14 @@ export function AuthProvider({ children }) {
     })
   }, [])
 
+  useEffect(() => {
+    return () => {
+      if (logoutSuppressionTimerRef.current) {
+        window.clearTimeout(logoutSuppressionTimerRef.current)
+      }
+    }
+  }, [])
+
   const refreshUser = useCallback(async () => {
     try {
       return await establishSession()
@@ -103,6 +117,13 @@ export function AuthProvider({ children }) {
   }, [establishSession, setAnonymousSession])
 
   const logout = useCallback(async () => {
+    isLoggingOutRef.current = true
+
+    if (logoutSuppressionTimerRef.current) {
+      window.clearTimeout(logoutSuppressionTimerRef.current)
+      logoutSuppressionTimerRef.current = null
+    }
+
     setLoading(true)
 
     try {
@@ -112,12 +133,21 @@ export function AuthProvider({ children }) {
     } finally {
       setAnonymousSession()
       setLoading(false)
+
+      // Keep suppressing the WS auth-failure toast for a short window
+      // so any 4401 close that arrives after this point is silenced.
+      logoutSuppressionTimerRef.current = window.setTimeout(() => {
+        isLoggingOutRef.current = false
+        logoutSuppressionTimerRef.current = null
+      }, LOGOUT_SUPPRESSION_MS)
     }
   }, [setAnonymousSession])
 
   const expireSession = useCallback(() => {
     setAnonymousSession()
   }, [setAnonymousSession])
+
+  const isLogoutInProgress = useCallback(() => isLoggingOutRef.current, [])
 
   const value = useMemo(
     () => ({
@@ -132,8 +162,19 @@ export function AuthProvider({ children }) {
       expireSession,
       refreshUser,
       bootstrapSession,
+      isLogoutInProgress,
     }),
-    [user, loading, sessionStatus, login, logout, expireSession, refreshUser, bootstrapSession]
+    [
+      user,
+      loading,
+      sessionStatus,
+      login,
+      logout,
+      expireSession,
+      refreshUser,
+      bootstrapSession,
+      isLogoutInProgress,
+    ]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

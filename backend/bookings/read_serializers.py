@@ -55,6 +55,9 @@ BOOKING_READ_ONLY_FIELDS = [
     'cancelled_by',
     'cancelled_at',
     'created_at',
+    'payment_status',
+    'payment_amount',
+    'can_pay',
 ]
 
 
@@ -108,6 +111,37 @@ class BookingReadSerializer(BookingRepresentationMixin, serializers.ModelSeriali
     can_review_user = serializers.SerializerMethodField()
     viewer_boat_review = serializers.SerializerMethodField()
     viewer_user_review = serializers.SerializerMethodField()
+    payment_status = serializers.SerializerMethodField()
+    payment_amount = serializers.SerializerMethodField()
+    can_pay = serializers.SerializerMethodField()
+
+    def get_payment_status(self, obj):
+        payment = getattr(obj, 'payment', None)
+        return payment.status if payment else 'not_started'
+
+
+    def get_payment_amount(self, obj):
+        payment = getattr(obj, 'payment', None)
+        if not payment:
+            return None
+        return f'{payment.amount_ore / 100:.2f}'
+
+
+    def get_can_pay(self, obj):
+        request = self.context.get('request')
+        user = getattr(request, 'user', None)
+
+        if not user or not user.is_authenticated:
+            return False
+
+        payment = getattr(obj, 'payment', None)
+        payment_status = payment.status if payment else 'not_started'
+
+        return (
+            obj.status == 'awaiting_payment'
+            and obj.renter_id == user.id
+            and payment_status != 'paid'
+        )
 
     class Meta:
         model = Booking
@@ -149,6 +183,9 @@ class BookingReadSerializer(BookingRepresentationMixin, serializers.ModelSeriali
             'cancellation_policy',
             'total_price',
             'status',
+            'payment_status',
+            'payment_amount',
+            'can_pay',
             'expires_at',
             'lifecycle_stage',
             'trip_finished',

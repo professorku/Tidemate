@@ -12,13 +12,13 @@ export async function patchCurrentUser(payload, config = {}) {
 }
 
 export function getPublicUserProfile(userId) {
-  return apiGet(`/users/${userId}/`)
+  return apiGet(`/users/profiles/${userId}/`)
 }
 
 export function toggleCrewmate(userId) {
-  return apiPost(`/users/${userId}/crew/`)
+  return apiPost(`/users/crewmates/${userId}/toggle/`)
 }
 
 export function toggleBlockUser(userId) {
-  return apiPost(`/users/${userId}/block/`)
+  return apiPost(`/users/blocks/${userId}/toggle/`)
 }
