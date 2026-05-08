@@ -29,6 +29,8 @@ import {
   ResetPasswordPage,
   SignupPage,
   VerifyEmailPage,
+  PaymentCancelPage,
+  PaymentSuccessPage,
 } from './routes/lazyPages'
 
 
@@ -102,6 +104,24 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <MessagesPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/payments/success"
+            element={
+              <ProtectedRoute>
+                <PaymentSuccessPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/payments/cancelled"
+            element={
+              <ProtectedRoute>
+                <PaymentCancelPage />
               </ProtectedRoute>
             }
           />

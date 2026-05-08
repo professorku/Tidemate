@@ -11,6 +11,7 @@ import {
 import { getErrorMessage } from '../../../utils/errors'
 import { queryKeys } from '../../../query/keys'
 import { formatMoney } from '../utils/bookingFormatters'
+import { createBookingCheckoutSession } from '../../../api/domains/payments'
 
 export function useBookingDetail() {
   const { id } = useParams()
@@ -44,6 +45,29 @@ export function useBookingDetail() {
       showToast({
         tone: 'error',
         message: getErrorMessage(err, 'Could not confirm booking.'),
+      })
+    },
+  })
+
+  const paymentMutation = useMutation({
+    mutationFn: () => createBookingCheckoutSession(id),
+    onSuccess: (data) => {
+      const checkoutUrl = data?.checkout_url
+
+      if (!checkoutUrl) {
+        showToast({
+          tone: 'error',
+          message: 'Stripe Checkout did not return a checkout URL.',
+        })
+        return
+      }
+
+      window.location.assign(checkoutUrl)
+    },
+    onError: (err) => {
+      showToast({
+        tone: 'error',
+        message: getErrorMessage(err, 'Could not start payment.'),
       })
     },
   })
@@ -89,12 +113,21 @@ export function useBookingDetail() {
       : '',
     cancelReason,
     setCancelReason,
-    actionLoading: confirmMutation.isPending || cancelMutation.isPending,
+
+    actionLoading:
+      confirmMutation.isPending ||
+      cancelMutation.isPending ||
+      paymentMutation.isPending,
+
     confirming: confirmMutation.isPending,
     cancelling: cancelMutation.isPending,
+    paying: paymentMutation.isPending,
+
     summaryText,
     handleConfirm: () => confirmMutation.mutateAsync(),
     handleCancel: () => cancelMutation.mutateAsync(),
+    handlePay: () => paymentMutation.mutateAsync(),
+
     reloadBooking,
   }
 }

@@ -25,6 +25,8 @@ export const pageLoaders = {
   verifyEmail: () => import('../features/auth/pages/VerifyEmailPage'),
   changePassword: () => import('../features/auth/pages/ChangePasswordPage'),
   notFound: () => import('../features/auth/pages/NotFoundPage'),
+  paymentSuccess: () => import('../features/payments/pages/PaymentSuccessPage'),
+  paymentCancel: () => import('../features/payments/pages/PaymentCancelPage'),
 }
 
 
@@ -60,3 +62,5 @@ export const ResetPasswordPage = lazy(pageLoaders.resetPassword)
 export const VerifyEmailPage = lazy(pageLoaders.verifyEmail)
 export const ChangePasswordPage = lazy(pageLoaders.changePassword)
 export const NotFoundPage = lazy(pageLoaders.notFound)
+export const PaymentSuccessPage = lazy(pageLoaders.paymentSuccess)
+export const PaymentCancelPage = lazy(pageLoaders.paymentCancel)

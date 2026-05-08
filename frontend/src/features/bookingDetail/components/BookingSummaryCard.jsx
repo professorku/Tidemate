@@ -1,6 +1,7 @@
 import {
   CalendarDaysIcon,
   ClockIcon,
+  CreditCardIcon,
   MapPinIcon,
   ReceiptPercentIcon,
   WalletIcon,
@@ -35,7 +36,7 @@ const fallbackCancellationPolicy = {
   ],
 }
 
-export default function BookingSummaryCard({ booking }) {
+export default function BookingSummaryCard({ booking, paying = false, onPay }) {
   const rentalPolicy = booking?.rental_policy || fallbackRentalPolicy
   const cancellationPolicy =
     booking?.cancellation_policy || fallbackCancellationPolicy
@@ -53,6 +54,18 @@ export default function BookingSummaryCard({ booking }) {
           {formatMoney(booking.price_per_day)} per day · {booking.duration_days} day
           {booking.duration_days !== 1 ? 's' : ''}
         </p>
+
+          {booking?.can_pay && onPay ? (
+            <button
+              type="button"
+              onClick={onPay}
+              disabled={paying}
+              className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gold px-5 py-3 text-sm font-extrabold text-navy shadow-sm ring-1 ring-gold/40 transition hover:-translate-y-0.5 hover:bg-[#d8b45d] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <CreditCardIcon className="h-5 w-5" />
+              {paying ? 'Opening Stripe...' : 'Pay securely with Stripe'}
+          </button>
+        ) : null}
       </div>
 
       <div className="p-5">

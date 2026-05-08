@@ -16,6 +16,7 @@ urlpatterns = [
     path('api/geocoding/', include('geocoding.urls')),
     path('api/reports/', include('reports.urls')),
     path('api/moderation/', include('moderation.urls')),
+    path('api/payments/', include('payments.urls')),
 ]
 
 if settings.DEBUG:

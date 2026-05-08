@@ -81,6 +81,7 @@ INSTALLED_APPS = [
     "users",
     "listings",
     "bookings",
+    "payments",
     "notifications",
     "chat",
     "reviews",
@@ -430,6 +431,10 @@ EMAIL_TIMEOUT = env_int("EMAIL_TIMEOUT", 10)
 if EMAIL_USE_TLS and EMAIL_USE_SSL:
     raise ImproperlyConfigured("EMAIL_USE_TLS and EMAIL_USE_SSL cannot both be enabled.")
 
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "").strip()
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "").strip()
+STRIPE_CURRENCY = os.getenv("STRIPE_CURRENCY", "nok").strip().lower()
+STRIPE_PAYMENT_DEADLINE_MINUTES = env_int("STRIPE_PAYMENT_DEADLINE_MINUTES", 60)
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@tidemate.local")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
 GOOGLE_OAUTH_CLIENT_ID = os.getenv("GOOGLE_OAUTH_CLIENT_ID", "").strip()

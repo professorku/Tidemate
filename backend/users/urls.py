@@ -36,6 +36,7 @@ urlpatterns = [
 
     path("verify-email/", verify_email, name="verify_email"),
     path("verify-email-change/", verify_email_change, name="verify_email_change"),
+    path("resend-verification/", resend_verification_email, name="resend_verification"),
     path("resend-verification-email/", resend_verification_email, name="resend_verification_email"),
 
     path("me/", me, name="me"),

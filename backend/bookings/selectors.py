@@ -10,8 +10,8 @@ from .expiry import active_pending_booking_filter
 from .models import Booking
 
 
-MY_BOOKING_COUNT_TABS = ('all', 'upcoming', 'active', 'pending', 'completed', 'cancelled')
-HOST_BOOKING_COUNT_TABS = ('all', 'pending', 'confirmed', 'cancelled')
+MY_BOOKING_COUNT_TABS = ('all', 'upcoming', 'active', 'pending', 'awaiting_payment', 'completed', 'cancelled')
+HOST_BOOKING_COUNT_TABS = ('all', 'pending', 'awaiting_payment', 'confirmed', 'cancelled')
 
 
 def booking_base_queryset():
@@ -21,6 +21,7 @@ def booking_base_queryset():
         'renter',
         'renter__profile',
         'conversation',
+        'payment',
     ).prefetch_related(
         Prefetch(
             'reviews',
@@ -35,7 +36,7 @@ def booking_base_queryset():
 
 
 def apply_timeline_filter(queryset, timeline):
-    if timeline not in {'upcoming', 'active', 'pending', 'completed', 'cancelled'}:
+    if timeline not in {'upcoming', 'active', 'pending', 'awaiting_payment', 'completed', 'cancelled'}:
         return queryset
 
     pickup_offset = timedelta(
@@ -59,6 +60,8 @@ def apply_timeline_filter(queryset, timeline):
             When(status='pending', then=Value('pending')),
             When(status='confirmed', pickup_at__gt=Now(), then=Value('upcoming')),
             When(status='confirmed', pickup_at__lte=Now(), return_at__gte=Now(), then=Value('active')),
+            When(status='awaiting_payment', expires_at__lte=Now(), then=Value('cancelled')),
+            When(status='awaiting_payment', then=Value('awaiting_payment')),
             default=Value('completed'),
             output_field=CharField(),
         )
@@ -104,7 +107,7 @@ def get_host_bookings(user, *, status_value=None):
         .order_by('-created_at', '-id')
     )
 
-    if status_value in ['pending', 'confirmed', 'cancelled']:
+    if status_value in ['pending', 'awaiting_payment', 'confirmed', 'cancelled']:
         queryset = queryset.filter(status=status_value)
 
     return queryset
@@ -119,6 +122,7 @@ def get_host_booking_counts(user):
     return {
         'all': queryset.count(),
         'pending': queryset.filter(status='pending').count(),
+        'awaiting_payment': queryset.filter(status='awaiting_payment').count(),
         'confirmed': queryset.filter(status='confirmed').count(),
         'cancelled': queryset.filter(status='cancelled').count(),
     }

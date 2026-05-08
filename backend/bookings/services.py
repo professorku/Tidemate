@@ -72,14 +72,12 @@ def confirm_booking(*, booking):
 @transaction.atomic
 def cancel_booking(*, booking, actor, data):
     booking = (
-        Booking.objects.select_related(
+        Booking.objects.select_for_update(of=('self',))
+        .select_related(
             'boat',
             'boat__host',
-            'boat__host__profile',
             'renter',
-            'renter__profile',
         )
-        .select_for_update()
         .get(pk=booking.pk)
     )
 

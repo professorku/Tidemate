@@ -48,9 +48,11 @@ export default function BookingDetailPage() {
     actionLoading,
     confirming,
     cancelling,
+    paying,
     summaryText,
     handleConfirm,
     handleCancel,
+    handlePay,
     reloadBooking,
   } = useBookingDetail()
 
@@ -134,7 +136,11 @@ export default function BookingDetailPage() {
           </div>
 
           <aside className="space-y-5">
-            <BookingSummaryCard booking={booking} />
+            <BookingSummaryCard
+              booking={booking}
+              paying={paying}
+              onPay={handlePay}
+            />
 
             {booking.can_confirm || booking.can_cancel ? (
               <CancelBookingCard
