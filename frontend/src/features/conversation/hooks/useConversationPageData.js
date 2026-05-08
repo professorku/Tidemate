@@ -29,10 +29,28 @@ export default function useConversationPageData(id) {
   const handleSocketMessageCreated = useCallback((event) => {
     if (!event?.message) return
 
-    setMessages((prev) => upsertConversationMessage(prev, event.message))
+    setMessages((prev) => {
+      let next = prev
+
+      // If this is my own message arriving back from the server, remove any
+      // pending optimistic copy that's still showing as "sending". Match on
+      // sender + exact text since the server doesn't echo our temp client id.
+      if (me?.id && Number(event.message.sender) === Number(me.id)) {
+        next = next.filter(
+          (message) =>
+            !(
+              message._pending &&
+              Number(message.sender) === Number(me.id) &&
+              message.text === event.message.text
+            )
+        )
+      }
+
+      return upsertConversationMessage(next, event.message)
+    })
     setError('')
     void syncChatState()
-  }, [syncChatState])
+  }, [me?.id, syncChatState])
 
   const handleSocketMessageDeleted = useCallback((event) => {
     if (!event?.message) return
@@ -92,6 +110,7 @@ export default function useConversationPageData(id) {
       id,
       text,
       sending,
+      meId: me?.id,
       loadMessages,
       socketApi,
       setText,

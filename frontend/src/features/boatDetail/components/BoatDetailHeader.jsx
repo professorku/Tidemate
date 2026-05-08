@@ -140,7 +140,7 @@ export default function BoatDetailHeader({
               ) : null}
             </div>
 
-            <div className="flex shrink-0 flex-col gap-4 rounded-[28px] border border-gold/20 bg-[#071d32]/80 p-4 shadow-sm lg:min-w-[240px]">
+            <div className="flex shrink-0 flex-col gap-4 rounded-[28px] border border-gold/10 bg-transparent p-4 lg:min-w-[240px]">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-gold">
                   Price
@@ -163,7 +163,7 @@ export default function BoatDetailHeader({
                   <button
                     type="button"
                     onClick={handleOpenReport}
-                    className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-transparent px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:border-white/25 hover:bg-white/5"
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-transparent px-4 py-2.5 text-sm font-bold text-white transition hover:border-white/25 hover:bg-white/5"
                   >
                     <FlagIcon className="h-4 w-4 text-gold" />
                     Report listing
