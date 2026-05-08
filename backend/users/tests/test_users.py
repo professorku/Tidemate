@@ -472,7 +472,7 @@ class RelationshipActionCsrfTests(TestCase):
         client = APIClient(enforce_csrf_checks=True)
         client.force_authenticate(user=actor)
 
-        response = client.post(f'/api/users/{target.id}/crew/')
+        response = client.post(f'/api/users/crewmates/{target.id}/toggle/')
 
         self.assertEqual(response.status_code, 403)
 
@@ -482,7 +482,7 @@ class RelationshipActionCsrfTests(TestCase):
         client = APIClient(enforce_csrf_checks=True)
         client.force_authenticate(user=actor)
 
-        response = client.post(f'/api/users/{target.id}/block/')
+        response = client.post(f'/api/users/blocks/{target.id}/toggle/')
 
         self.assertEqual(response.status_code, 403)
 
