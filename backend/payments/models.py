@@ -105,3 +105,16 @@ class Payment(models.Model):
         self.status = self.STATUS_FAILED
         self.failed_at = self.failed_at or timezone.now()
         self.save(update_fields=['status', 'failed_at', 'updated_at'])
+
+
+class StripeEvent(models.Model):
+
+    event_id = models.CharField(max_length=255, unique=True)
+    event_type = models.CharField(max_length=100, blank=True)
+    received_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ['-received_at']
+
+    def __str__(self):
+        return f'{self.event_type} {self.event_id}'

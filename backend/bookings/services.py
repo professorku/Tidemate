@@ -73,11 +73,7 @@ def confirm_booking(*, booking):
 def cancel_booking(*, booking, actor, data):
     booking = (
         Booking.objects.select_for_update(of=('self',))
-        .select_related(
-            'boat',
-            'boat__host',
-            'renter',
-        )
+        .select_related('boat', 'boat__host', 'renter')
         .get(pk=booking.pk)
     )
 
@@ -99,6 +95,8 @@ def cancel_booking(*, booking, actor, data):
     serializer.is_valid(raise_exception=True)
     reason = serializer.validated_data.get('reason', '')
 
+    was_awaiting_payment = booking.status == 'awaiting_payment'
+
     booking.status = 'cancelled'
     booking.cancelled_by = 'renter' if is_renter else 'host'
     booking.cancelled_at = timezone.now()
@@ -112,9 +110,12 @@ def cancel_booking(*, booking, actor, data):
         ]
     )
 
+    if was_awaiting_payment:
+        from payments.services import expire_stripe_checkout_for_booking
+        transaction.on_commit(lambda: expire_stripe_checkout_for_booking(booking))
+
     if is_renter:
         renter_name = get_user_display_name(booking.renter, fallback='The renter')
-
         Notification.objects.create(
             user=booking.boat.host,
             message=(

@@ -95,7 +95,18 @@ def stripe_webhook(request):
     except stripe.SignatureVerificationError:
         return JsonResponse({'detail': 'Invalid signature.'}, status=400)
 
-    event_type = event.get('type')
+    event_id = event.get('id') or ''
+    event_type = event.get('type') or ''
+
+    if event_id:
+        from .models import StripeEvent
+        _, created = StripeEvent.objects.get_or_create(
+            event_id=event_id,
+            defaults={'event_type': event_type},
+        )
+        if not created:
+            return JsonResponse({'received': True, 'duplicate': True})
+
     data_object = event.get('data', {}).get('object', {})
 
     if event_type == 'checkout.session.completed':

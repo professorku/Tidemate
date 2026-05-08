@@ -344,3 +344,30 @@ def mark_checkout_session_expired(session):
         )
 
     return payment
+
+def expire_stripe_checkout_for_booking(booking):
+ 
+    payment = Payment.objects.filter(booking=booking).first()
+    if not payment or not payment.stripe_checkout_session_id:
+        return
+
+    if payment.status not in (Payment.STATUS_CHECKOUT_CREATED, Payment.STATUS_NOT_STARTED):
+        return
+
+    try:
+        stripe.api_key = get_stripe_api_key()
+    except StripeNotConfiguredError:
+        return
+
+    try:
+        stripe.checkout.Session.expire(payment.stripe_checkout_session_id)
+    except stripe.StripeError:
+        logger.warning(
+            'Could not expire Stripe Checkout Session %s for cancelled booking %s.',
+            payment.stripe_checkout_session_id,
+            booking.public_id,
+            exc_info=True,
+        )
+        return
+
+    payment.mark_cancelled()

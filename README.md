@@ -250,7 +250,7 @@ TideMate avoids exposing exact pickup details publicly.
 ### WebSocket Security
 
 - WebSockets require authentication.
-- WebSocket origins are validated.
+- Allowed origin list is configured (`WEBSOCKET_ALLOWED_ORIGINS`) and ready to be enforced via Channels' `OriginValidator` at the ASGI layer.
 - Chat and notification sockets check access.
 - Chat events are restricted to conversation participants.
 - Expired sessions are handled.
@@ -784,8 +784,7 @@ TideMate should not be treated as a real public marketplace until the production
 
 The project is functional, but the following areas should be improved before it is treated as a real marketplace:
 
-- Payment handling is not implemented.
-- Deposit and refund logic is not implemented.
+- Stripe Checkout payment is implemented, but refund, deposit, and dispute/chargeback workflows are not.
 - Host/renter identity verification is not implemented.
 - Insurance/legal workflows are not implemented.
 - Production-grade media storage is not yet configured.
@@ -809,7 +808,7 @@ This would protect the database even if future code accidentally bypassed the bo
 
 Other possible hardening improvements:
 
-- payment provider integration
+- refund, deposit, and dispute/chargeback handling on top of the existing Stripe Checkout integration
 - host/renter verification
 - stronger moderation workflows
 - production object storage

@@ -16,6 +16,8 @@ logger = logging.getLogger(__name__)
 DEFAULT_BOOKING_EXPIRY_INTERVAL_SECONDS = 5 * 60
 DEFAULT_AUDIT_PRUNE_INTERVAL_SECONDS = 24 * 60 * 60
 DEFAULT_AUDIT_PRUNE_STARTUP_DELAY_SECONDS = 60
+DEFAULT_STRIPE_PRUNE_INTERVAL_SECONDS = 24 * 60 * 60
+DEFAULT_STRIPE_PRUNE_STARTUP_DELAY_SECONDS = 120
 MIN_INTERVAL_SECONDS = 60
 LOOP_SLEEP_SECONDS = 5
 
@@ -112,13 +114,40 @@ class Command(BaseCommand):
             action="store_true",
             help="Do not run audit event pruning.",
         )
+        parser.add_argument(
+            "--stripe-interval-seconds",
+            type=int,
+            default=None,
+            help=(
+                "How often to prune old Stripe webhook events. Defaults to "
+                "MAINTENANCE_STRIPE_PRUNE_INTERVAL_SECONDS or 86400 seconds."
+            ),
+        )
+        parser.add_argument(
+            "--stripe-retention-days",
+            type=int,
+            default=None,
+            help=(
+                "Stripe event retention in days. Defaults to STRIPE_EVENT_RETENTION_DAYS "
+                "or the prune_stripe_events command default."
+            ),
+        )
+        parser.add_argument(
+            "--skip-stripe-prune",
+            action="store_true",
+            help="Do not run Stripe webhook event pruning.",
+        )
 
     def handle(self, *args, **options):
         self._stop_requested = False
         signal.signal(signal.SIGTERM, self._request_stop)
         signal.signal(signal.SIGINT, self._request_stop)
 
-        if options["skip_booking_expiry"] and options["skip_audit_prune"]:
+        if (
+            options["skip_booking_expiry"]
+            and options["skip_audit_prune"]
+            and options["skip_stripe_prune"]
+        ):
             raise CommandError("At least one maintenance task must be enabled.")
 
         if options["once"]:
@@ -154,6 +183,9 @@ class Command(BaseCommand):
 
         if not options["skip_audit_prune"]:
             self._run_prune_audit_events(options)
+
+        if not options["skip_stripe_prune"]:
+            self._run_prune_stripe_events(options)
 
     def _build_tasks(self, options):
         now = timezone.now()
@@ -208,6 +240,33 @@ class Command(BaseCommand):
                 )
             )
 
+        if not options["skip_stripe_prune"]:
+            stripe_interval = options["stripe_interval_seconds"]
+            if stripe_interval is None:
+                stripe_interval = get_positive_interval(
+                    "MAINTENANCE_STRIPE_PRUNE_INTERVAL_SECONDS",
+                    DEFAULT_STRIPE_PRUNE_INTERVAL_SECONDS,
+                )
+            elif stripe_interval < MIN_INTERVAL_SECONDS:
+                raise CommandError(
+                    f"--stripe-interval-seconds must be at least {MIN_INTERVAL_SECONDS}."
+                )
+
+            stripe_startup_delay = get_env_int(
+                "MAINTENANCE_STRIPE_PRUNE_STARTUP_DELAY_SECONDS",
+                DEFAULT_STRIPE_PRUNE_STARTUP_DELAY_SECONDS,
+            )
+            if stripe_startup_delay < 0:
+                raise CommandError("Stripe startup delay cannot be negative.")
+
+            tasks.append(
+                ScheduledTask(
+                    name="prune_stripe_events",
+                    interval_seconds=stripe_interval,
+                    next_run_at=now + timedelta(seconds=stripe_startup_delay),
+                )
+            )
+
         return tasks
 
     def _run_task(self, task_name, options):
@@ -218,6 +277,10 @@ class Command(BaseCommand):
 
             if task_name == "prune_audit_events":
                 self._run_prune_audit_events(options)
+                return
+
+            if task_name == "prune_stripe_events":
+                self._run_prune_stripe_events(options)
                 return
 
             raise CommandError(f"Unknown maintenance task: {task_name}")
@@ -267,3 +330,24 @@ class Command(BaseCommand):
             command_options["batch_size"] = audit_batch_size
 
         call_command("prune_audit_events", **command_options)
+
+    def _run_prune_stripe_events(self, options):
+        command_options = {
+            "confirm": True,
+            "stdout": self.stdout,
+            "stderr": self.stderr,
+        }
+
+        retention_days = options.get("stripe_retention_days")
+        if retention_days is None:
+            raw = os.getenv("STRIPE_EVENT_RETENTION_DAYS", "").strip()
+            if raw:
+                try:
+                    retention_days = int(raw)
+                except ValueError:
+                    raise CommandError("STRIPE_EVENT_RETENTION_DAYS must be an integer.")
+
+        if retention_days is not None:
+            command_options["days"] = retention_days
+
+        call_command("prune_stripe_events", **command_options)
