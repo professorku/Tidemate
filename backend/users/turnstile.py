@@ -1,11 +1,3 @@
-"""
-Cloudflare Turnstile token verification.
-
-Used as a decorator on auth-adjacent endpoints (signup, login, forgot-password,
-resend-verification) to slow down bots, credential stuffing, and email-abuse
-scripts. When TURNSTILE_SECRET_KEY is unset, verification is skipped — this
-keeps local dev frictionless and lets you ship the integration in stages.
-"""
 import logging
 from functools import wraps
 
@@ -36,7 +28,7 @@ def verify_turnstile_token(token, *, remote_ip=None):
     """
     secret = get_turnstile_secret()
     if not secret:
-        # Not configured — treat as bypass. Logged once at startup elsewhere.
+        
         return True
 
     if not token:
@@ -55,19 +47,15 @@ def verify_turnstile_token(token, *, remote_ip=None):
         response.raise_for_status()
     except requests.RequestException:
         logger.warning("Turnstile verification request failed.", exc_info=True)
-        # Fail closed: if Cloudflare is unreachable we don't let traffic through.
-        # Flip to True if you'd rather fail open during outages.
+        
         return False
 
-    data = response.json()
-    if not data.get("success"):
-        logger.info(
-            "Turnstile verification rejected token. error_codes=%s",
-            data.get("error-codes"),
-        )
-        return False
+    error_codes = data.get("error-codes") or []
 
-    return True
+    logger.info(
+        "Turnstile challenge rejected. error_codes=%s",
+        error_codes,
+    )
 
 
 def _client_ip_from_request(request):
@@ -88,8 +76,7 @@ def require_turnstile(view_func):
         if not is_turnstile_enabled():
             return view_func(request, *args, **kwargs)
 
-        # Token comes from the frontend Turnstile widget. We accept both the
-        # canonical Cloudflare field name and a camelCase alias for ergonomics.
+        
         token = (
             request.data.get("cf-turnstile-response")
             or request.data.get("turnstile_token")
