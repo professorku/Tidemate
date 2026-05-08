@@ -19,6 +19,56 @@ function formatPrice(value) {
   }).format(number)
 }
 
+const PUBLIC_FIELDS_TO_CHECK = ['title', 'description', 'location_name']
+
+const PUBLIC_FIELD_LABELS = {
+  title: 'title',
+  description: 'description',
+  location_name: 'public area',
+}
+
+
+const MIN_PICKUP_LENGTH = 8
+
+const FINGERPRINT_LENGTH = 8
+
+function detectPickupLeakage(form) {
+  const leakedFields = []
+
+  const pickup = String(form.pickup_address || '').trim()
+  const lat = form.latitude ? String(form.latitude) : ''
+  const lng = form.longitude ? String(form.longitude) : ''
+
+  const pickupFingerprint =
+    pickup.length >= MIN_PICKUP_LENGTH
+      ? pickup.slice(0, FINGERPRINT_LENGTH).toLowerCase()
+      : ''
+
+  for (const fieldName of PUBLIC_FIELDS_TO_CHECK) {
+    const value = String(form[fieldName] || '').toLowerCase()
+    if (!value) continue
+
+    let leaked = false
+
+    if (pickupFingerprint && value.includes(pickupFingerprint)) {
+      leaked = true
+    }
+
+    if (!leaked && lat && lat.length >= 5 && value.includes(lat.slice(0, 5))) {
+      leaked = true
+    }
+    if (!leaked && lng && lng.length >= 5 && value.includes(lng.slice(0, 5))) {
+      leaked = true
+    }
+
+    if (leaked) {
+      leakedFields.push(fieldName)
+    }
+  }
+
+  return leakedFields
+}
+
 function StatusRow({ complete, label, value, icon }) {
   return (
     <div className="rounded-2xl border border-gold/15 bg-[#071d32]/70 p-4">
@@ -69,6 +119,9 @@ export default function AddBoatPublishCard({
   const hasPhotos = images.length > 0
   const ready =
     hasDetails && hasExactPoint && hasPublicLocation && hasPrivateLocation && hasPhotos
+
+  const leakedFields = detectPickupLeakage(form)
+  const hasLeak = leakedFields.length > 0
 
   return (
     <div className="rounded-[30px] border border-gold/20 bg-navy p-5 shadow-soft md:p-6">
@@ -152,6 +205,20 @@ export default function AddBoatPublishCard({
           icon={<PhotoIcon className="h-5 w-5" />}
         />
       </div>
+
+      {hasLeak ? (
+        <div className="mt-5 rounded-2xl border border-amber-300/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">
+          <div className="flex items-start gap-2">
+            <ExclamationTriangleIcon className="mt-0.5 h-5 w-5 shrink-0" />
+            <p className="leading-6">
+              Your <strong>{leakedFields.map((f) => PUBLIC_FIELD_LABELS[f]).join(', ')}</strong>{' '}
+              {leakedFields.length === 1 ? 'looks like it contains' : 'look like they contain'}{' '}
+              your pickup address or coordinates. Public fields are visible to anyone — keep
+              the exact address only in the private pickup fields.
+            </p>
+          </div>
+        </div>
+      ) : null}
 
       {error ? (
         <div className="mt-5 rounded-2xl border border-red-300/25 bg-red-400/10 px-4 py-3 text-sm text-red-200">

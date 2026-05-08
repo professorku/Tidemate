@@ -136,6 +136,8 @@ export default function EditBoatPage() {
 
             <aside className="xl:sticky xl:top-24 xl:self-start">
               <UpdateListingSidebar
+                title={form.title}            
+                description={form.description} 
                 locationName={form.location_name}
                 pickupAddress={form.pickup_address}
                 latitude={form.latitude}
