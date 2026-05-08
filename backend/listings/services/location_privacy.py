@@ -9,7 +9,7 @@ from bookings.models import Booking
 from listings.services.public_coordinates import get_approximate_boat_coordinates
 
 
-APPROXIMATE_LOCATION_RADIUS_KM = 5
+APPROXIMATE_LOCATION_RADIUS_KM = 20
 EXACT_LOCATION_DISCLOSURE_WINDOW_HOURS = 24
 
 EXACT_LOCATION_MESSAGE = 'Exact pickup location is available for this booking.'

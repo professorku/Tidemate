@@ -15,7 +15,7 @@ function parseCoordinate(value) {
   return Number.isFinite(number) ? number : null
 }
 
-function parseRadiusKm(value, fallback = 5) {
+function parseRadiusKm(value, fallback = 20) {
   const number = Number(value)
   return Number.isFinite(number) && number > 0 ? number : fallback
 }
@@ -54,7 +54,7 @@ export default function BookingLocationMap({
   latitude,
   longitude,
   locationPrecision = 'approximate',
-  locationRadiusKm = 5,
+  locationRadiusKm = 20,
   exactLocationAvailable = false,
 }) {
   const lat = parseCoordinate(latitude)
@@ -62,7 +62,7 @@ export default function BookingLocationMap({
   const hasCoordinates = lat !== null && lng !== null
 
   const isExact = Boolean(exactLocationAvailable) || locationPrecision === 'exact'
-  const radiusKm = parseRadiusKm(locationRadiusKm, 5)
+  const radiusKm = parseRadiusKm(locationRadiusKm, 20)
   const displayLocation = isExact ? pickupAddress || locationName : locationName
 
   if (!hasCoordinates) {
@@ -132,7 +132,7 @@ export default function BookingLocationMap({
           ) : (
             <Circle
               center={position}
-              radius={Math.max(radiusKm, 5) * 1000}
+              radius={Math.max(radiusKm, 20) * 1000}
               pathOptions={{
                 color: '#0f2f4f',
                 fillColor: '#0f2f4f',

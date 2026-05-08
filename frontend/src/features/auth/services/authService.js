@@ -1,11 +1,17 @@
 import { apiPost } from '../../../api/client'
 
-export function loginUser(credentials) {
-  return apiPost('/users/login/', credentials)
+export function loginUser(credentials, turnstileToken) {
+  return apiPost('/users/login/', {
+    ...credentials,
+    'cf-turnstile-response': turnstileToken,
+  })
 }
 
-export function signupUser(payload) {
-  return apiPost('/users/signup/', payload)
+export function signupUser(payload, turnstileToken) {
+  return apiPost('/users/signup/', {
+    ...payload,
+    'cf-turnstile-response': turnstileToken,
+  })
 }
 
 export function loginWithGoogle(credential) {
@@ -20,8 +26,11 @@ export function verifyEmailChangeToken(token) {
   return apiPost('/users/verify-email-change/', { token })
 }
 
-export function resendVerificationEmail(email) {
-  return apiPost('/users/resend-verification/', { email })
+export function resendVerificationEmail(email, turnstileToken) {
+  return apiPost('/users/resend-verification/', {
+    email,
+    'cf-turnstile-response': turnstileToken,
+  })
 }
 
 export function refreshSession() {
@@ -32,8 +41,11 @@ export function logoutUser() {
   return apiPost('/users/logout/', {})
 }
 
-export function requestPasswordReset(email) {
-  return apiPost('/users/forgot-password/', { email })
+export function requestPasswordReset(email, turnstileToken) {
+  return apiPost('/users/forgot-password/', {
+    email,
+    'cf-turnstile-response': turnstileToken,
+  })
 }
 
 export function submitPasswordReset(payload) {

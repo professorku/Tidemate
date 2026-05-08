@@ -1,15 +1,18 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import PageContainer from '../../../components/layout/PageContainer'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../context/useAuth'
 import { loginUser, loginWithGoogle, resendVerificationEmail } from '../services/authService'
 import { getErrorMessage } from '../../../utils/errors'
 import GoogleLoginButton from '../components/GoogleLoginButton'
+import TurnstileWidget from '../../../components/auth/TurnstileWidget'
 
 const inputClassName =
   'w-full rounded-xl border border-gold/25 bg-[#071d32]/80 px-3.5 py-2.5 text-sm text-white placeholder:text-white/40 outline-none transition focus:border-gold focus:bg-[#071d32] focus:ring-2 focus:ring-gold/25'
 
 const labelClassName = 'mb-1.5 block text-sm font-medium text-white/80'
+
+const turnstileEnabled = Boolean(import.meta.env.VITE_TURNSTILE_SITE_KEY?.trim())
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -30,6 +33,19 @@ export default function LoginPage() {
   )
   const [resending, setResending] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState('')
+
+  const handleTurnstileVerify = useCallback((token) => {
+    setTurnstileToken(token)
+  }, [])
+
+  const handleTurnstileExpire = useCallback(() => {
+    setTurnstileToken('')
+  }, [])
+
+  const handleTurnstileError = useCallback(() => {
+    setTurnstileToken('')
+  }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -37,11 +53,14 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      await loginUser(form)
+      await loginUser(form, turnstileToken)
       await login()
       navigate(from, { replace: true })
     } catch (err) {
       setError(getErrorMessage(err, 'Invalid username or password.'))
+      // Cloudflare invalidates the token after one verification attempt,
+      // so reset state and let the widget issue a new one.
+      setTurnstileToken('')
     } finally {
       setLoading(false)
     }
@@ -77,14 +96,19 @@ export default function LoginPage() {
     setResending(true)
 
     try {
-      const response = await resendVerificationEmail(initialEmail)
+      const response = await resendVerificationEmail(initialEmail, turnstileToken)
       setInfo(response?.detail || 'Verification email sent.')
+      setTurnstileToken('')
     } catch (err) {
       setError(getErrorMessage(err, 'Could not resend verification email.'))
+      setTurnstileToken('')
     } finally {
       setResending(false)
     }
   }
+
+  const submitDisabled = loading || (turnstileEnabled && !turnstileToken)
+  const resendDisabled = resending || (turnstileEnabled && !turnstileToken)
 
   return (
     <main className="min-h-screen bg-[#071d32]">
@@ -128,8 +152,17 @@ export default function LoginPage() {
             {info ? <p className="text-sm text-white/70">{info}</p> : null}
             {error ? <p className="text-sm text-red-200">{error}</p> : null}
 
+            <div className="flex justify-center pt-1">
+              <TurnstileWidget
+                theme="dark"
+                onVerify={handleTurnstileVerify}
+                onExpire={handleTurnstileExpire}
+                onError={handleTurnstileError}
+              />
+            </div>
+
             <button
-              disabled={loading}
+              disabled={submitDisabled}
               className="w-full rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-navy transition hover:bg-gold/90 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading ? 'Logging in...' : 'Log in'}
@@ -153,7 +186,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={handleResendVerification}
-              disabled={resending}
+              disabled={resendDisabled}
               className="mt-4 text-sm font-semibold text-gold disabled:cursor-not-allowed disabled:opacity-60"
             >
               {resending ? 'Sending verification email...' : 'Resend verification email'}

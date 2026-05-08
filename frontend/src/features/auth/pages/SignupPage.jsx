@@ -1,15 +1,20 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import PageContainer from '../../../components/layout/PageContainer'
 import { Link, useNavigate } from 'react-router-dom'
 import { loginWithGoogle, signupUser } from '../services/authService'
 import { getErrorMessage } from '../../../utils/errors'
 import { useAuth } from '../../../context/useAuth'
 import GoogleLoginButton from '../components/GoogleLoginButton'
+import TurnstileWidget from '../../../components/auth/TurnstileWidget'
 
 const inputClassName =
   'w-full rounded-xl border border-gold/25 bg-[#071d32]/80 px-3.5 py-2.5 text-sm text-white placeholder:text-white/40 outline-none transition focus:border-gold focus:bg-[#071d32] focus:ring-2 focus:ring-gold/25'
 
 const labelClassName = 'mb-1.5 block text-sm font-medium text-white/80'
+
+// Turnstile is enforced only when the site key is configured. Local dev
+// without a key can still submit the form normally.
+const turnstileEnabled = Boolean(import.meta.env.VITE_TURNSTILE_SITE_KEY?.trim())
 
 export default function SignupPage() {
   const navigate = useNavigate()
@@ -22,6 +27,19 @@ export default function SignupPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState('')
+
+  const handleTurnstileVerify = useCallback((token) => {
+    setTurnstileToken(token)
+  }, [])
+
+  const handleTurnstileExpire = useCallback(() => {
+    setTurnstileToken('')
+  }, [])
+
+  const handleTurnstileError = useCallback(() => {
+    setTurnstileToken('')
+  }, [])
 
   const handleGoogleSuccess = async (credential) => {
     setError('')
@@ -50,15 +68,18 @@ export default function SignupPage() {
     setLoading(true)
 
     try {
-      const response = await signupUser(form)
+      const response = await signupUser(form, turnstileToken)
       setSuccess(response?.detail || 'Account created. Please verify your email before logging in.')
       setTimeout(() => navigate('/login', { state: { email: form.email } }), 1200)
     } catch (err) {
       setError(getErrorMessage(err, 'Could not create account.'))
+      setTurnstileToken('')
     } finally {
       setLoading(false)
     }
   }
+
+  const submitDisabled = loading || (turnstileEnabled && !turnstileToken)
 
   return (
     <main className="min-h-screen bg-[#071d32]">
@@ -118,8 +139,17 @@ export default function SignupPage() {
             {error ? <p className="text-sm text-red-200">{error}</p> : null}
             {success ? <p className="text-sm text-green-200">{success}</p> : null}
 
+            <div className="flex justify-center pt-1">
+              <TurnstileWidget
+                theme="dark"
+                onVerify={handleTurnstileVerify}
+                onExpire={handleTurnstileExpire}
+                onError={handleTurnstileError}
+              />
+            </div>
+
             <button
-              disabled={loading}
+              disabled={submitDisabled}
               className="w-full rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-navy transition hover:bg-gold/90 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading ? 'Creating account...' : 'Sign up'}

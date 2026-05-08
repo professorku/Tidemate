@@ -27,7 +27,7 @@ function parseCoordinate(value) {
   return Number.isFinite(number) ? number : null
 }
 
-function parseRadiusKm(value, fallback = 8) {
+function parseRadiusKm(value, fallback = 50) {
   const number = Number(value)
   return Number.isFinite(number) && number > 0 ? number : fallback
 }
@@ -112,7 +112,7 @@ export default function BoatMap({ boat }) {
 
   if (isApproximateOnly) {
     const position = [lat, lng]
-    const radiusKm = parseRadiusKm(boat?.location_radius_km, 8)
+    const radiusKm = parseRadiusKm(boat?.location_radius_km, 50)
     const radiusMeters = radiusKm * 1000
     const zoom = radiusKm <= 3 ? 11 : radiusKm <= 8 ? 10 : 9
 

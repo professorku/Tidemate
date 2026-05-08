@@ -19,6 +19,8 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, Toke
 from rest_framework_simplejwt.settings import api_settings as jwt_api_settings
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from .turnstile import require_turnstile
+
 from config.throttling import (
     AuthAnonRateThrottle,
     AuthUserRateThrottle,
@@ -183,6 +185,7 @@ def csrf_token(request):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 @throttle_classes([AuthAnonRateThrottle, AuthUserRateThrottle, SignupIdentityRateThrottle, SignupIpRateThrottle])
+@require_turnstile  
 def signup(request):
     csrf_error = enforce_csrf(request)
     if csrf_error is not None:
@@ -206,9 +209,12 @@ def signup(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+
+
 @api_view(["POST"])
 @permission_classes([AllowAny])
 @throttle_classes([AuthAnonRateThrottle, AuthUserRateThrottle, LoginIdentityRateThrottle, LoginIpRateThrottle])
+@require_turnstile  
 def login(request):
     csrf_error = enforce_csrf(request)
     if csrf_error is not None:
@@ -328,12 +334,8 @@ def logout(request):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
-@throttle_classes([
-    AuthAnonRateThrottle,
-    AuthUserRateThrottle,
-    ForgotPasswordIdentityRateThrottle,
-    ForgotPasswordIpRateThrottle,
-])
+@throttle_classes([AuthAnonRateThrottle, AuthUserRateThrottle, SignupIdentityRateThrottle, SignupIpRateThrottle])
+@require_turnstile
 def forgot_password(request):
     csrf_error = enforce_csrf(request)
     if csrf_error is not None:
@@ -461,6 +463,7 @@ def verify_email_change(request):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 @throttle_classes([AuthAnonRateThrottle, AuthUserRateThrottle, ResendVerificationIdentityRateThrottle, ResendVerificationIpRateThrottle])
+@require_turnstile  
 def resend_verification_email(request):
     csrf_error = enforce_csrf(request)
     if csrf_error is not None:
