@@ -150,7 +150,7 @@ class BookingConfirmationRaceConditionTests(APITestCase):
 
         with self.assertRaisesMessage(
             ValueError,
-            'These dates are no longer available because another overlapping booking was already confirmed.',
+            'These dates are no longer available because another overlapping booking was already approved or confirmed.',
         ):
             confirm_booking(booking=pending_booking)
 
@@ -167,12 +167,14 @@ class BookingConfirmationRaceConditionTests(APITestCase):
         confirmed = confirm_booking(booking=target)
         overlapping.refresh_from_db()
 
-        self.assertEqual(confirmed.status, 'confirmed')
+        # Host approval now moves the booking to awaiting_payment; the renter
+        # still needs to pay before it becomes 'confirmed'.
+        self.assertEqual(confirmed.status, 'awaiting_payment')
         self.assertEqual(overlapping.status, 'cancelled')
         self.assertEqual(overlapping.cancelled_by, 'host')
         self.assertEqual(
             overlapping.cancellation_reason,
-            'Another overlapping booking was confirmed for these dates.',
+            'Another overlapping booking was approved for these dates.',
         )
 
 
@@ -230,7 +232,7 @@ class BookingConfirmationApiRaceConditionTests(APITestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
             response.json()['detail'],
-            'These dates are no longer available because another overlapping booking was already confirmed.',
+            'These dates are no longer available because another overlapping booking was already approved or confirmed.',
         )
 
         confirmed_booking.refresh_from_db()

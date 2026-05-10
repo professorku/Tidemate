@@ -242,7 +242,9 @@ class BookingConfirmationOverlapBoundaryTests(APITestCase):
 
         back_to_back.refresh_from_db()
 
-        self.assertEqual(confirmed.status, "confirmed")
+        # Host approval moves the booking to awaiting_payment; final
+        # 'confirmed' state happens after the renter pays.
+        self.assertEqual(confirmed.status, "awaiting_payment")
         self.assertEqual(back_to_back.status, "pending")
 
     def test_confirming_booking_cancels_only_overlapping_pending_bookings(self):
@@ -267,13 +269,15 @@ class BookingConfirmationOverlapBoundaryTests(APITestCase):
         overlapping.refresh_from_db()
         non_overlapping.refresh_from_db()
 
-        self.assertEqual(confirmed.status, "confirmed")
+        # Host approval moves the booking to awaiting_payment; final
+        # 'confirmed' state happens after the renter pays.
+        self.assertEqual(confirmed.status, "awaiting_payment")
 
         self.assertEqual(overlapping.status, "cancelled")
         self.assertEqual(overlapping.cancelled_by, "host")
         self.assertEqual(
             overlapping.cancellation_reason,
-            "Another overlapping booking was confirmed for these dates.",
+            "Another overlapping booking was approved for these dates.",
         )
 
         self.assertEqual(non_overlapping.status, "pending")

@@ -47,7 +47,32 @@ PRIVATE_ADDRESS_WORDS = {
     'harbour',
 }
 
+# Used by `_part_looks_private` to flag bare 4-digit segments inside a
+# comma-split geocoded address (e.g. "Norway, 6884, Geiranger"). Do NOT use
+# this pattern against free-form public text — see the more contextual
+# postcode patterns below for that.
 POSTCODE_PATTERN = re.compile(r'\b\d{4}\b')
+
+# Postcodes inside free-form public text (title, description, location_name).
+#
+# Norwegian postcodes are 4 digits, but so are plenty of legitimate things
+# users put in boat listings: model numbers ("Fjord Reaper 9000"), years
+# ("2018 model"), horsepower, prices, hull lengths in mm, etc. To avoid
+# flagging those, we only treat a 4-digit number as a postcode leak when it
+# appears in actual postcode context:
+#   1. After an explicit postcode keyword ("postnr 5003", "Postnummer: 5003",
+#      "zip 90210"), or
+#   2. At the start of a comma/newline/start-of-text segment, immediately
+#      followed by a capitalized place name (Norwegian format: ", 5003 Bergen").
+POSTCODE_KEYWORD_PATTERN = re.compile(
+    r'\b(?:postnr\.?|postnummer|postcode|post\s*code|zip(?:\s*code)?|'
+    r'p\.?\s*o\.?\s*box)\b\s*[:.]?\s*\d{4}\b',
+    re.IGNORECASE,
+)
+
+POSTCODE_WITH_PLACE_PATTERN = re.compile(
+    r'(?:^|[,;\n])\s*\d{4}\s+[A-ZÆØÅ][a-zæøåà-öø-ÿ][\wÀ-ÖØ-öø-ÿ-]*\b'
+)
 
 COORDINATE_PAIR_PATTERN = re.compile(
     r'\b-?\d{1,2}\.\d{4,}\s*,\s*-?\d{1,3}\.\d{4,}\b'
@@ -143,7 +168,15 @@ def get_public_location_text_privacy_error(value):
     if not text:
         return None
 
+    lowered = text.lower()
+
     if COORDINATE_PAIR_PATTERN.search(text):
+        return PUBLIC_LOCATION_TEXT_PRIVACY_ERROR
+
+    if POSTCODE_KEYWORD_PATTERN.search(lowered):
+        return PUBLIC_LOCATION_TEXT_PRIVACY_ERROR
+
+    if POSTCODE_WITH_PLACE_PATTERN.search(text):
         return PUBLIC_LOCATION_TEXT_PRIVACY_ERROR
 
     if STREET_ADDRESS_PATTERN.search(text):
