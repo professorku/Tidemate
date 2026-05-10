@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from django.utils import timezone
 
 from bookings.models import Booking
@@ -61,6 +62,12 @@ class Payment(models.Model):
         indexes = [
             models.Index(fields=['booking', 'status'], name='payment_booking_status_idx'),
             models.Index(fields=['status', '-created_at'], name='payment_status_created_idx'),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(amount_ore__gt=0),
+                name='payment_amount_positive',
+            ),
         ]
 
     def __str__(self):

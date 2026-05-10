@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import PageContainer from '../../../components/layout/PageContainer'
 import { requestPasswordReset } from '../services/authService'
@@ -19,6 +19,8 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState('')
 
+  const turnstileRef = useRef(null)
+
   const handleTurnstileVerify = useCallback((token) => {
     setTurnstileToken(token)
   }, [])
@@ -31,6 +33,15 @@ export default function ForgotPasswordPage() {
     setTurnstileToken('')
   }, [])
 
+  // Cloudflare consumes the Turnstile token as soon as the backend forwards
+  // it to siteverify — even on success or when other validation fails. So
+  // after every attempt we must (a) clear local state to disable the submit
+  // button and (b) ask the widget to issue a fresh token.
+  const resetTurnstile = useCallback(() => {
+    setTurnstileToken('')
+    turnstileRef.current?.reset()
+  }, [])
+
   const handleSubmit = async (event) => {
     event.preventDefault()
     setLoading(true)
@@ -40,10 +51,10 @@ export default function ForgotPasswordPage() {
     try {
       const response = await requestPasswordReset(email, turnstileToken)
       setMessage(response.detail || 'If an account exists for that email, a password reset link has been sent.')
-      setTurnstileToken('')
+      resetTurnstile()
     } catch (err) {
       setError(getErrorMessage(err, 'Could not send password reset email.'))
-      setTurnstileToken('')
+      resetTurnstile()
     } finally {
       setLoading(false)
     }
@@ -80,6 +91,7 @@ export default function ForgotPasswordPage() {
 
             <div className="flex justify-center pt-1">
               <TurnstileWidget
+                ref={turnstileRef}
                 theme="dark"
                 onVerify={handleTurnstileVerify}
                 onExpire={handleTurnstileExpire}

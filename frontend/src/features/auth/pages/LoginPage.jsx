@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import PageContainer from '../../../components/layout/PageContainer'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../context/useAuth'
@@ -34,23 +34,8 @@ export default function LoginPage() {
   const [resending, setResending] = useState(false)
   const [loading, setLoading] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState('')
-  const [turnstileResetSignal, setTurnstileResetSignal] = useState(0)
 
-  const resetTurnstile = useCallback(() => {
-    setTurnstileToken('')
-    setTurnstileResetSignal((value) => value + 1)
-  }, [])
-
-  const updateField = (field, value) => {
-    setForm((currentForm) => ({
-      ...currentForm,
-      [field]: value,
-    }))
-
-    if (error) {
-      setError('')
-    }
-  }
+  const turnstileRef = useRef(null)
 
   const handleTurnstileVerify = useCallback((token) => {
     setTurnstileToken(token)
@@ -64,31 +49,22 @@ export default function LoginPage() {
     setTurnstileToken('')
   }, [])
 
+  // Cloudflare consumes the Turnstile token as soon as the backend forwards
+  // it to siteverify — even if some *other* field fails validation. So after
+  // any failed attempt we must (a) clear local state to disable the submit
+  // button and (b) ask the widget to issue a fresh token.
+  const resetTurnstile = useCallback(() => {
+    setTurnstileToken('')
+    turnstileRef.current?.reset()
+  }, [])
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-
-    const username = form.username.trim()
-
-    if (!username) {
-      setError('Username is required.')
-      return
-    }
-
-    if (!form.password) {
-      setError('Password is required.')
-      return
-    }
-
-    if (turnstileEnabled && !turnstileToken) {
-      setError('Please complete the security check.')
-      return
-    }
-
     setLoading(true)
 
     try {
-      await loginUser({ username, password: form.password }, turnstileToken)
+      await loginUser(form, turnstileToken)
       await login()
       navigate(from, { replace: true })
     } catch (err) {
@@ -122,11 +98,6 @@ export default function LoginPage() {
   const handleResendVerification = async () => {
     if (!initialEmail) {
       setInfo('Sign up again or use the same email to request a new verification link.')
-      return
-    }
-
-    if (turnstileEnabled && !turnstileToken) {
-      setError('Please complete the security check.')
       return
     }
 
@@ -167,7 +138,7 @@ export default function LoginPage() {
                 className={inputClassName}
                 placeholder="Username"
                 value={form.username}
-                onChange={(e) => updateField('username', e.target.value)}
+                onChange={(e) => setForm({ ...form, username: e.target.value })}
               />
             </div>
 
@@ -183,7 +154,7 @@ export default function LoginPage() {
                 className={inputClassName}
                 placeholder="Password"
                 value={form.password}
-                onChange={(e) => updateField('password', e.target.value)}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
               />
             </div>
 
@@ -192,8 +163,8 @@ export default function LoginPage() {
 
             <div className="flex justify-center pt-1">
               <TurnstileWidget
+                ref={turnstileRef}
                 theme="dark"
-                resetSignal={turnstileResetSignal}
                 onVerify={handleTurnstileVerify}
                 onExpire={handleTurnstileExpire}
                 onError={handleTurnstileError}
@@ -207,6 +178,7 @@ export default function LoginPage() {
               {loading ? 'Logging in...' : 'Log in'}
             </button>
           </form>
+
 
           <div className="my-5 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.24em] text-white/35">
             <span className="h-px flex-1 bg-gold/15" />

@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import PageContainer from '../../../components/layout/PageContainer'
 import { Link, useNavigate } from 'react-router-dom'
 import { loginWithGoogle, signupUser } from '../services/authService'
@@ -29,6 +29,8 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState('')
 
+  const turnstileRef = useRef(null)
+
   const handleTurnstileVerify = useCallback((token) => {
     setTurnstileToken(token)
   }, [])
@@ -39,6 +41,15 @@ export default function SignupPage() {
 
   const handleTurnstileError = useCallback(() => {
     setTurnstileToken('')
+  }, [])
+
+  // Cloudflare consumes the Turnstile token as soon as the backend forwards
+  // it to siteverify — even if some *other* field fails validation. So after
+  // any failed attempt we must (a) clear local state to disable the submit
+  // button and (b) ask the widget to issue a fresh token.
+  const resetTurnstile = useCallback(() => {
+    setTurnstileToken('')
+    turnstileRef.current?.reset()
   }, [])
 
   const handleGoogleSuccess = async (credential) => {
@@ -73,7 +84,7 @@ export default function SignupPage() {
       setTimeout(() => navigate('/login', { state: { email: form.email } }), 1200)
     } catch (err) {
       setError(getErrorMessage(err, 'Could not create account.'))
-      setTurnstileToken('')
+      resetTurnstile()
     } finally {
       setLoading(false)
     }
@@ -141,6 +152,7 @@ export default function SignupPage() {
 
             <div className="flex justify-center pt-1">
               <TurnstileWidget
+                ref={turnstileRef}
                 theme="dark"
                 onVerify={handleTurnstileVerify}
                 onExpire={handleTurnstileExpire}

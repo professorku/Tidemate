@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='StripeEvent',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False)),
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('event_id', models.CharField(max_length=255, unique=True)),
                 ('event_type', models.CharField(blank=True, max_length=100)),
                 ('received_at', models.DateTimeField(auto_now_add=True, db_index=True)),

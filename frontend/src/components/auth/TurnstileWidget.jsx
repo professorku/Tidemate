@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react'
 
 const TURNSTILE_SCRIPT_SRC =
   'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
@@ -38,18 +44,70 @@ function ensureTurnstileScript() {
   return scriptLoadingPromise
 }
 
-export default function TurnstileWidget({
-  onVerify,
-  onExpire,
-  onError,
-  theme = 'auto',
-  resetSignal = 0,
-}) {
+/**
+ * Cloudflare Turnstile widget.
+ *
+ * Props:
+ *   onVerify(token: string)  — fires when Cloudflare returns a token
+ *   onExpire()               — fires when the token expires (~5 min)
+ *   onError(err)             — fires on widget/script errors
+ *   theme: 'light' | 'dark' | 'auto' (default 'auto')
+ *
+ * Ref methods:
+ *   reset()  — discard the current challenge and start a fresh one. Use this
+ *              after a failed login/signup attempt: Cloudflare invalidates
+ *              the token as soon as it's been sent to siteverify, so the
+ *              widget must issue a new one before the user can submit again.
+ *
+ * If VITE_TURNSTILE_SITE_KEY is not set, this renders nothing — useful for
+ * local dev where you've also left TURNSTILE_SECRET_KEY unset on the backend.
+ */
+function TurnstileWidget(
+  { onVerify, onExpire, onError, theme = 'auto' },
+  ref,
+) {
   const containerRef = useRef(null)
   const widgetIdRef = useRef(null)
   const [scriptError, setScriptError] = useState(null)
 
+  // Keep the latest callbacks in refs so the render effect doesn't depend on
+  // them. Without this, any parent that forgets to memoize its handlers would
+  // make us tear down and re-render the widget on every render.
+  const onVerifyRef = useRef(onVerify)
+  const onExpireRef = useRef(onExpire)
+  const onErrorRef = useRef(onError)
+
+  useEffect(() => {
+    onVerifyRef.current = onVerify
+  }, [onVerify])
+
+  useEffect(() => {
+    onExpireRef.current = onExpire
+  }, [onExpire])
+
+  useEffect(() => {
+    onErrorRef.current = onError
+  }, [onError])
+
   const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY?.trim()
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      reset() {
+        const turnstile = window.turnstile
+        const widgetId = widgetIdRef.current
+        if (turnstile && widgetId) {
+          try {
+            turnstile.reset(widgetId)
+          } catch {
+            // ignore — widget may not be initialised yet
+          }
+        }
+      },
+    }),
+    [],
+  )
 
   useEffect(() => {
     if (!siteKey || !containerRef.current) {
@@ -65,56 +123,36 @@ export default function TurnstileWidget({
         widgetIdRef.current = turnstile.render(containerRef.current, {
           sitekey: siteKey,
           theme,
-          callback: (token) => onVerify?.(token),
-          'expired-callback': () => onExpire?.(),
-          'error-callback': (err) => onError?.(err),
+          callback: (token) => onVerifyRef.current?.(token),
+          'expired-callback': () => onExpireRef.current?.(),
+          'error-callback': (err) => onErrorRef.current?.(err),
         })
       })
       .catch((err) => {
         if (!cancelled) {
           setScriptError(err)
-          onError?.(err)
+          onErrorRef.current?.(err)
         }
       })
 
     return () => {
       cancelled = true
-
       const turnstile = window.turnstile
       const widgetId = widgetIdRef.current
-
-      if (turnstile && widgetId !== null && widgetId !== undefined) {
+      if (turnstile && widgetId) {
         try {
           turnstile.remove(widgetId)
         } catch {
           // ignore — widget may already be torn down
         }
       }
-
       widgetIdRef.current = null
     }
-  }, [siteKey, theme, onVerify, onExpire, onError])
-
-  useEffect(() => {
-    if (!siteKey || !resetSignal) {
-      return
-    }
-
-    const turnstile = window.turnstile
-    const widgetId = widgetIdRef.current
-
-    if (!turnstile || widgetId === null || widgetId === undefined) {
-      return
-    }
-
-    try {
-      turnstile.reset(widgetId)
-    } catch (err) {
-      onError?.(err)
-    }
-  }, [resetSignal, siteKey, onError])
+  }, [siteKey, theme])
 
   if (!siteKey) {
+    // Site key not configured — silently render nothing. Backend will also
+    // be in bypass mode in this state (TURNSTILE_SECRET_KEY unset).
     return null
   }
 
@@ -128,3 +166,5 @@ export default function TurnstileWidget({
 
   return <div ref={containerRef} className="cf-turnstile" />
 }
+
+export default forwardRef(TurnstileWidget)
