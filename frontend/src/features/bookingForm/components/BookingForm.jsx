@@ -36,29 +36,23 @@ export default function BookingForm(props) {
       <BookingPriceCard>
         <form className="mt-5 space-y-4" onSubmit={handleSubmit}>
           <div className="grid gap-2.5 sm:grid-cols-2">
-            <button
-              type="button"
-              className="rounded-[18px] border border-gold/20 bg-transparent p-3 text-left transition hover:bg-white/5"
-            >
+            <div className="cursor-default rounded-[18px] border border-gold/20 bg-transparent p-3 text-left">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-gold">
                 Pickup
               </p>
               <p className="mt-1.5 text-sm font-semibold text-white">
                 {formatDateWithTime(form.start_date, pickupTime)}
               </p>
-            </button>
+            </div>
 
-            <button
-              type="button"
-              className="rounded-[18px] border border-gold/20 bg-transparent p-3 text-left transition hover:bg-white/5"
-            >
+            <div className="cursor-default rounded-[18px] border border-gold/20 bg-transparent p-3 text-left">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-gold">
                 Return
               </p>
               <p className="mt-1.5 text-sm font-semibold text-white">
                 {formatDateWithTime(form.end_date, returnTime)}
               </p>
-            </button>
+            </div>
           </div>
 
           <AvailabilityCalendar

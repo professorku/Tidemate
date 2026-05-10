@@ -60,7 +60,7 @@ class BoatLocationPrivacyTests(APITestCase):
 
         self.assertFalse(payload['exact_location_available'])
         self.assertEqual(payload['location_precision'], 'approximate')
-        self.assertEqual(payload['location_radius_km'], 5)
+        self.assertEqual(payload['location_radius_km'], 20)
 
         self.assertNotEqual(payload['latitude'], 66.3128)
         self.assertNotEqual(payload['longitude'], 14.1428)
@@ -83,7 +83,7 @@ class BoatLocationPrivacyTests(APITestCase):
 
         self.assertFalse(result['exact_location_available'])
         self.assertEqual(result['location_precision'], 'approximate')
-        self.assertEqual(result['location_radius_km'], 5)
+        self.assertEqual(result['location_radius_km'], 20)
 
         self.assertNotEqual(result['latitude'], 66.3128)
         self.assertNotEqual(result['longitude'], 14.1428)
@@ -96,7 +96,7 @@ class BoatLocationPrivacyTests(APITestCase):
 
         self.assertFalse(payload['exact_location_available'])
         self.assertEqual(payload['location_precision'], 'approximate')
-        self.assertEqual(payload['location_radius_km'], 5)
+        self.assertEqual(payload['location_radius_km'], 20)
         self.assertIsNone(payload['pickup_address'])
         self.assertIsNone(payload['pickup_instructions'])
 

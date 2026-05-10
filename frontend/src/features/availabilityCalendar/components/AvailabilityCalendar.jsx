@@ -1,6 +1,5 @@
 import CalendarLegend from './CalendarLegend'
 import CalendarMonth from './CalendarMonth'
-import CalendarUnavailableRanges from './CalendarUnavailableRanges'
 import { useAvailabilityCalendar } from '../hooks/useAvailabilityCalendar'
 import { addMonths } from '../utils/availabilityCalendarUtils'
 
@@ -17,7 +16,6 @@ export default function AvailabilityCalendar(props) {
     today,
     viewDate,
     setViewDate,
-    safeRanges,
     visibleMonths,
     selectedStart,
     selectedEnd,
@@ -69,8 +67,6 @@ export default function AvailabilityCalendar(props) {
           />
         ))}
       </div>
-
-      <CalendarUnavailableRanges ranges={safeRanges} />
     </div>
   )
 }

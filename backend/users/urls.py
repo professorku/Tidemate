@@ -40,10 +40,17 @@ urlpatterns = [
     path("resend-verification-email/", resend_verification_email, name="resend_verification_email"),
 
     path("me/", me, name="me"),
+
+    # Public profile routes.
+    # /api/users/<id>/ is kept for old frontend/tests.
+    # /api/users/profiles/<id>/ is the newer explicit route.
+    path("<int:user_id>/", public_profile, name="public_profile_legacy"),
     path("profiles/<int:user_id>/", public_profile, name="public_profile"),
 
     path("crewmates/<int:user_id>/toggle/", toggle_crewmate, name="toggle_crewmate"),
     path("blocks/<int:user_id>/toggle/", toggle_block_user, name="toggle_block_user"),
+
+    # Legacy relationship routes.
     path("crewmates/<int:user_id>/", toggle_crewmate, name="toggle_crewmate_legacy"),
     path("blocks/<int:user_id>/", toggle_block_user, name="toggle_block_user_legacy"),
 ]

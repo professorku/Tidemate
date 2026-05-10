@@ -20,7 +20,7 @@ export default function AboutProjectPage() {
   return (
     <main className="min-h-screen bg-[#071d32] text-white">
       <div className="w-full px-5 py-12 md:px-10 lg:px-16 xl:px-24">
-        <div className="max-w-5xl">
+        <div className="max-w-7xl">
           <p className="text-xs font-extrabold uppercase tracking-[0.24em] text-gold">
             TideMate project documentation
           </p>

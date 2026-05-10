@@ -2,22 +2,32 @@ const journeyStops = [
   {
     title: 'Frontend harbor',
     icon: '⚓',
-    text: 'React routes, pages, forms, maps, and feature components guide the user through the product.',
+    text: 'React routes, pages, forms, maps, and feature components guide the user.',
   },
   {
     title: 'API route',
     icon: '⛵',
-    text: 'Shared API modules carry requests from the interface to the backend in a predictable way.',
+    text: 'Shared API modules carry requests from the interface to the backend.',
+  },
+  {
+    title: 'Harbor gate',
+    icon: '🛡️',
+    text: 'Sessions, CSRF, role checks, and ownership rules guard access.',
   },
   {
     title: 'Backend compass',
     icon: '🧭',
-    text: 'Django validates input, checks access, applies domain rules, and coordinates database changes.',
+    text: 'Django validates input, applies rules, and coordinates data changes.',
+  },
+  {
+    title: 'Signal lighthouse',
+    icon: '🔦',
+    text: 'WebSockets support realtime chat and notification updates.',
   },
   {
     title: 'Infrastructure island',
     icon: '🏝️',
-    text: 'PostgreSQL/PostGIS, Redis, Docker, Nginx, Cloudflare, DigitalOcean, and Let\'s Encrypt support the deployed app.',
+    text: "PostgreSQL/PostGIS, Redis, Docker, Nginx, Cloudflare, DigitalOcean, and Let's Encrypt support deployment.",
   },
 ]
 
@@ -37,23 +47,25 @@ export default function ArchitectureJourney() {
       </div>
 
       <div className="relative mt-8">
-        <div className="absolute left-6 top-0 h-full border-l border-dashed border-gold/40 md:left-0 md:right-0 md:top-12 md:h-0 md:border-l-0 md:border-t" />
+        <div className="pointer-events-none absolute left-8 right-8 top-9 z-20 hidden border-t border-dashed border-gold/45 xl:block" />
 
-        <div className="grid gap-6 md:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           {journeyStops.map((stop) => (
             <article
               key={stop.title}
-              className="relative rounded-2xl border border-white/10 bg-white/5 p-5 shadow-xl shadow-black/10"
+              className="relative z-10 rounded-2xl border border-white/10 bg-white/[0.045] p-4 shadow-xl shadow-black/10"
             >
-              <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full border border-gold/30 bg-[#071d32] text-2xl">
-                {stop.icon}
+              <div className="relative z-30 mb-4">
+                <div className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gold/35 bg-[#071d32] text-xl shadow-lg shadow-black/20">
+                  {stop.icon}
+                </div>
               </div>
 
-              <h3 className="text-lg font-extrabold text-white">
+              <h3 className="text-base font-extrabold leading-snug text-white">
                 {stop.title}
               </h3>
 
-              <p className="mt-3 text-sm leading-7 text-white/70">
+              <p className="mt-3 text-xs leading-6 text-white/68">
                 {stop.text}
               </p>
             </article>
@@ -61,11 +73,11 @@ export default function ArchitectureJourney() {
         </div>
       </div>
 
-      <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-sm leading-7 text-white/65">
-        <p>
-          Browser → frontend feature → API module → Django endpoint → serializer,
-          selector, service, and permission layer → database or external service
-          → response back to the user interface.
+      <div className="mt-6 bg-[#071d32] text-xs leading-6 text-white/55">
+        <p className="mt-6 text-xs leading-6 text-white/55">
+          Browser → frontend feature → API module → access checks → Django domain logic
+          → database, realtime, or external services → response back to the user
+          interface.
         </p>
       </div>
     </section>
