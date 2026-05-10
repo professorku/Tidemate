@@ -38,23 +38,12 @@ function ensureTurnstileScript() {
   return scriptLoadingPromise
 }
 
-/**
- * Cloudflare Turnstile widget.
- *
- * Props:
- *   onVerify(token: string)  — fires when Cloudflare returns a token
- *   onExpire()               — fires when the token expires (~5 min)
- *   onError(err)             — fires on widget/script errors
- *   theme: 'light' | 'dark' | 'auto' (default 'auto')
- *
- * If VITE_TURNSTILE_SITE_KEY is not set, this renders nothing — useful for
- * local dev where you've also left TURNSTILE_SECRET_KEY unset on the backend.
- */
 export default function TurnstileWidget({
   onVerify,
   onExpire,
   onError,
   theme = 'auto',
+  resetSignal = 0,
 }) {
   const containerRef = useRef(null)
   const widgetIdRef = useRef(null)
@@ -90,22 +79,42 @@ export default function TurnstileWidget({
 
     return () => {
       cancelled = true
+
       const turnstile = window.turnstile
       const widgetId = widgetIdRef.current
-      if (turnstile && widgetId) {
+
+      if (turnstile && widgetId !== null && widgetId !== undefined) {
         try {
           turnstile.remove(widgetId)
         } catch {
           // ignore — widget may already be torn down
         }
       }
+
       widgetIdRef.current = null
     }
   }, [siteKey, theme, onVerify, onExpire, onError])
 
+  useEffect(() => {
+    if (!siteKey || !resetSignal) {
+      return
+    }
+
+    const turnstile = window.turnstile
+    const widgetId = widgetIdRef.current
+
+    if (!turnstile || widgetId === null || widgetId === undefined) {
+      return
+    }
+
+    try {
+      turnstile.reset(widgetId)
+    } catch (err) {
+      onError?.(err)
+    }
+  }, [resetSignal, siteKey, onError])
+
   if (!siteKey) {
-    // Site key not configured — silently render nothing. Backend will also
-    // be in bypass mode in this state (TURNSTILE_SECRET_KEY unset).
     return null
   }
 

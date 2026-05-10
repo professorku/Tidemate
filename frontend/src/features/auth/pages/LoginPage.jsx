@@ -34,6 +34,23 @@ export default function LoginPage() {
   const [resending, setResending] = useState(false)
   const [loading, setLoading] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState('')
+  const [turnstileResetSignal, setTurnstileResetSignal] = useState(0)
+
+  const resetTurnstile = useCallback(() => {
+    setTurnstileToken('')
+    setTurnstileResetSignal((value) => value + 1)
+  }, [])
+
+  const updateField = (field, value) => {
+    setForm((currentForm) => ({
+      ...currentForm,
+      [field]: value,
+    }))
+
+    if (error) {
+      setError('')
+    }
+  }
 
   const handleTurnstileVerify = useCallback((token) => {
     setTurnstileToken(token)
@@ -50,17 +67,33 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+
+    const username = form.username.trim()
+
+    if (!username) {
+      setError('Username is required.')
+      return
+    }
+
+    if (!form.password) {
+      setError('Password is required.')
+      return
+    }
+
+    if (turnstileEnabled && !turnstileToken) {
+      setError('Please complete the security check.')
+      return
+    }
+
     setLoading(true)
 
     try {
-      await loginUser(form, turnstileToken)
+      await loginUser({ username, password: form.password }, turnstileToken)
       await login()
       navigate(from, { replace: true })
     } catch (err) {
       setError(getErrorMessage(err, 'Invalid username or password.'))
-      // Cloudflare invalidates the token after one verification attempt,
-      // so reset state and let the widget issue a new one.
-      setTurnstileToken('')
+      resetTurnstile()
     } finally {
       setLoading(false)
     }
@@ -92,16 +125,21 @@ export default function LoginPage() {
       return
     }
 
+    if (turnstileEnabled && !turnstileToken) {
+      setError('Please complete the security check.')
+      return
+    }
+
     setError('')
     setResending(true)
 
     try {
       const response = await resendVerificationEmail(initialEmail, turnstileToken)
       setInfo(response?.detail || 'Verification email sent.')
-      setTurnstileToken('')
+      resetTurnstile()
     } catch (err) {
       setError(getErrorMessage(err, 'Could not resend verification email.'))
-      setTurnstileToken('')
+      resetTurnstile()
     } finally {
       setResending(false)
     }
@@ -129,7 +167,7 @@ export default function LoginPage() {
                 className={inputClassName}
                 placeholder="Username"
                 value={form.username}
-                onChange={(e) => setForm({ ...form, username: e.target.value })}
+                onChange={(e) => updateField('username', e.target.value)}
               />
             </div>
 
@@ -145,7 +183,7 @@ export default function LoginPage() {
                 className={inputClassName}
                 placeholder="Password"
                 value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                onChange={(e) => updateField('password', e.target.value)}
               />
             </div>
 
@@ -155,6 +193,7 @@ export default function LoginPage() {
             <div className="flex justify-center pt-1">
               <TurnstileWidget
                 theme="dark"
+                resetSignal={turnstileResetSignal}
                 onVerify={handleTurnstileVerify}
                 onExpire={handleTurnstileExpire}
                 onError={handleTurnstileError}
@@ -168,7 +207,6 @@ export default function LoginPage() {
               {loading ? 'Logging in...' : 'Log in'}
             </button>
           </form>
-
 
           <div className="my-5 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.24em] text-white/35">
             <span className="h-px flex-1 bg-gold/15" />

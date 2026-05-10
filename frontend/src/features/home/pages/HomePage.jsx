@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useRef } from 'react'
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 import PageContainer from '../../../components/layout/PageContainer'
 import { BoatCardSkeletonGrid } from '../../../components/ui/Skeleton'
@@ -6,7 +7,16 @@ import HomeResults from '../../home/components/HomeResults'
 import PaginationControls from '../../../components/ui/PaginationControls'
 import useHomePageData from '../../home/hooks/useHomePageData'
 
+const SWIPE_THRESHOLD = 120
+const SWIPE_RESET_MS = 150
+const SWIPE_COOLDOWN_MS = 700
+
 export default function HomePage() {
+  const swipeDeltaRef = useRef(0)
+  const swipeLockedRef = useRef(false)
+  const resetTimerRef = useRef(null)
+  const cooldownTimerRef = useRef(null)
+
   const {
     boats,
     error,
@@ -15,6 +25,65 @@ export default function HomePage() {
     pagination,
     setPage,
   } = useHomePageData()
+
+  const canGoPrevious = pagination.page > 1
+  const canGoNext = pagination.page < pagination.totalPages
+
+  useEffect(() => {
+    return () => {
+      window.clearTimeout(resetTimerRef.current)
+      window.clearTimeout(cooldownTimerRef.current)
+    }
+  }, [])
+
+  const handleResultsWheel = useCallback(
+    (event) => {
+      if (loading || pagination.totalPages <= 1) return
+
+      const absX = Math.abs(event.deltaX)
+      const absY = Math.abs(event.deltaY)
+
+      // Ignore normal vertical scrolling.
+      if (absX < 6 || absX < absY * 1.25) return
+
+      event.preventDefault()
+
+      if (swipeLockedRef.current) return
+
+      swipeDeltaRef.current += event.deltaX
+
+      window.clearTimeout(resetTimerRef.current)
+      resetTimerRef.current = window.setTimeout(() => {
+        swipeDeltaRef.current = 0
+      }, SWIPE_RESET_MS)
+
+      if (Math.abs(swipeDeltaRef.current) < SWIPE_THRESHOLD) return
+
+      const shouldGoNext = swipeDeltaRef.current > 0
+      const shouldGoPrevious = swipeDeltaRef.current < 0
+
+      if (shouldGoNext && canGoNext) {
+        setPage(pagination.page + 1)
+      } else if (shouldGoPrevious && canGoPrevious) {
+        setPage(pagination.page - 1)
+      }
+
+      swipeDeltaRef.current = 0
+      swipeLockedRef.current = true
+
+      cooldownTimerRef.current = window.setTimeout(() => {
+        swipeLockedRef.current = false
+      }, SWIPE_COOLDOWN_MS)
+    },
+    [
+      canGoNext,
+      canGoPrevious,
+      loading,
+      pagination.page,
+      pagination.totalPages,
+      setPage,
+    ]
+  )
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#071d32] text-white">
@@ -57,7 +126,9 @@ export default function HomePage() {
           </section>
         ) : (
           <>
-            <HomeResults boats={boats} />
+            <div onWheel={handleResultsWheel}>
+              <HomeResults boats={boats} />
+            </div>
 
             <PaginationControls
               page={pagination.page}

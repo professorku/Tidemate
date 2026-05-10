@@ -143,12 +143,7 @@ def get_public_location_text_privacy_error(value):
     if not text:
         return None
 
-    lowered = text.lower()
-
     if COORDINATE_PAIR_PATTERN.search(text):
-        return PUBLIC_LOCATION_TEXT_PRIVACY_ERROR
-
-    if POSTCODE_PATTERN.search(lowered):
         return PUBLIC_LOCATION_TEXT_PRIVACY_ERROR
 
     if STREET_ADDRESS_PATTERN.search(text):
