@@ -2,6 +2,7 @@ import {
   formatBoatType,
   formatBookingDate,
   formatBookingDateTime,
+  formatBookingStatusLabel,
   formatBookingWindow as buildBookingWindow,
   getStatusBadgeClass,
 } from '../../../utils/format/booking'
@@ -53,21 +54,15 @@ export function formatMoney(value) {
 export { formatBoatType }
 
 export function formatStatusLabel(status) {
-  if (!status) return 'Booking'
-
-  const labels = {
-    confirmed: 'Confirmed',
-    pending: 'Awaiting approval',
-    cancelled: 'Cancelled',
-  }
-
-  return labels[status] || status
+  if (status === 'pending') return 'Awaiting approval'
+  return formatBookingStatusLabel(status)
 }
 
 export function statusBadgeClass(status) {
   return getStatusBadgeClass(status, {
     confirmed: 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200',
     pending: 'bg-amber-100 text-amber-800 ring-1 ring-amber-200',
+    awaiting_payment: 'bg-amber-100 text-amber-800 ring-1 ring-amber-200',
     cancelled: 'bg-red-100 text-red-700 ring-1 ring-red-200',
     defaultClass: 'bg-slate-100 text-slate-700 ring-1 ring-slate-200',
   })
@@ -78,6 +73,7 @@ export function getLifecycleLabel(booking) {
 
   const labels = {
     pending: 'Awaiting host approval',
+    awaiting_payment: 'Awaiting payment',
     upcoming: 'Upcoming trip',
     active: 'Trip in progress',
     completed: 'Trip completed',
@@ -86,6 +82,7 @@ export function getLifecycleLabel(booking) {
 
   if (stage && labels[stage]) return labels[stage]
   if (booking?.status === 'pending') return labels.pending
+  if (booking?.status === 'awaiting_payment') return labels.awaiting_payment
   if (booking?.status === 'cancelled') return labels.cancelled
   if (booking?.trip_finished) return labels.completed
   return labels.upcoming
@@ -102,6 +99,12 @@ export function getBookingHint(booking, viewerRole = 'renter') {
     return viewerRole === 'host'
       ? 'Review the request and confirm it if the dates work for you.'
       : 'The host has received your request and can confirm or decline it.'
+  }
+
+  if (booking.status === 'awaiting_payment') {
+    return viewerRole === 'host'
+      ? 'The booking is approved and waiting for renter payment.'
+      : 'Your booking is approved. Complete the payment to secure it.'
   }
 
   if (booking.lifecycle_stage === 'active') {

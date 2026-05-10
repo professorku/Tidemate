@@ -3,8 +3,8 @@ import {
   CheckCircleIcon,
   UserCircleIcon,
 } from '@heroicons/react/24/outline'
-import { formatDate } from '../../utils/chatFormatters'
-import { getConversationBookingReference } from '../../../../utils/bookingReference'  
+import { formatBookingStatusLabel, formatDate } from '../../utils/chatFormatters'
+import { getConversationBookingReference } from '../../../../utils/bookingReference'
 
 function MetaCard({ icon, label, value, subtext }) {
   return (
@@ -56,11 +56,14 @@ export default function ConversationCardMetaGrid({ conversation, isHost }) {
       <MetaCard
         icon={<CheckCircleIcon className="h-5 w-5" />}
         label="Booking"
-        value={conversation.booking_id ? getConversationBookingReference(conversation) : 'Direct inquiry'}
+        value={
+          conversation.booking_id
+            ? getConversationBookingReference(conversation)
+            : 'Direct inquiry'
+        }
         subtext={
           conversation.booking_status
-            ? conversation.booking_status.charAt(0).toUpperCase() +
-              conversation.booking_status.slice(1)
+            ? formatBookingStatusLabel(conversation.booking_status)
             : undefined
         }
       />

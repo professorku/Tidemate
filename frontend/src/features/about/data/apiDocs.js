@@ -1,0 +1,141 @@
+export const apiGroups = [
+  {
+    title: 'Users',
+    basePath: '/api/users/',
+    description: 'Account, profile, session, verification, and user relation routes.',
+    rows: [
+      ['GET', 'health/', 'Health check endpoint.', 'Public'],
+      ['GET', 'csrf/', 'Gets the CSRF cookie used before write requests.', 'Public'],
+      ['POST', 'signup/', 'Creates a new account.', 'Public'],
+      ['POST', 'login/', 'Starts a user session.', 'Public'],
+      ['POST', 'google-login/', 'Starts or completes Google login.', 'Public'],
+      ['POST', 'refresh/', 'Refreshes the user session.', 'Session'],
+      ['POST', 'logout/', 'Ends the user session.', 'Session'],
+      ['GET/PATCH', 'me/', 'Reads or updates the current user profile.', 'User'],
+      ['POST', 'change-password/', 'Changes the current user password.', 'User'],
+      ['POST', 'forgot-password/', 'Starts password reset.', 'Public'],
+      ['POST', 'reset-password/', 'Completes password reset.', 'Public'],
+      ['GET/POST', 'verify-email/', 'Verifies a new account email.', 'Public'],
+      ['GET/POST', 'verify-email-change/', 'Confirms an email change.', 'Token'],
+      ['POST', 'resend-verification/', 'Resends verification email.', 'Public'],
+      ['GET', 'profiles/:userId/', 'Shows a public user profile.', 'Public'],
+      ['POST', 'crewmates/:userId/toggle/', 'Adds or removes a crewmate relation.', 'User'],
+      ['POST', 'blocks/:userId/toggle/', 'Blocks or unblocks another user.', 'User'],
+    ],
+  },
+  {
+    title: 'Listings',
+    basePath: '/api/listings/',
+    description: 'Boat listing routes used by browsing, detail pages, and host management.',
+    rows: [
+      ['GET', '', 'Lists and searches boat listings.', 'Public'],
+      ['POST', '', 'Creates a new boat listing.', 'User'],
+      ['GET', ':id/', 'Shows one boat listing.', 'Public'],
+      ['GET', 'mine/', 'Lists boats owned by the current user.', 'Owner'],
+      ['PATCH/DELETE', 'mine/:id/', 'Updates or deletes one owned boat listing.', 'Owner'],
+      ['GET', ':id/conditions/', 'Shows listing-related weather or marine conditions.', 'Public'],
+    ],
+  },
+  {
+    title: 'Bookings',
+    basePath: '/api/bookings/',
+    description: 'Booking request, approval, cancellation, and booking detail routes.',
+    rows: [
+      ['POST', '', 'Creates a booking request.', 'User'],
+      ['GET', 'my/', 'Lists bookings made by the current renter.', 'Renter'],
+      ['GET', 'my/counts/', 'Returns renter booking counts for tabs.', 'Renter'],
+      ['GET', 'host/', 'Lists bookings for boats owned by the current host.', 'Host'],
+      ['GET', 'host/counts/', 'Returns host booking counts for tabs.', 'Host'],
+      ['GET', ':id/', 'Shows one visible booking.', 'Participant'],
+      ['POST', ':id/confirm/', 'Confirms a pending booking request.', 'Host'],
+      ['POST', ':id/cancel/', 'Cancels a booking.', 'Participant'],
+      ['DELETE', ':id/delete/', 'Deletes or hides a visible booking.', 'Participant'],
+    ],
+  },
+  {
+    title: 'Payments',
+    basePath: '/api/payments/',
+    description: 'Payment routes connected to booking checkout and payment status.',
+    rows: [
+      ['POST', 'bookings/:bookingId/checkout/', 'Creates a checkout session.', 'Renter'],
+      ['GET', 'bookings/:bookingId/', 'Shows payment status for a booking.', 'Participant'],
+      ['POST', 'stripe/webhook/', 'Receives Stripe payment events.', 'Stripe'],
+    ],
+  },
+  {
+    title: 'Chat',
+    basePath: '/api/chat/',
+    description: 'Conversation and message routes used by the chat UI.',
+    rows: [
+      ['GET', 'conversations/', 'Lists visible conversations.', 'User'],
+      ['GET', 'conversations/:conversationId/', 'Shows one conversation.', 'Participant'],
+      ['POST', 'direct/start/', 'Starts or reuses a direct conversation.', 'User'],
+      ['GET/POST', 'conversations/:conversationId/messages/', 'Lists or sends messages.', 'Participant'],
+      ['DELETE', 'conversations/:conversationId/delete/', 'Deletes or hides a conversation.', 'Participant'],
+      ['DELETE', 'messages/:messageId/delete/', 'Deletes one authored message.', 'Author'],
+    ],
+  },
+  {
+    title: 'Notifications',
+    basePath: '/api/notifications/',
+    description: 'Notification routes used by the notification menu and activity center.',
+    rows: [
+      ['GET', '', 'Lists current user notifications.', 'User'],
+      ['POST', 'mark-all-read/', 'Marks all notifications as read.', 'User'],
+      ['POST', ':id/read/', 'Marks one notification as read.', 'Owner'],
+    ],
+  },
+  {
+    title: 'Favorites',
+    basePath: '/api/favorites/',
+    description: 'Favorite boat routes.',
+    rows: [
+      ['GET', '', 'Lists favorite boats.', 'User'],
+      ['POST', '', 'Adds a boat to favorites.', 'User'],
+      ['DELETE', ':id/', 'Removes a favorite.', 'Owner'],
+    ],
+  },
+  {
+    title: 'Reviews',
+    basePath: '/api/reviews/',
+    description: 'Review routes for boats, users, and completed trips.',
+    rows: [
+      ['GET', 'boats/:boatId/', 'Lists reviews for a boat.', 'Public'],
+      ['GET', 'users/:userId/', 'Lists reviews for a user.', 'Public'],
+      ['POST', 'create/', 'Creates a review.', 'User'],
+      ['GET', 'my-reviewable-bookings/', 'Lists bookings that can be reviewed.', 'User'],
+    ],
+  },
+  {
+    title: 'Reports',
+    basePath: '/api/reports/',
+    description: 'Routes for reporting user-generated content or behavior.',
+    rows: [
+      ['POST', '', 'Creates a report.', 'User'],
+    ],
+  },
+  {
+    title: 'Moderation',
+    basePath: '/api/moderation/',
+    description: 'Staff-facing routes for reviewing reports.',
+    rows: [
+      ['GET', 'reports/', 'Lists reports for review.', 'Staff'],
+      ['GET', 'reports/stats/', 'Shows report statistics.', 'Staff'],
+      ['GET/PATCH', 'reports/:id/', 'Shows or updates one report.', 'Staff'],
+    ],
+  },
+  {
+    title: 'Geocoding',
+    basePath: '/api/geocoding/',
+    description: 'Location helper routes used by listing and map flows.',
+    rows: [
+      ['GET', 'search/', 'Searches for locations.', 'Public/User'],
+      ['GET', 'reverse/', 'Reverse-geocodes coordinates.', 'Public/User'],
+    ],
+  },
+]
+
+export const realtimeRoutes = [
+  ['/ws/chat/conversations/:conversationId/', 'Live messages for one conversation.', 'Participant'],
+  ['/ws/notifications/', 'Live notification updates.', 'User'],
+]

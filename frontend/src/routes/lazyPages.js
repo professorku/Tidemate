@@ -27,6 +27,7 @@ export const pageLoaders = {
   notFound: () => import('../features/auth/pages/NotFoundPage'),
   paymentSuccess: () => import('../features/payments/pages/PaymentSuccessPage'),
   paymentCancel: () => import('../features/payments/pages/PaymentCancelPage'),
+  aboutProject: () => import('../features/about/AboutProjectPage'),
 }
 
 
@@ -40,6 +41,7 @@ export function preloadRoute(routeName) {
 
 
 export const HomePage = lazy(pageLoaders.home)
+export const AboutProjectPage = lazy(pageLoaders.aboutProject)
 export const BoatDetailPage = lazy(pageLoaders.boatDetail)
 export const PublicProfilePage = lazy(pageLoaders.publicProfile)
 export const FavoritesPage = lazy(pageLoaders.favorites)

@@ -23,7 +23,7 @@ services:
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
-      timeout: 5s
+      timeout: 15s
       retries: 5
 
   backend:
@@ -54,7 +54,7 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8000/api/users/health/ || exit 1"]
       interval: 30s
-      timeout: 5s
+      timeout: 15s
       retries: 5
       start_period: 30s
 
@@ -98,7 +98,7 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/ || exit 1"]
       interval: 30s
-      timeout: 5s
+      timeout: 15s
       retries: 5
       start_period: 10s
 

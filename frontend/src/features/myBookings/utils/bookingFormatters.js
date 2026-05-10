@@ -2,6 +2,7 @@ import {
   formatBoatType,
   formatBookingDate,
   formatBookingDateTime,
+  formatBookingStatusLabel,
   formatBookingWindow as buildBookingWindow,
 } from '../../../utils/format/booking'
 import { formatCurrency, formatRatingStars } from '../../../utils/format/number'
@@ -53,6 +54,7 @@ export function getTimelineStatus(booking) {
 
   if (booking?.status === 'cancelled') return 'cancelled'
   if (booking?.status === 'pending') return 'pending'
+  if (booking?.status === 'awaiting_payment') return 'awaiting_payment'
 
   const now = new Date()
 
@@ -70,15 +72,7 @@ export function getTimelineStatus(booking) {
 }
 
 export function formatStatusLabel(status) {
-  if (!status) return 'Booking'
-
-  const labels = {
-    confirmed: 'Confirmed',
-    pending: 'Pending',
-    cancelled: 'Cancelled',
-  }
-
-  return labels[status] || status
+  return formatBookingStatusLabel(status)
 }
 
 export function statusClasses(status) {
@@ -86,6 +80,7 @@ export function statusClasses(status) {
     case 'confirmed':
       return 'bg-gold text-navy ring-1 ring-gold/40'
     case 'pending':
+    case 'awaiting_payment':
       return 'bg-gold/15 text-gold ring-1 ring-gold/40'
     case 'cancelled':
       return 'bg-red-500/15 text-red-100 ring-1 ring-red-400/40'
@@ -103,6 +98,7 @@ export function timelineBadgeClasses(tab) {
     case 'completed':
       return 'bg-gold/15 text-gold ring-1 ring-gold/40'
     case 'pending':
+    case 'awaiting_payment':
       return 'bg-gold/15 text-gold ring-1 ring-gold/40'
     case 'cancelled':
       return 'bg-red-500/15 text-red-100 ring-1 ring-red-400/40'
@@ -121,6 +117,8 @@ export function getTimelineLabel(tab) {
       return 'Completed'
     case 'pending':
       return 'Awaiting approval'
+    case 'awaiting_payment':
+      return 'Awaiting payment'
     case 'cancelled':
       return 'Cancelled'
     default:
@@ -137,6 +135,10 @@ export function getDateHint(booking, timelineStatus) {
 
   if (timelineStatus === 'pending') {
     return 'Waiting for host confirmation.'
+  }
+
+  if (timelineStatus === 'awaiting_payment') {
+    return 'Waiting for payment.'
   }
 
   if (timelineStatus === 'active') {
@@ -161,6 +163,7 @@ export const bookingTabs = [
   { key: 'upcoming', label: 'Upcoming' },
   { key: 'active', label: 'On trip' },
   { key: 'pending', label: 'Pending' },
+  { key: 'awaiting_payment', label: 'Awaiting payment' },
   { key: 'completed', label: 'Completed' },
   { key: 'cancelled', label: 'Cancelled' },
 ]

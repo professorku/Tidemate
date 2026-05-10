@@ -13,6 +13,7 @@ import {
   formatDate,
   formatDateTime,
   formatMoney,
+  formatBookingStatusLabel,
   getTripStateClass,
   getTripStateLabel,
 } from '../utils/conversationFormatters'
@@ -121,12 +122,7 @@ export default function ConversationSidebar({ conversation, messages, tripState 
         <DetailCard
           icon={<CreditCardIcon className="h-5 w-5" />}
           label="Booking status"
-          value={
-            conversation.booking_status
-              ? conversation.booking_status.charAt(0).toUpperCase() +
-                conversation.booking_status.slice(1)
-              : 'Direct inquiry'
-          }
+          value={formatBookingStatusLabel(conversation.booking_status)}
         />
 
         <DetailCard

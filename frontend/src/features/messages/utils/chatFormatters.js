@@ -45,6 +45,26 @@ export function formatRelative(value) {
   return formatDate(value)
 }
 
+export function formatBookingStatusLabel(status, fallback = 'Direct inquiry') {
+  if (!status) return fallback
+
+  const labels = {
+    confirmed: 'Confirmed',
+    pending: 'Pending',
+    awaiting_payment: 'Awaiting payment',
+    cancelled: 'Cancelled',
+    active: 'Active',
+    upcoming: 'Upcoming',
+    completed: 'Completed',
+  }
+
+  if (labels[status]) return labels[status]
+
+  return String(status)
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase())
+}
+
 export function getConversationTypeLabel(conversation) {
   if (conversation.booking_id) return 'Booking chat'
   return 'Direct inquiry'
@@ -63,6 +83,7 @@ export function getBookingStatusClass(status) {
     case 'confirmed':
       return 'bg-gold text-navy ring-1 ring-gold/40'
     case 'pending':
+    case 'awaiting_payment':
       return 'bg-gold/15 text-gold ring-1 ring-gold/40'
     case 'cancelled':
       return 'bg-red-500/15 text-red-100 ring-1 ring-red-400/40'
@@ -75,6 +96,7 @@ export function getTripState(conversation) {
   if (!conversation?.start_date || !conversation?.end_date) return 'general'
   if (conversation.booking_status === 'cancelled') return 'cancelled'
   if (conversation.booking_status === 'pending') return 'pending'
+  if (conversation.booking_status === 'awaiting_payment') return 'awaiting_payment'
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -95,6 +117,8 @@ export function getTripStateLabel(conversation) {
   switch (state) {
     case 'pending':
       return 'Awaiting approval'
+    case 'awaiting_payment':
+      return 'Awaiting payment'
     case 'cancelled':
       return 'Cancelled'
     case 'active':
@@ -113,6 +137,7 @@ export function getTripStateClass(conversation) {
 
   switch (state) {
     case 'pending':
+    case 'awaiting_payment':
       return 'bg-gold/15 text-gold ring-1 ring-gold/40'
     case 'cancelled':
       return 'bg-red-500/15 text-red-100 ring-1 ring-red-400/40'

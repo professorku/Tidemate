@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import Avatar from '../../../../components/ui/Avatar'
 import {
+  formatBookingStatusLabel,
   formatDateTime,
   formatRelative,
   getBookingStatusClass,
@@ -41,11 +42,11 @@ export default function ConversationCardSummary({
 
           {conversation.booking_status ? (
             <span
-              className={`rounded-full px-3 py-1 text-xs font-bold capitalize ${getBookingStatusClass(
+              className={`rounded-full px-3 py-1 text-xs font-bold ${getBookingStatusClass(
                 conversation.booking_status
               )}`}
             >
-              {conversation.booking_status}
+              {formatBookingStatusLabel(conversation.booking_status)}
             </span>
           ) : null}
 

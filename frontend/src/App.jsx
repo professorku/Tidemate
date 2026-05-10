@@ -7,6 +7,7 @@ import RouteLoadingFallback from './components/ui/RouteLoadingFallback'
 import RouteErrorBoundary from './components/ui/RouteErrorBoundary'
 
 import {
+  AboutProjectPage,
   AddBoatPage,
   BoatDetailPage,
   BookingDetailPage,
@@ -44,6 +45,7 @@ export default function App() {
         <Suspense fallback={<RouteLoadingFallback />}>
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/about" element={<AboutProjectPage />} />
             <Route path="/boats/:id" element={<BoatDetailPage />} />
             <Route path="/users/:id" element={<PublicProfilePage />} />
 

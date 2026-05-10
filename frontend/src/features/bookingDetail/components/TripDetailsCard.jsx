@@ -39,15 +39,21 @@ function TimelineStep({ title, text, active = false, last = false }) {
 
 function getTimelineState(booking) {
   const lifecycleStage = booking?.lifecycle_stage
+  const status = booking?.status
 
-  const isCancelled = booking?.status === 'cancelled'
-  const isConfirmed = booking?.status === 'confirmed'
+  const isCancelled = status === 'cancelled'
+  const isAwaitingPayment = status === 'awaiting_payment'
+  const isConfirmed = status === 'confirmed'
   const isActiveTrip = lifecycleStage === 'active'
-  const isCompletedTrip = lifecycleStage === 'completed' || Boolean(booking?.trip_finished)
+  const isCompletedTrip =
+    lifecycleStage === 'completed' || Boolean(booking?.trip_finished)
 
   return {
     requestSent: true,
-    hostConfirmed: isConfirmed || isActiveTrip || isCompletedTrip,
+    hostConfirmed:
+      isAwaitingPayment || isConfirmed || isActiveTrip || isCompletedTrip,
+    paymentStep:
+      isAwaitingPayment || isConfirmed || isActiveTrip || isCompletedTrip,
     pickupReached: isActiveTrip || isCompletedTrip,
     returnReached: isCompletedTrip,
     isCancelled,
@@ -59,11 +65,31 @@ function getHostConfirmationText(booking) {
     return 'Waiting for the host to confirm this request.'
   }
 
+  if (booking.status === 'awaiting_payment') {
+    return 'The host has confirmed your booking request.'
+  }
+
   if (booking.status === 'cancelled') {
     return 'This booking was cancelled before or after confirmation.'
   }
 
   return 'The booking has been confirmed.'
+}
+
+function getPaymentText(booking) {
+  if (booking.status === 'pending') {
+    return 'Payment becomes available after the host confirms the booking.'
+  }
+
+  if (booking.status === 'awaiting_payment') {
+    return 'Complete the payment to secure this booking.'
+  }
+
+  if (booking.status === 'cancelled') {
+    return 'Payment is no longer available because this booking was cancelled.'
+  }
+
+  return 'Payment was completed successfully and the booking is secured.'
 }
 
 function getPickupText(booking, bookingWindow) {
@@ -190,6 +216,12 @@ export default function TripDetailsCard({ booking }) {
                 title="Host confirmation"
                 text={getHostConfirmationText(booking)}
                 active={timelineState.hostConfirmed}
+              />
+
+              <TimelineStep
+                title="Payment"
+                text={getPaymentText(booking)}
+                active={timelineState.paymentStep}
               />
 
               <TimelineStep

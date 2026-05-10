@@ -2,6 +2,7 @@ import {
   formatBoatType,
   formatBookingDate,
   formatBookingDateTime,
+  formatBookingStatusLabel,
   formatBookingWindow as buildBookingWindow,
 } from '../../../utils/format/booking'
 import { formatCurrency } from '../../../utils/format/number'
@@ -53,6 +54,7 @@ export function getHostTimelineStatus(booking) {
 
   if (booking?.status === 'cancelled') return 'cancelled'
   if (booking?.status === 'pending') return 'pending'
+  if (booking?.status === 'awaiting_payment') return 'awaiting_payment'
 
   const now = new Date()
 
@@ -70,15 +72,7 @@ export function getHostTimelineStatus(booking) {
 }
 
 export function formatStatusLabel(status) {
-  if (!status) return 'Booking'
-
-  const labels = {
-    confirmed: 'Confirmed',
-    pending: 'Pending',
-    cancelled: 'Cancelled',
-  }
-
-  return labels[status] || status
+  return formatBookingStatusLabel(status)
 }
 
 export function hostStatusClasses(status) {
@@ -86,6 +80,7 @@ export function hostStatusClasses(status) {
     case 'confirmed':
       return 'bg-gold text-navy ring-1 ring-gold/40'
     case 'pending':
+    case 'awaiting_payment':
       return 'bg-gold/15 text-gold ring-1 ring-gold/40'
     case 'cancelled':
       return 'bg-red-500/15 text-red-100 ring-1 ring-red-400/40'
@@ -103,6 +98,7 @@ export function hostTimelineBadgeClasses(tab) {
     case 'completed':
       return 'bg-gold/15 text-gold ring-1 ring-gold/40'
     case 'pending':
+    case 'awaiting_payment':
       return 'bg-gold/15 text-gold ring-1 ring-gold/40'
     case 'cancelled':
       return 'bg-red-500/15 text-red-100 ring-1 ring-red-400/40'
@@ -121,6 +117,8 @@ export function getHostTimelineLabel(tab) {
       return 'Completed'
     case 'pending':
       return 'Awaiting host approval'
+    case 'awaiting_payment':
+      return 'Awaiting payment'
     case 'cancelled':
       return 'Cancelled'
     default:
@@ -139,6 +137,10 @@ export function getHostDateHint(booking, timelineStatus) {
     return 'Waiting for your response.'
   }
 
+  if (timelineStatus === 'awaiting_payment') {
+    return 'Waiting for renter payment.'
+  }
+
   if (timelineStatus === 'active') {
     return 'This trip is currently active.'
   }
@@ -155,6 +157,7 @@ export function getHostDateHint(booking, timelineStatus) {
 export const hostBookingTabs = [
   { key: 'all', label: 'All' },
   { key: 'pending', label: 'Pending' },
+  { key: 'awaiting_payment', label: 'Awaiting payment' },
   { key: 'confirmed', label: 'Confirmed' },
   { key: 'cancelled', label: 'Cancelled' },
 ]

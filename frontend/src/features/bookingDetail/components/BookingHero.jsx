@@ -6,7 +6,6 @@ import {
 import {
   formatStatusLabel,
   getBookingHint,
-  getLifecycleLabel,
   statusBadgeClass,
 } from '../utils/bookingFormatters'
 import {
@@ -29,6 +28,7 @@ function DetailPill({ icon, label, value }) {
 export default function BookingHero({ booking, summaryText, viewerRole = 'renter' }) {
   const hasExactLocation = canShowExactLocation(booking)
   const locationLabel = getBoatLocationLabel(booking, 'Location unavailable')
+  const statusLabel = formatStatusLabel(booking.status)
 
   return (
     <section className="overflow-hidden rounded-[34px] border border-gold/20 bg-slate-950 shadow-soft">
@@ -49,20 +49,14 @@ export default function BookingHero({ booking, summaryText, viewerRole = 'renter
         <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-slate-950/80 to-transparent" />
 
         <div className="relative flex min-h-[360px] flex-col justify-between p-5 text-white md:p-8">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <span
-                className={`inline-flex rounded-full px-3 py-1.5 text-xs font-extrabold ${statusBadgeClass(
-                  booking.status
-                )}`}
-              >
-                {formatStatusLabel(booking.status)}
-              </span>
-
-              <span className="inline-flex rounded-full bg-gold px-3 py-1.5 text-xs font-extrabold text-navy ring-1 ring-gold/40">
-                {getLifecycleLabel(booking)}
-              </span>
-            </div>
+          <div className="flex justify-start">
+            <span
+              className={`inline-flex rounded-full px-3 py-1.5 text-xs font-extrabold ${statusBadgeClass(
+                booking.status
+              )}`}
+            >
+              {statusLabel}
+            </span>
           </div>
 
           <div className="max-w-3xl">
@@ -94,7 +88,7 @@ export default function BookingHero({ booking, summaryText, viewerRole = 'renter
               <DetailPill
                 icon={<ClockIcon className="h-4 w-4 text-gold" />}
                 label="Status"
-                value={formatStatusLabel(booking.status)}
+                value={statusLabel}
               />
             </div>
           </div>
