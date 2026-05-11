@@ -1,232 +1,357 @@
-# Tidemate architecture notes
+# TideMate architecture notes
 
-This document describes how the Tidemate codebase is organized and the rules that should be followed when adding or changing code.
+This document describes how TideMate is organized and the rules to follow when adding or changing code.
 
-Tidemate keeps the existing UX and core product logic, but standardizes where frontend and backend code should live so the repository stays easier to maintain, test, and deploy.
+TideMate is a full-stack boat rental marketplace built with a React/Vite frontend and a Django REST Framework backend. The project also uses Django Channels for realtime features, HttpOnly JWT cookies for authentication, CSRF protection for cookie-authenticated write requests, user-uploaded media, Stripe payments, reporting/moderation, and Docker-based deployment.
 
-## High-level architecture
+The main architectural goal is simple: keep UI code in the frontend, keep business rules and security decisions in the backend, and keep each domain in a predictable place.
 
-Tidemate is a full-stack boat rental marketplace with:
-
-- a React/Vite frontend
-- a Django REST Framework backend
-- JWT authentication stored in HttpOnly cookies
-- CSRF protection for cookie-authenticated write requests
-- WebSocket-based realtime features
-- user-uploaded media for boat listings and profile images
-- Docker-based local/production deployment support
-
-The project is organized as two main applications:
+## Repository layout
 
 ```text
-frontend/
-backend/
+Tidemate-main/
+├── frontend/              # React/Vite single-page app
+├── backend/               # Django REST/Channels backend
+├── compose.prod.yml       # Production Docker Compose stack
+├── deployment/nginx/      # Host/reverse-proxy nginx examples
+├── README.md              # Project overview and setup
+└── ARCHITECTURE.md        # This document
 ```
 
-The frontend owns presentation, routing, client-side state, and API calls.
+The frontend owns presentation, routing, user interaction, client-side state, and API consumption.
 
-The backend owns authentication, authorization, validation, persistence, business rules, file processing, and realtime access checks.
+The backend owns authentication, authorization, validation, persistence, business rules, payments, file processing, audit logging, and realtime access checks.
+
+## Runtime architecture
+
+Production is designed around Docker Compose:
+
+```text
+Browser
+  ↓
+Frontend nginx container
+  ├── serves the React build
+  ├── serves /media/ and /static/ from shared volumes
+  ├── proxies /api/ to the backend
+  └── proxies /ws/ to the backend
+        ↓
+Django/Daphne backend
+  ├── DRF HTTP APIs
+  ├── Channels WebSockets
+  ├── cookie JWT authentication
+  ├── CSRF-protected writes
+  └── domain business logic
+        ↓
+PostGIS/PostgreSQL + Redis
+```
+
+Production services:
+
+- `postgres`: PostGIS-enabled PostgreSQL database.
+- `redis`: cache, Channels layer, throttling/session-related support.
+- `backend`: Django app served by Daphne.
+- `maintenance`: scheduled backend maintenance tasks.
+- `frontend`: nginx serving React and proxying API/WebSocket traffic.
 
 ## Frontend structure
 
-Use these rules going forward:
+The frontend is feature-based.
 
-- `src/api/`
-  - low-level API client and domain API modules
-  - no page logic here
-  - API modules should expose clear functions such as `getListings`, `createBooking`, or `updateProfile`
-- `src/components/ui/`
-  - fully shared presentational building blocks
-  - components here should not know about a specific feature/domain
-- `src/components/`
-  - shared domain-level components used across multiple features
-  - examples: boat cards, image galleries, shared layout pieces
-- `src/context/`
-  - app-wide session, toast, and notification state
-  - keep long-lived global state here only when it is truly shared across the app
-- `src/hooks/`
-  - cross-feature reusable hooks
-  - avoid placing feature-only hooks here
-- `src/features/<feature-name>/`
-  - page-specific components, hooks, and helpers for a single feature
-  - use this as the default location for new feature work
-- `src/pages/`
-  - route-level pages that compose feature components
-  - keep heavy business logic out of page files
-- `src/utils/`
-  - shared formatting, image helpers, date helpers, and small pure utility functions
+```text
+frontend/src/
+├── api/
+│   ├── client.js          # shared API client
+│   └── domains/           # domain API modules
+├── components/            # shared domain components
+├── components/ui/         # generic reusable UI components
+├── context/               # app-wide auth, toast, notification state
+├── features/              # feature folders
+├── hooks/                 # reusable cross-feature hooks
+├── lib/                   # shared infrastructure helpers
+├── query/                 # React Query client and query keys
+├── routes/                # lazy route loading
+├── types/                 # shared domain type helpers/docs
+└── utils/                 # shared pure utility functions
+```
 
-## Frontend guardrails
+Current API domain modules:
 
-Before creating a new file:
+```text
+frontend/src/api/domains/
+├── bookings.js
+├── chat.js
+├── favorites.js
+├── geocoding.js
+├── listings.js
+├── moderation.js
+├── payments.js
+├── reports.js
+├── reviews.js
+└── users.js
+```
 
-- Put it in a feature folder if it is only used by one feature.
-- Put it in `components/ui` only if it is generic and reusable.
-- Put it in `components/` if it is a reusable domain component shared by multiple features.
-- Import API functions from `src/api/domains/*` when no feature-specific wrapper logic is needed.
-- Prefer React Query invalidation and context methods over `window.dispatchEvent(...)`.
-- Keep page files thin. Pages should compose components, not contain large amounts of business logic.
-- Do not store access tokens or refresh tokens in `localStorage`.
-- Keep tokens server-controlled through HttpOnly cookies.
-- Use a small helper for repeated image URL selection if multiple image sizes are introduced later.
+Current feature areas include auth, home/search, boat detail, add boat, edit boat, my boats, bookings, host bookings, messages, notifications, profile, public profile, favorites, reviews, reports, payments, moderation, navigation, location picker, availability calendar, and the about/project page.
+
+### Frontend routing
+
+Routes are defined in `frontend/src/App.jsx` and lazy-loaded from `frontend/src/routes/lazyPages.js`.
+
+Public routes include:
+
+```text
+/
+/about
+/boats/:id
+/users/:id
+/login
+/signup
+/forgot-password
+/reset-password
+/verify-email
+/verify-email-change
+```
+
+Authenticated routes are wrapped with `ProtectedRoute`, including:
+
+```text
+/favorites
+/add-boat
+/my-boats
+/my-boats/:id/edit
+/my-bookings
+/bookings/:id
+/messages
+/messages/:id
+/host-bookings
+/notifications
+/profile
+/profile/edit
+/change-password
+/payments/success
+/payments/cancelled
+```
+
+Admin-only routes are wrapped with `AdminRoute`:
+
+```text
+/moderation
+```
+
+`ProtectedRoute` and `AdminRoute` improve the user experience, but the backend must still enforce all real permissions.
+
+### Frontend rules
+
+When adding frontend code:
+
+- Put feature-specific code in `src/features/<feature-name>/`.
+- Put generic reusable UI in `src/components/ui/`.
+- Put shared domain components in `src/components/`.
+- Put cross-feature hooks in `src/hooks/`.
+- Put API calls in `src/api/domains/` unless a feature-specific wrapper is clearly needed.
+- Keep page files thin. Pages should compose components and hooks, not contain large business rules.
+- Use the shared API client so credentials, CSRF, and retry behavior stay centralized.
+- Use React Query for server state.
+- Use context only for app-wide state such as auth/session, toasts, and notifications.
+- Do not store access or refresh tokens in `localStorage`.
+- Prefer query invalidation and context refresh methods over `window.dispatchEvent(...)`.
 
 ## Backend structure
 
-The backend follows a domain-app layout:
+The backend follows a domain-app layout.
 
-- `users/`
-- `listings/`
-- `bookings/`
-- `chat/`
-- `notifications/`
-- `favorites/`
-- `reviews/`
-- `audit/`
-- `geocoding/`
-- `config/`
+```text
+backend/
+├── users/                 # auth, profiles, relationships, sessions
+├── listings/              # boat listings, images, location privacy
+├── bookings/              # booking lifecycle and availability rules
+├── payments/              # Stripe checkout and payment state
+├── chat/                  # conversations, messages, chat WebSockets
+├── notifications/         # notifications and notification WebSockets
+├── favorites/             # saved listings
+├── reviews/               # reviews and review permissions
+├── reports/               # user-submitted reports
+├── moderation/            # admin moderation APIs
+├── geocoding/             # location search/reverse geocoding
+├── audit/                 # audit events and request monitoring
+└── config/                # settings, URLs, ASGI/WSGI, auth, security config
+```
 
-Inside each app, keep these boundaries:
+### Backend file conventions
 
-- `views.py`
-  - HTTP entry points
-  - request orchestration only
-  - avoid large business rules here
-- `serializers.py`
-  - request/response validation
-  - input normalization
-  - representation of API responses
-- `selectors.py`
-  - read/query logic
-  - reusable querysets
-  - permission-aware data retrieval where appropriate
-- `services.py`
-  - write/business logic
-  - transactional operations
-  - domain rules that should not live directly in views
-- `permissions.py`
-  - object-level access checks
-  - role/ownership checks
-- `tests/`
-  - app-specific unit, integration, and security tests
+Use these boundaries where possible:
 
-## Backend guardrails
+- `views.py`: HTTP entry points and request orchestration.
+- `serializers.py`: validation and API representation.
+- `read_serializers.py`: read/list/detail response serializers.
+- `write_serializers.py`: create/update serializers.
+- `selectors.py`: reusable read/query logic.
+- `services.py`: writes, transactions, and business rules.
+- `permissions.py`: role, ownership, and object-level permission checks.
+- `models.py`: database models and constraints.
+- `urls.py`: app-level routing.
+- `tests/`: app-specific tests.
 
-When adding backend logic:
+Focused helper modules such as `creation.py`, `expiry.py`, `lifecycle.py`, `serializer_helpers.py`, `queryset_utils.py`, or `write_mixins.py` are fine when they keep large domain files smaller.
+
+### Backend rules
+
+When adding backend code:
 
 - Keep object-level permission checks explicit.
-- Do not trust frontend-provided ownership fields.
-- Use serializers for input validation.
-- Use services for writes that involve business rules or multiple models.
+- Never trust frontend-provided ownership fields.
+- Use serializers for input validation and normalization.
+- Use services for writes involving business rules, side effects, or multiple models.
 - Use selectors for repeated read/query patterns.
 - Keep views small and predictable.
-- Prefer `select_related` and `prefetch_related` for endpoints that return nested or repeated related data.
-- Keep security-sensitive behavior covered by tests.
+- Use `select_related` and `prefetch_related` when returning related data.
+- Add database constraints when the rule must be true outside normal request flow.
+- Cover security-sensitive behavior with tests.
 
 ## Authentication and sessions
 
-HTTP authentication uses JWT cookies with CSRF enforcement for cookie-authenticated writes.
+HTTP authentication uses JWTs stored in HttpOnly cookies. The frontend does not store raw JWTs in JavaScript-readable storage.
 
 Important rules:
 
-- Access and refresh tokens should stay in HttpOnly cookies.
-- Unsafe requests such as `POST`, `PUT`, `PATCH`, and `DELETE` must be protected by CSRF checks.
+- Access and refresh tokens stay in HttpOnly cookies.
+- Unsafe requests such as `POST`, `PUT`, `PATCH`, and `DELETE` must pass CSRF checks.
+- Token refresh, CSRF handling, and credentials should stay centralized in the frontend API client.
 - Logout should clear cookies and revoke the relevant session where possible.
-- Password reset and password change flows should revoke active sessions where appropriate.
-- Frontend session state should represent whether the user appears logged in, but it should not contain raw tokens.
+- Password reset/password change flows should revoke active sessions where appropriate.
+- Frontend session state may show whether the user appears logged in, but the backend remains the source of truth.
 
-The frontend may store a small session hint, but the backend remains the source of truth for authentication.
+The backend authentication layer is centered around `config.authentication.CookieJWTAuthentication` and SimpleJWT settings in `config/settings/base.py`.
 
-## Realtime and WebSocket auth
+## WebSockets and realtime behavior
 
-WebSocket auth must stay aligned with normal session and JWT behavior.
+Realtime features use Django Channels.
+
+Current WebSocket areas:
+
+- chat conversations
+- user notifications
+- auth/session disconnect events
+
+The ASGI entry point is `backend/config/asgi.py`. WebSocket authentication is handled by `config.jwt_websocket_middleware.JWTAuthMiddleware`, which reads JWT cookies and attaches the authenticated user to the socket scope.
+
+WebSocket rules:
+
+- Reject unauthenticated connections.
+- Validate that a user can access a conversation before joining its group.
+- Scope notification sockets to the authenticated user.
+- Disconnect sockets when token expiry is reached.
+- Support forced disconnect for revoked sessions.
+- Reject oversized payloads before JSON parsing.
+- Do not accept binary chat payloads.
+- Rate-limit chat message sending.
+
+Payload size limits are centralized in:
+
+```text
+backend/config/websocket_limits.py
+```
+
+## Listings and location privacy
+
+Listings separate public location information from private pickup information.
+
+Public listing text should expose a general area, such as a city or region. Exact pickup details belong in private pickup fields and should only be shown to authorized users when appropriate.
 
 Rules:
 
-- WebSocket connections must authenticate the user.
-- Unauthenticated connections should be rejected.
-- Users should only join groups they are allowed to access.
-- Chat messages should be checked against conversation participation.
-- Notifications should be scoped to the authenticated user.
-- Revoked/expired sessions should not continue receiving realtime data.
-- Realtime UI sync should prefer query invalidation and notification context refreshes.
-
-A recommended hardening rule is to reject very large WebSocket payloads before JSON parsing.
-
-Example:
-
-```python
-if len(text_data) > 8192:
-    await self.close(code=1009)
-    return
-```
+- Do not expose exact pickup addresses in public listing text.
+- Do not expose exact coordinates publicly unless the view is intentionally private/authorized.
+- Keep public area/search display separate from private pickup instructions.
+- The backend owns privacy validation; frontend warnings are only guidance.
+- Privacy validation should avoid false positives that block normal boat names, model names, years, or jokes unless they clearly reveal private pickup details.
 
 ## Media uploads and image optimization
 
-User-uploaded media is handled by the backend, not trusted directly by the frontend.
+User-uploaded media is processed by the backend. Shared upload logic lives in:
 
-The upload pipeline should:
+```text
+backend/config/uploads.py
+```
 
-- validate the declared content type
-- verify that the uploaded bytes are a real image
-- reject corrupted or unsafe images
-- reject excessive image dimensions and decompression-bomb candidates
-- apply EXIF orientation safely
-- strip EXIF metadata, including possible GPS/device metadata
-- resize very large images to a web-friendly maximum size
-- re-encode the stored file instead of saving the original user-supplied bytes
-
-Tidemate now uses the simple optimized image flow:
+The upload pipeline:
 
 ```text
 User uploads JPG / PNG / WEBP / GIF
         ↓
-Backend validates the file
+Backend validates content type and real image bytes
         ↓
-Backend strips metadata and applies safe orientation
+Backend rejects corrupted, unsafe, oversized, or decompression-bomb images
         ↓
-Backend resizes huge images to max 1600x1600
+Backend applies EXIF orientation safely
         ↓
-Backend stores an optimized WebP file
+Backend strips metadata, including possible GPS/camera metadata
+        ↓
+Backend resizes large images to a safe web size
+        ↓
+Backend stores an optimized WebP image
+        ↓
+For listing images, backend also creates a smaller WebP thumbnail
 ```
 
-The stored image format should be:
+Current stored file patterns:
 
 ```text
 *_optimized.webp
+*_optimized_thumb.webp
 ```
 
-with content type:
+Current size strategy:
+
+- main optimized image: max 1600x1600
+- thumbnail/card image: max 640x640
+
+A future larger deployment can move uploaded media from local Docker volumes to object storage/CDN. The database should continue to store paths/URLs, not image bytes.
+
+## Bookings and payments
+
+Bookings are managed by the backend as a lifecycle, not as frontend-only state.
+
+Important booking modules include:
 
 ```text
-image/webp
+backend/bookings/creation.py
+backend/bookings/confirmation.py
+backend/bookings/expiry.py
+backend/bookings/lifecycle.py
+backend/bookings/services.py
+backend/bookings/selectors.py
 ```
 
-This keeps storage smaller and improves frontend loading performance while preserving the existing model, serializer, and frontend image URL behavior.
+Payment logic lives in the `payments` app and integrates with Stripe Checkout.
 
-For now, the simple WebP approach does not require database changes because existing `ImageField` fields can store WebP files normally.
+Rules:
 
-A future production-level version may introduce generated variants:
+- The backend owns booking status transitions.
+- The backend owns payment creation and validation.
+- Users can only pay for bookings they are allowed to access.
+- Hosts and renters should see only bookings/payments scoped to them, unless the user is staff.
+- Payment success/cancel frontend pages should reflect backend payment state instead of trusting URL parameters alone.
+- Expired awaiting-payment bookings should be handled server-side.
 
-```text
-thumb: 320px wide
-card: 640px wide
-large: 1400px wide
-```
+## Reports, moderation, and audit logging
 
-If variants are added later, the backend serializer should expose image URLs in a predictable shape, for example:
+Reports and moderation are separate domains:
 
-```json
-{
-  "image": "/media/boats/gallery/large/example.webp",
-  "image_variants": {
-    "thumb": "/media/boats/gallery/thumbs/example.webp",
-    "card": "/media/boats/gallery/cards/example.webp",
-    "large": "/media/boats/gallery/large/example.webp"
-  }
-}
-```
+- `reports/`: normal authenticated users submit reports.
+- `moderation/`: staff/admin users review and update reports.
 
-Frontend components should then use a shared helper instead of manually choosing image URLs in every component.
+Reports can target listings, users, reviews, and chat messages. The report model enforces that each report points to exactly one matching target type and prevents duplicate reports from the same reporter against the same target.
+
+Moderation endpoints must stay staff-only through backend permissions. Frontend admin routing is not a security boundary.
+
+Audit logging lives in `audit/` and is used for security-sensitive actions such as moderation updates and request monitoring.
+
+Rules:
+
+- Admin-only behavior must be enforced by backend permissions.
+- Moderation updates should be audit logged.
+- Security logs should avoid leaking tokens, passwords, or sensitive user data.
+- Request monitoring should stay useful without logging unnecessary private content.
 
 ## API and state management
 
@@ -235,32 +360,42 @@ Frontend API access should go through the shared API client and domain API modul
 Rules:
 
 - Keep base URL handling centralized.
-- Keep credentials and CSRF handling centralized.
-- Avoid duplicating refresh/retry logic across feature files.
-- Prefer React Query for server state.
-- Prefer local component state for short-lived UI state.
-- Prefer context only for app-wide state such as session, toast, and notifications.
+- Keep cookie/credential behavior centralized.
+- Keep CSRF handling centralized.
+- Avoid duplicated refresh/retry logic in feature components.
+- Use React Query for server state.
+- Use local component state for temporary UI state.
+- Use context for app-wide concerns only.
+
+Backend APIs should keep read and write behavior clear:
+
+- Use selectors for read/query logic.
+- Use services for writes and domain operations.
+- Use serializers to validate input and shape output.
+- Keep public endpoints intentionally public and rate-limited.
+- Keep private endpoints scoped by authenticated user and object permissions.
 
 ## Security principles
 
-Tidemate should keep these security principles:
+TideMate should keep these security principles:
 
 - Default to server-side authorization.
 - Never rely only on hidden frontend UI for access control.
 - Keep JWTs out of JavaScript-readable storage.
 - Use CSRF protection for cookie-authenticated write requests.
 - Validate and sanitize uploaded files.
-- Scope user data by authenticated user and role.
-- Use object-level permissions for listings, bookings, chats, reviews, favorites, and notifications.
-- Keep security headers active in the production nginx configuration.
 - Treat uploaded media as user-controlled content even after sanitizing.
+- Scope user data by authenticated user, role, and object ownership.
+- Use object-level permissions for listings, bookings, chats, reviews, favorites, reports, payments, and notifications.
+- Keep throttling on sensitive endpoints.
+- Keep production security headers active.
 - Keep dependency, secret, and static-analysis checks in CI.
 
 ## Deployment notes
 
-Production deployment should make sure the active nginx config includes security hardening.
+Production should keep the active nginx path aligned with the app security model.
 
-Important headers/config areas:
+Important production areas:
 
 - `Content-Security-Policy`
 - `X-Content-Type-Options`
@@ -269,59 +404,86 @@ Important headers/config areas:
 - `Permissions-Policy`
 - secure cookie settings
 - HSTS when served over HTTPS
-- strict handling of uploaded media responses
+- `/api/` proxying to backend
+- `/ws/` proxying with upgrade headers
+- safe serving of `/media/` and `/static/`
 
-The deployment nginx configuration and the frontend Docker nginx configuration should not drift apart. If one contains stronger security headers, the active production path should use those headers too.
+The frontend Docker nginx config and any host-level nginx config should not drift apart. If one path adds allowed image/script/connect sources, the active production path must be updated too.
 
-For a larger production deployment, uploaded media should eventually move from local disk to object storage such as S3, Azure Blob Storage, Google Cloud Storage, Cloudinary, or similar. The database should continue to store paths/URLs, not image bytes.
+Frontend-only rebuild:
+
+```bash
+docker compose --env-file .env.production -f compose.prod.yml up -d --no-deps --build frontend
+```
+
+Backend-only rebuild:
+
+```bash
+docker compose --env-file .env.production -f compose.prod.yml up -d --no-deps --build backend
+```
 
 ## Testing and CI
 
-The project should keep tests close to the domain they verify.
+Tests should stay close to the domain they verify.
 
 Backend tests should cover:
 
-- authentication and session behavior
+- authentication, CSRF, and session behavior
 - object-level permissions
 - listing creation/update/delete rules
-- booking rules
+- location privacy rules
+- image validation, optimization, and thumbnail generation
+- booking lifecycle rules
+- payment state rules
 - chat participation rules
 - notification scoping
-- upload validation and WebP optimization
 - review/favorite ownership rules
+- reports and moderation permissions
 
 Frontend tests should cover:
 
-- important UI flows
+- important route flows
 - auth/session behavior
-- navigation/search behavior
-- listing display behavior
-- booking and chat flows where practical
+- listing/search display behavior
+- add/edit boat flows
+- booking flows
+- messages/notifications behavior where practical
+- admin-only moderation UI behavior
 
-CI/security checks should include:
+Current CI/security checks include:
 
+- backend system checks
+- migration check
 - backend tests
+- production deploy check
+- frontend lint
 - frontend tests
-- dependency audit
+- frontend build
+- Playwright E2E smoke test
 - secret scanning
-- static analysis/security linting
-- formatting/linting where configured
+- Python dependency audit
+- frontend dependency audit
+- Bandit
+- Semgrep
+- CodeQL
 
 ## Current architecture priorities
 
 Highest-priority maintenance rules:
 
-1. Keep auth and CSRF behavior centralized.
+1. Keep auth, cookies, CSRF, and refresh behavior centralized.
 2. Keep object-level permissions explicit and tested.
-3. Keep upload validation and WebP optimization in the backend.
-4. Keep frontend API calls behind domain API modules.
-5. Keep feature-only frontend logic inside feature folders.
-6. Keep production nginx security headers aligned with the actual deployment path.
-7. Avoid duplicated security configuration where possible.
-8. Prefer small, readable services/selectors over large views or components.
+3. Keep public listing location separate from private pickup details.
+4. Keep upload validation, metadata stripping, WebP optimization, and thumbnail generation in the backend.
+5. Keep booking/payment status transitions server-owned.
+6. Keep frontend API calls behind shared domain modules.
+7. Keep feature-only frontend code inside feature folders.
+8. Keep admin/moderation permissions enforced in the backend.
+9. Keep WebSocket auth and disconnect behavior aligned with normal session behavior.
+10. Keep production nginx/CSP config aligned with the actual deployment path.
 
 ## Summary
 
-Tidemate uses a domain-based backend and feature-based frontend. The backend owns security, validation, authorization, uploads, and business rules. The frontend owns presentation, route composition, user interaction, and API consumption.
+TideMate uses a domain-based Django backend and a feature-based React frontend. The backend owns security, validation, authorization, uploads, payments, audit logging, and business rules. The frontend owns presentation, routing, user interaction, and API consumption.
 
-The main architectural direction is to keep the project modular and predictable while improving production readiness step by step.
+The main architectural direction is to keep the project modular, predictable, and production-minded without spreading business rules across unrelated files.

@@ -67,8 +67,8 @@ export default function AddBoatPhotosSection({
         </div>
 
         {previews.length > 0 ? (
-          <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-gold/20 bg-white/10 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-white/15">
-            <ArrowUpTrayIcon className="h-5 w-5 text-gold" />
+          <label className="inline-flex w-fit shrink-0 cursor-pointer items-center justify-center gap-2 self-start whitespace-nowrap rounded-full border border-gold/20 bg-white/10 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-white/15">
+            <ArrowUpTrayIcon className="h-5 w-5 shrink-0 text-gold" />
             Add more photos
             <input
               type="file"
