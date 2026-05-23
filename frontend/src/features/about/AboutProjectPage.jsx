@@ -7,6 +7,8 @@ import ArchitectureTab from './sections/ArchitectureTab'
 import OverviewTab from './sections/OverviewTab'
 import SecurityTab from './sections/SecurityTab'
 
+const REPOSITORY_URL = 'https://github.com/professorku/Tidemate'
+
 const tabContent = {
   overview: <OverviewTab />,
   architecture: <ArchitectureTab />,
@@ -25,11 +27,22 @@ export default function AboutProjectPage() {
             TideMate project documentation
           </p>
 
-          <p className="mt-4 max-w-4xl text-lg leading-8 text-white/75">
-            A technical walkthrough of TideMate: how the product works, how the
-            codebase is structured, how access is protected, and which API routes
-            support the application.
-          </p>
+          <div className="mt-4 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <p className="max-w-4xl text-lg leading-8 text-white/75">
+              A technical walkthrough of TideMate: how the product works, how the
+              codebase is structured, how access is protected, and which API routes
+              support the application.
+            </p>
+
+            <a
+              href={REPOSITORY_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex w-fit items-center justify-center rounded-full border border-gold/60 bg-gold px-5 py-3 text-sm font-extrabold text-[#071d32] shadow-lg shadow-black/20 transition hover:-translate-y-0.5 hover:bg-[#f7d978]"
+            >
+              View GitHub repository
+            </a>
+          </div>
 
           <div className="mt-10 flex flex-wrap gap-6 border-b border-white/10">
             {tabs.map((tab) => (
