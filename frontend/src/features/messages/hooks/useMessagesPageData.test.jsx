@@ -57,7 +57,7 @@ const samplePage = {
 
 describe('useMessagesPageData', () => {
   beforeEach(() => {
-    vi.restoreAllMocks()
+    vi.clearAllMocks()
     useAuth.mockReturnValue({ user: { username: 'jens' } })
     listConversations.mockResolvedValue(samplePage)
     deleteConversation.mockResolvedValue({})
