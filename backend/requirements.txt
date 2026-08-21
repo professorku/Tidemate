@@ -10,8 +10,8 @@ pillow==12.3.0
 psycopg2-binary==2.9.12
 PyJWT==2.13.0
 python-dotenv==1.2.2
-sqlparse==0.5.5
+sqlparse==0.6.0
 daphne>=4.2.3
 Twisted==26.4.0
 google-auth[requests]>=2.56.3,<3
-stripe>=15.4.0,<16
+stripe>=15.5.0,<16
