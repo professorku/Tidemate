@@ -13,5 +13,5 @@ python-dotenv==1.2.3
 sqlparse==0.6.0
 daphne>=4.2.3
 Twisted==26.4.0
-google-auth[requests]>=2.56.3,<3
-stripe>=15.5.1,<16
+google-auth[requests]>=2.57.0,<3
+stripe>=15.6.0,<16
