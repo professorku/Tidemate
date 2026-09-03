@@ -15,8 +15,10 @@ import {
   getBoatLocationSubtitle,
 } from '../utils/locationPrivacy'
 
+const CARTO_API_KEY = import.meta.env.VITE_CARTO_API_KEY
+
 const MAP_TILE_URL =
-  'https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}{r}.png'
+  `https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}{r}.png?key=${encodeURIComponent(CARTO_API_KEY)}`
 
 const MAP_ATTRIBUTION = '&copy; OpenStreetMap contributors &copy; CARTO'
 
