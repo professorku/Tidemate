@@ -1,8 +1,16 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../tailwind.config.js";
 
 @layer base {
+  /* Preserve Tailwind v3's default border color. */
+  *,
+  ::before,
+  ::after,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+
   html {
     font-family: 'Inter', system-ui, sans-serif;
     font-size: 15px;
@@ -20,67 +28,78 @@
     font-family: 'Inter', system-ui, sans-serif;
   }
 
+  button,
+  [role='button'] {
+    cursor: pointer;
+  }
+
   input,
   select,
   textarea {
     @apply text-sm;
   }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-gray-400);
+    opacity: 1;
+  }
 }
 
-  .boat-location-marker {
-    width: 30px;
-    height: 39px;
-  }
+.boat-location-marker {
+  width: 30px;
+  height: 39px;
+}
 
-  .boat-location-marker__bubble {
-    position: relative;
-    width: 30px;
-    height: 30px;
-    border-radius: 9999px;
-    background: #0f2f4f;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    box-shadow: 0 6px 16px rgba(15, 47, 79, 0.22);
-    border: 2px solid #d4af37;
-    line-height: 1;
-  }
+.boat-location-marker__bubble {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  border-radius: 9999px;
+  background: #0f2f4f;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  box-shadow: 0 6px 16px rgba(15, 47, 79, 0.22);
+  border: 2px solid #d4af37;
+  line-height: 1;
+}
 
-  .boat-location-marker__tip {
-    position: absolute;
-    bottom: -5px;
-    left: 50%;
-    transform: translateX(-50%) rotate(45deg);
-    width: 9px;
-    height: 9px;
-    background: #0f2f4f;
-    border-right: 2px solid #d4af37;
-    border-bottom: 2px solid #d4af37;
-  }
+.boat-location-marker__tip {
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 9px;
+  height: 9px;
+  background: #0f2f4f;
+  border-right: 2px solid #d4af37;
+  border-bottom: 2px solid #d4af37;
+}
 
-  .leaflet-container {
-    background: #e5e7eb;
-  }
+.leaflet-container {
+  background: #e5e7eb;
+}
 
-  .leaflet-container .leaflet-tile {
-    max-width: none !important;
-    max-height: none !important;
-  }
+.leaflet-container .leaflet-tile {
+  max-width: none !important;
+  max-height: none !important;
+}
 
-  .leaflet-container img.leaflet-tile {
-    width: 256px !important;
-    height: 256px !important;
-  }
+.leaflet-container img.leaflet-tile {
+  width: 256px !important;
+  height: 256px !important;
+}
 
 @layer components {
   .btn-primary {
-    @apply rounded-full bg-gold px-4 py-2.5 text-sm font-semibold tracking-tight text-navy shadow-sm transition hover:brightness-95 active:scale-95;
+    @apply rounded-full bg-gold px-4 py-2.5 text-sm font-semibold tracking-tight text-navy shadow-xs transition hover:brightness-95 active:scale-95;
   }
 
   .btn-secondary {
-    @apply rounded-full bg-navy px-4 py-2.5 text-sm font-semibold tracking-tight text-white shadow-sm transition hover:brightness-110 active:scale-95;
+    @apply rounded-full bg-navy px-4 py-2.5 text-sm font-semibold tracking-tight text-white shadow-xs transition hover:brightness-110 active:scale-95;
   }
 
   .btn-outline {
@@ -88,7 +107,7 @@
   }
 
   .btn-danger {
-    @apply rounded-full bg-red-600 px-4 py-2.5 text-sm font-semibold tracking-tight text-white shadow-sm transition hover:brightness-95 active:scale-95;
+    @apply rounded-full bg-red-600 px-4 py-2.5 text-sm font-semibold tracking-tight text-white shadow-xs transition hover:brightness-95 active:scale-95;
   }
 
   .panel {
@@ -100,7 +119,7 @@
   }
 
   .input-base {
-    @apply w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-ocean focus:ring-2 focus:ring-ocean/10;
+    @apply w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-hidden transition focus:border-ocean focus:ring-2 focus:ring-ocean/10;
   }
 
   .badge-soft {

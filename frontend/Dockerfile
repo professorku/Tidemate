@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY frontend/package*.json ./
 
-RUN npm ci
+RUN npm ci --loglevel verbose --foreground-scripts
 
 COPY frontend ./
 
